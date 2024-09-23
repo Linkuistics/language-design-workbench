@@ -1,0 +1,161 @@
+grammar sexpr {
+     
+    // Derived largely from the syntax for scheme found at
+    // https://www.scheme.com/tspl4/grammar.html#APPENDIXFORMALSYNTAX
+
+    datum = | boolean | character | number | string | list | vector | byte_vector | struct | symbol; 
+
+    boolean = | true:'#t' | false:'#f' | true:'#T' | false:'#F' ;
+
+    // TODO: the full number syntax from the spec
+    number = | num2 | num10 | num16 ;
+
+    num2      @atomic = sign? ureal2 ;
+    ureal2    @atomic = uinteger2 ;
+    uinteger2 @atomic = digit2+ ;
+    digit2    @atomic = [01] ;
+
+    num10      @atomic = sign? ureal10 ;
+    ureal10    @atomic = uinteger10 ;
+    uinteger10 @atomic = digit10+ ;
+    digit10    @atomic = [0-9] ;
+
+    num16      @atomic = sign? ureal16 ;
+    ureal16    @atomic = uinteger16 ;
+    uinteger16 @atomic = digit16+ ;
+    digit16    @atomic = [0-9a-fA-F] ;
+
+    sign = [+-]? ;
+
+    character @noskip = | '#\\' char:. | '#\\' character_name | '#\\x' uinteger16 ;
+    character_name = | 'alarm' | 'backspace' | 'delete' | 'esc' | 'linefeed' | 'newline' | 'page' | 'return' | 'space' | 'tab' | 'vtab' ;
+
+    string @atomic = '"' string_character* '"' ;
+    // TODO: multiline strings from the spec
+    string_character @atomic = | [^"\\] | '\\' [\\"abfnrtv] | '\\x' uinteger16 ;
+
+    symbol = ident ;
+
+    list =
+        | '(' ( datum+ ( '.' tail:datum )? )? ')'
+        | '[' ( datum+ ( '.' tail:datum )? )? ']'
+        | '{' ( datum+ ( '.' tail:datum )? )? '}'
+        | abbreviation
+        ;
+    
+    abbreviation =
+        | "'" quote:datum
+        | "`" quasiquote:datum
+        | "," unquote:datum
+        | ",@" unquote_splicing:datum
+        ;
+
+    vector =
+        | '#(' datum* ')'
+        | '#[' datum* ']'
+        | '#{' datum* '}'
+        ;
+    
+    byte_vector =
+        | '#vu8(' number* ')'
+        | '#vu8[' number* ']'
+        | '#vu8{' number* '}'
+        ;
+    
+    struct =
+        | '#s(' name:symbol datum* ')'
+        | '#s[' name:symbol datum* ']'
+        | '#s{' name:symbol datum* '}'
+        ;
+    
+    // TODO: Unicode character classes from the spec (requires Unicode classes in msbnf)
+    identifier ident          @atomic = | '+' | '-' | '...' | ident_start ident_continue* ;
+               ident_start    @atomic = | [a-zA-Z!$%&*/:<=>?~_^] | '\\x' uinteger16 ;
+               ident_continue @atomic = | ident_start | digit10 | [.+-@] ;
+
+    trivia  @noskip = | whitespace | comment ;
+    comment @noskip = | line_comment | block_comment | datum_comment ;
+    line_comment @atomic = ';' [^\n]* [\n]? ;
+    block_comment @atomic = '#|' ( | block_comment | [^|]+ | '|' !'#' )* '|#' ;
+    datum_comment = '#;' datum ;
+
+    // TODO: Unicode whitespace classes from the spec (requires Unicode classes in msbnf)
+    whitespace @atomic = [\n\t ]* ;
+
+    /**************************************************************************
+
+        Additional notes for  this grammar
+        ==================================
+
+        `sexpr.ts`: 
+        -----------
+
+        ### ByteVector
+
+        Ensure that `ByteVector` is represented as a list of `Number` type
+        elements, not simple number primitives. This preserves the full
+        structure of each number within the ByteVector, including base, value,
+        and sign information.
+
+        For `List`, `Vector`, `ByteVector`, and `Struct` types, represent the
+        delimiter as a simple enumeration of '(', '[', or '{'. For example:
+
+        ```typescript
+        type Delimiter = '(' | '[' | '{';
+        ```
+
+        This should be used instead of storing the full delimiter string (e.g.,
+        '#(' for Vector).  Prefix characters like '#' or '#vu8' should be
+        handled separately in the parser and pretty-printer, not stored in the
+        abstract syntax tree.
+
+        ### Abbreviations
+
+        The `abbreviation` type is not represented as it is replaced with a list
+        during parsing.
+
+        ### Characters
+
+        The named character and hex character types are not represented as they
+        are replaced with the corresponding character during parsing.
+
+        `sexpr-parser.ts`: 
+        ------------------
+
+        ### ByteVector
+
+        When parsing `ByteVector` elements, ensure that each `Number` represents
+        a value in the range 0..255. This must still allow all bases, so you
+        need to convert the value to a number to check it.
+
+        Only parse the number bases that are actually used in the grammar i.e.
+        no octal.
+
+        ### Characters
+
+        Replace named characters with the character to which it corresponds.
+
+        Replace hex characters with the character to which it corresponds. It is
+        a parse error if the hex value is ilegal for unicode.
+
+        ### Abbreviations
+
+        Replace abbreviations with the corresponding list with the correct
+        symbol as the first element.
+
+        `sexpr-prettier-plugin.ts`: 
+        ---------------------------
+
+        ### Characters
+
+        Characters corresponding to named characters should be printed as such,
+        otherwise those outside ascii printable range should be printed as hex.
+
+        ### Abbreviations
+
+        Lists that were created from abbreviations should be printed as
+        abbreviations.
+
+    **************************************************************************/
+    
+}
