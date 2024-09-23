@@ -39,14 +39,23 @@ Type.prototype.isWrapperProductType = function (this: Type): boolean {
     return this instanceof ProductType && this.fields.length === 1;
 } as Type['isWrapperProductType'];
 
+function isDiscriminated(type: Type, seen: Set<string>): boolean {
+    if (type instanceof ProductType) return true;
+    if (type instanceof SumType)
+        return !type.members.some((member) => !isDiscriminated(member, seen));
+
+    if (type instanceof NamedTypeReference)
+        return isDiscriminated(type.target, seen);
+    if (type instanceof NamedType) {
+        if (seen.has(type.name)) return false;
+        seen.add(type.name);
+        return isDiscriminated(type.type, seen);
+    }
+    return false;
+}
+
 Type.prototype.isDiscriminated = function (this: Type): boolean {
-    return (
-        this instanceof ProductType ||
-        (this instanceof SumType &&
-            !this.members.some((member) => !member.isDiscriminated())) ||
-        (this instanceof NamedTypeReference && this.target.isDiscriminated()) ||
-        (this instanceof NamedType && this.type.isDiscriminated())
-    );
+    return isDiscriminated(this, new Set());
 };
 
 export function findFieldName(field: ProductTypeField): string {
