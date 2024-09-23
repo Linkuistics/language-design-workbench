@@ -1,0 +1,63 @@
+grammar model {
+    
+    Model =
+        'model' name:Id 
+        'root' root_name:Id
+        ( 'modifies' parent_name:Id )? 
+        '{' ( | Definition | Deletion | MemberModification )* ';' '}'
+        ;
+
+    Definition = name:Id '=' Type  ;
+    Deletion = 'delete' name:Id  ;
+    MemberModification = 'modify' name:Id ( | MemberDeletion | MemberAddition )+ ;
+    MemberDeletion = '-=' ( | name:Id | NamedTypeReference ) ; 
+    MemberAddition = '+=' ( | Type | ProductMember ) ;
+
+
+    /************************************
+     * Types
+     ************************************/
+
+    Type = | VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference ;
+
+    VoidType = '()' ;
+    PrimitiveType = | 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' ;
+    EnumType = 'enum' '{' ( member:Id )* '}' ;
+
+    TypeWithStructure = | SumType | ProductType | GenericType ;
+    
+    SumType = '{' member:Type ( '|' member:Type )+ '}' ;
+
+    ProductType = '{' member:ProductMember ( ',' member:ProductMember )* '}' ;
+    ProductMember = name:Id ':' Type ;
+
+    GenericType = | TupleType | MapType | SetType | SequenceType | OptionType | ResultType ;
+    TupleType = 'tuple<' member:Type ( ',' member:Type )* '>' ;
+    MapType = 'map<' key:Type ',' value:Type '>' ;
+    SetType = 'set<' key:Type '>' ;
+    SequenceType = 'seq<' Type '>' ;
+    OptionType = 'option<' Type '>' ;
+    ResultType = 'result<' ok:Type ',' err:Type '>' ;
+
+    NamedTypeReference @noskip = name:Id ( '::' name:Id )* ;
+
+
+    /************************************
+     * Identifiers
+     ************************************/
+
+    identifier Id         @atomic = InitialIdentifierChar ( IdentifierChar )* ;
+    InitialIdentifierChar @atomic = [a-zA-Z_] ;
+    IdentifierChar        @atomic = [a-zA-Z_0-9] ;
+
+
+    /************************************
+     * Trivia
+     ************************************/
+
+    trivia        @noskip = | line_comment | block_comment | whitespace ;
+    whitespace    @atomic = [\n\t ]+ ;
+    line_comment  @atomic = '//' [^\n]* '\n'? ;
+    block_comment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
+
+}
