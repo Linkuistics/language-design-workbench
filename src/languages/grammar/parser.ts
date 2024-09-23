@@ -307,12 +307,12 @@ export class GrammarParser extends Parser {
     }
 
     private parseString(): string {
-        const quote = this.must(
-            this.consumeString("'") || this.consumeString('"'),
-            'Expected string'
-        );
-
         return this.ignoreTriviaDuring(() => {
+            const quote = this.must(
+                this.consumeString("'") || this.consumeString('"'),
+                'Expected string'
+            );
+
             let str = '';
             while (!this.isEOF() && this.peek() !== quote) {
                 const escape = this.consumeString('\\');
@@ -362,8 +362,8 @@ export class GrammarParser extends Parser {
     }
 
     private parseNegativeLookahead(): Model.NegativeLookahead {
-        this.mustConsume('!');
         let content = this.ignoreTriviaDuring(() => {
+            this.mustConsume('!');
             return this.alternatives(
                 () => this.parseCharset(),
                 () => new Model.StringElement(this.parseString())
