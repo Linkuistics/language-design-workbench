@@ -158,17 +158,15 @@ export class SexprParser extends Parser {
         if (this.consumeString('...')) return '...';
         if (this.consumeString('+')) return '+';
         if (this.consumeString('-')) return '-';
-        return this.must(
-            this.consumeRegex(
-                /^([a-zA-Z!$%&*/:<=>?~_^][a-zA-Z0-9!$%&*/:<=>?~_^.+-@]*)/
-            ),
-            'Expected symbol'
+        return this.mustConsumeRegex(
+            /^([a-zA-Z!$%&*/:<=>?~_^][a-zA-Z0-9!$%&*/:<=>?~_^.+-@]*)/,
+            'symbol'
         );
     }
 
     private parseString(): Model.String {
         return this.ignoreTriviaDuring(() => {
-            this.mustConsume('"');
+            this.mustConsumeString('"');
             let value = '';
             while (this.peek() !== '"' && !this.isEOF()) {
                 if (this.peek() === '\\') {
@@ -230,7 +228,7 @@ export class SexprParser extends Parser {
                     value += char;
                 }
             }
-            this.mustConsume('"');
+            this.mustConsumeString('"');
             return new Model.String(value);
         });
     }
@@ -244,28 +242,20 @@ export class SexprParser extends Parser {
                   : '';
             if (this.consumeString('#b')) {
                 const value =
-                    sign +
-                    this.must(
-                        this.consumeRegex(/^[01]+/),
-                        'Expected binary number'
-                    );
+                    sign + this.mustConsumeRegex(/^[01]+/, 'binary number');
                 return new Model.Num2(value);
             }
             if (this.consumeString('#x')) {
                 const value =
                     sign +
-                    this.must(
-                        this.consumeRegex(/^[0-9a-fA-F]+/),
-                        'Expected hexadecimal number'
+                    this.mustConsumeRegex(
+                        /^[0-9a-fA-F]+/,
+                        'hexadecimal number'
                     );
                 return new Model.Num16(value);
             }
             const value =
-                sign +
-                this.must(
-                    this.consumeRegex(/^[0-9]+/),
-                    'Expected decimal number'
-                );
+                sign + this.mustConsumeRegex(/^[0-9]+/, 'decimal number');
             return new Model.Num10(value);
         });
     }
@@ -275,7 +265,7 @@ export class SexprParser extends Parser {
             this.consumeString('(') ||
                 this.consumeString('[') ||
                 this.consumeString('{'),
-            'Expected list opening delimiter'
+            'list opening delimiter'
         );
         const closeDelimiter =
             openDelimiter === '(' ? ')' : openDelimiter === '[' ? ']' : '}';
@@ -296,7 +286,7 @@ export class SexprParser extends Parser {
             data.push(this.parseDatum());
         }
 
-        this.mustConsume(closeDelimiter);
+        this.mustConsumeString(closeDelimiter);
         return { data, tail };
     }
 
@@ -305,7 +295,7 @@ export class SexprParser extends Parser {
             this.consumeString('#(') ||
                 this.consumeString('#[') ||
                 this.consumeString('#{'),
-            'Expected vector opening delimiter'
+            'vector opening delimiter'
         );
         const closeDelimiter =
             openDelimiter === '#(' ? ')' : openDelimiter === '#[' ? ']' : '}';
@@ -315,7 +305,7 @@ export class SexprParser extends Parser {
             data.push(this.parseDatum());
         }
 
-        this.mustConsume(closeDelimiter);
+        this.mustConsumeString(closeDelimiter);
         return new Model.Vector(data);
     }
 
@@ -324,7 +314,7 @@ export class SexprParser extends Parser {
             this.consumeString('#vu8(') ||
                 this.consumeString('#vu8[') ||
                 this.consumeString('#vu8{'),
-            'Expected byte vector opening delimiter'
+            'byte vector opening delimiter'
         );
         const closeDelimiter =
             openDelimiter === '#vu8('
@@ -354,7 +344,7 @@ export class SexprParser extends Parser {
             numbers.push(number);
         }
 
-        this.mustConsume(closeDelimiter);
+        this.mustConsumeString(closeDelimiter);
         return new Model.ByteVector(numbers);
     }
 
@@ -363,7 +353,7 @@ export class SexprParser extends Parser {
             this.consumeString('#s(') ||
                 this.consumeString('#s[') ||
                 this.consumeString('#s{'),
-            'Expected struct opening delimiter'
+            'struct opening delimiter'
         );
         const closeDelimiter =
             openDelimiter === '#s(' ? ')' : openDelimiter === '#s[' ? ']' : '}';
@@ -374,7 +364,7 @@ export class SexprParser extends Parser {
             data.push(this.parseDatum());
         }
 
-        this.mustConsume(closeDelimiter);
+        this.mustConsumeString(closeDelimiter);
         return new Model.Struct(name, data);
     }
 
@@ -384,7 +374,7 @@ export class SexprParser extends Parser {
                 this.consumeString('`') ||
                 this.consumeString(',@') ||
                 this.consumeString(','),
-            'Expected abbreviation'
+            'abbreviation'
         );
 
         const datum = this.parseDatum();

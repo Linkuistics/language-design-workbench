@@ -26,7 +26,7 @@ export class GrammarParser extends Parser {
         return this.withContext('grammar', () => {
             this.mustConsumeKeyword('grammar');
             const name = this.parseName();
-            this.mustConsume('{');
+            this.mustConsumeString('{');
             const rules = this.zeroOrMore(() => {
                 return this.alternatives(
                     () => this.parsePrattRule(),
@@ -34,7 +34,7 @@ export class GrammarParser extends Parser {
                     () => this.parseRule()
                 );
             });
-            this.mustConsume('}');
+            this.mustConsumeString('}');
             return new Model.Grammar(name, rules);
         });
     }
@@ -46,9 +46,9 @@ export class GrammarParser extends Parser {
             const versionAnnotations = this.zeroOrMore(() =>
                 this.parseVersionAnnotation()
             );
-            this.mustConsume('=');
+            this.mustConsumeString('=');
             const body = this.parseRuleBody();
-            this.mustConsume(';');
+            this.mustConsumeString(';');
             return new Model.Rule(name, body, annotation, versionAnnotations);
         });
     }
@@ -64,10 +64,10 @@ export class GrammarParser extends Parser {
         const versionAnnotations = this.zeroOrMore(() =>
             this.parseVersionAnnotation()
         );
-        this.mustConsume('{');
+        this.mustConsumeString('{');
         let operators = this.oneOrMore(() => this.parsePrattOperator());
         let primary = this.parsePrattPrimary();
-        this.mustConsume('}');
+        this.mustConsumeString('}');
         return new Model.PrattRule(
             name,
             operators,
@@ -82,18 +82,18 @@ export class GrammarParser extends Parser {
         const versionAnnotations = this.zeroOrMore(() =>
             this.parseVersionAnnotation()
         );
-        this.mustConsume('=');
+        this.mustConsumeString('=');
         const body = this.parseRuleBody();
-        this.mustConsume(';');
+        this.mustConsumeString(';');
         return new Model.PrattOperator(type, name, body, versionAnnotations);
     }
 
     private parsePrattPrimary(): Model.PrattPrimary {
         this.mustConsumeKeyword('primary');
         const name = this.parseName();
-        this.mustConsume('=');
+        this.mustConsumeString('=');
         const body = this.parseRuleBody();
-        this.mustConsume(';');
+        this.mustConsumeString(';');
         return new Model.PrattPrimary(name, body);
     }
 
@@ -118,18 +118,18 @@ export class GrammarParser extends Parser {
             const versionAnnotations = this.zeroOrMore(() =>
                 this.parseVersionAnnotation()
             );
-            this.mustConsume('=');
+            this.mustConsumeString('=');
             return this.alternatives(
                 () => {
-                    this.mustConsume('(');
+                    this.mustConsumeString('(');
                     let ruleBodies = [];
                     ruleBodies.push(this.parseRuleBody());
-                    this.mustConsume(')');
+                    this.mustConsumeString(')');
                     this.mustConsumeKeyword('excluding');
-                    this.mustConsume('(');
+                    this.mustConsumeString('(');
                     ruleBodies.push(this.parseRuleBody());
-                    this.mustConsume(')');
-                    this.mustConsume(';');
+                    this.mustConsumeString(')');
+                    this.mustConsumeString(';');
                     return new Model.IdentifierRule(
                         name,
                         ruleBodies,
@@ -139,7 +139,7 @@ export class GrammarParser extends Parser {
                 },
                 () => {
                     const ruleBodies = [this.parseRuleBody()];
-                    this.mustConsume(';');
+                    this.mustConsumeString(';');
                     return new Model.IdentifierRule(
                         name,
                         ruleBodies,
@@ -155,9 +155,9 @@ export class GrammarParser extends Parser {
         return this.withContext('version_annotation', () => {
             const type = this.parseVersionAnnotationType();
             return this.ignoreTriviaDuring(() => {
-                this.mustConsume('(');
+                this.mustConsumeString('(');
                 const version = this.parseVersionNumber();
-                this.mustConsume(')');
+                this.mustConsumeString(')');
                 return new Model.VersionAnnotation(type, version);
             });
         });
@@ -187,10 +187,7 @@ export class GrammarParser extends Parser {
     }
 
     private parseVersionSegment(): Model.VersionSegment {
-        return this.must(
-            this.consumeRegex(/^[0-9]+/),
-            'Expected version segment'
-        );
+        return this.mustConsumeRegex(/^[0-9]+/, 'version segment');
     }
 
     private parseRuleBody(): Model.RuleBody {
@@ -208,7 +205,7 @@ export class GrammarParser extends Parser {
     private parseAlternativeRule(): Model.AlternativeRule {
         return this.withContext('alternative_rule', () => {
             const label = this.parseOptionalLabel();
-            this.mustConsume('|');
+            this.mustConsumeString('|');
             const versionAnnotations = this.zeroOrMore(() =>
                 this.parseVersionAnnotation()
             );
@@ -261,9 +258,9 @@ export class GrammarParser extends Parser {
                 () => this.parseCharset(),
                 () => this.parseAny(),
                 () => {
-                    this.mustConsume('(');
+                    this.mustConsumeString('(');
                     const body = this.parseRuleBody();
-                    this.mustConsume(')');
+                    this.mustConsumeString(')');
                     return body;
                 }
             );
@@ -275,7 +272,7 @@ export class GrammarParser extends Parser {
             const names: Model.Name[] = [];
             names.push(this.parseName());
             this.zeroOrMore(() => {
-                this.mustConsume('::');
+                this.mustConsumeString('::');
                 names.push(this.parseName());
             });
             return new Model.RuleReference(names);
@@ -290,10 +287,7 @@ export class GrammarParser extends Parser {
     }
 
     private parseName(): Model.Name {
-        return this.must(
-            this.consumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/),
-            'Expected name'
-        );
+        return this.mustConsumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/, 'name');
     }
 
     private parseOptionalLabel(): Model.Label | undefined {
@@ -310,24 +304,24 @@ export class GrammarParser extends Parser {
         return this.ignoreTriviaDuring(() => {
             const quote = this.must(
                 this.consumeString("'") || this.consumeString('"'),
-                'Expected string'
+                'string'
             );
 
             let str = '';
             while (!this.isEOF() && this.peek() !== quote) {
                 const escape = this.consumeString('\\');
                 if (escape) str += escape;
-                str += this.must(this.consume(), 'Unexpected end of string');
+                str += this.must(this.consume(), 'continuation of string');
             }
 
-            this.mustConsume(quote);
+            this.mustConsumeString(quote);
             return str;
         });
     }
 
     private parseCharset(): Model.CharSet {
         return this.ignoreTriviaDuring(() => {
-            this.mustConsume('[');
+            this.mustConsumeString('[');
             const negated = this.consumeString('^') !== undefined;
             const ranges = [];
 
@@ -340,7 +334,7 @@ export class GrammarParser extends Parser {
                 ranges.push({ startChar, endChar });
             }
 
-            this.mustConsume(']');
+            this.mustConsumeString(']');
             return new Model.CharSet(negated, ranges);
         });
     }
@@ -349,21 +343,21 @@ export class GrammarParser extends Parser {
         if (this.consumeString('\\')) {
             const escaped = this.must(
                 this.consume(),
-                'Expected escaped character in charset'
+                'escaped charset character'
             );
             return '\\' + escaped;
         }
-        return this.must(this.consume(), 'Expected character in charset');
+        return this.must(this.consume(), 'charset character');
     }
 
     private parseAny(): Model.AnyElement {
-        this.mustConsume('.');
+        this.mustConsumeString('.');
         return new Model.AnyElement();
     }
 
     private parseNegativeLookahead(): Model.NegativeLookahead {
         let content = this.ignoreTriviaDuring(() => {
-            this.mustConsume('!');
+            this.mustConsumeString('!');
             return this.alternatives(
                 () => this.parseCharset(),
                 () => new Model.StringElement(this.parseString())

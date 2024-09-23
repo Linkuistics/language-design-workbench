@@ -6,8 +6,10 @@
     "scripts": {
         "build": "tsc",
         "grammar": "node dist/cli/grammar.js",
-        "grammar-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/grammar/grammar.msbnf > src/languages/grammar/new-model.ts",
-        "sexpr-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/sexpr/sexpr.msbnf -g -r datum > src/languages/sexpr/model.ts"
+        "grammar-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/grammar/grammar.msbnf -r grammar > src/languages/grammar/new-model.ts",
+        "model-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/model/model.msbnf -r Model > src/languages/model/new-model.ts",
+        "sexpr-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/sexpr/sexpr.msbnf -r datum > src/languages/sexpr/model.ts",
+        "json-modelgen": "node dist/cli/grammar.js modelgen -i src/languages/json/json.msbnf -r value > src/languages/json/model.ts"
     },
     "keywords": [],
     "author": "",

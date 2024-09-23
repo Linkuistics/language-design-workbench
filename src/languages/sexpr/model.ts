@@ -1,11 +1,9 @@
-type Optional<T> = T | undefined;
-
 export type Abbreviation = { quote: Datum } | { quasiquote: Datum } | { unquote: Datum } | { unquoteSplicing: Datum };
 export type Character = { char: string } | { characterName: CharacterName } | Uinteger16;
 export type Comment = LineComment | BlockComment | DatumComment;
-export type Datum = { boolean: Boolean } | Character | Symbol | String | Number | List | Vector | ByteVector | Struct;
-export type DatumComment = { boolean: Boolean } | Character | Symbol | String | Number | List | Vector | ByteVector | Struct;
-export type List = { data: Array<Datum>, tail: Optional<Datum> } | Abbreviation;
+export type Datum = { boolean: Boolean } | Character | Number | String | List | Vector | ByteVector | Struct | Symbol;
+export type DatumComment = { boolean: Boolean } | Character | Number | String | List | Vector | ByteVector | Struct | Symbol;
+export type List = { data: Datum[], tail: Datum | undefined } | Abbreviation;
 export type Number = Num2 | Num10 | Num16;
 export type Symbol = string;
 export type Trivia = Whitespace | Comment;
@@ -37,7 +35,7 @@ export class BlockComment {
 
 export class ByteVector {
     constructor(
-        public numbers: Array<Number>
+        public numbers: Number[]
     ) {}
 }
 
@@ -74,7 +72,7 @@ export class String {
 export class Struct {
     constructor(
         public name: Symbol,
-        public data: Array<Datum>
+        public data: Datum[]
     ) {}
 }
 
@@ -86,7 +84,7 @@ export class Uinteger16 {
 
 export class Vector {
     constructor(
-        public data: Array<Datum>
+        public data: Datum[]
     ) {}
 }
 

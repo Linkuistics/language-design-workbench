@@ -31,6 +31,8 @@ export function isNameGlobal(name: string): boolean {
 declare module './model' {
     interface Type {
         isWrapperProductType(): this is ProductType;
+        isPrimitiveWrapperProductType(): this is ProductType;
+        isDiscriminatedWrapperProductType(): this is ProductType;
         isDiscriminated(): boolean;
     }
 }
@@ -38,6 +40,19 @@ declare module './model' {
 Type.prototype.isWrapperProductType = function (this: Type): boolean {
     return this instanceof ProductType && this.fields.length === 1;
 } as Type['isWrapperProductType'];
+
+Type.prototype.isPrimitiveWrapperProductType = function (this: Type): boolean {
+    return (
+        this.isWrapperProductType() &&
+        this.fields[0].type instanceof PrimitiveType
+    );
+} as Type['isPrimitiveWrapperProductType'];
+
+Type.prototype.isDiscriminatedWrapperProductType = function (
+    this: Type
+): boolean {
+    return this.isWrapperProductType() && this.fields[0].type.isDiscriminated();
+} as Type['isDiscriminatedWrapperProductType'];
 
 function isDiscriminated(type: Type, seen: Set<string>): boolean {
     if (type instanceof ProductType) return true;

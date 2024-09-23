@@ -137,15 +137,15 @@ export abstract class Parser implements InputStream {
     /**
      * Peeks at the next character in the input stream and ensures it's not EOF.
      *
-     * @param description - A description of the expected character or token, used in the error message.
+     * @param expected - A description of the expected character or token, used in the error message.
      * @returns The next character in the input stream.
      * @throws {ParseError} if the next character is EOF.
      */
-    mustPeek(description: string): string {
+    mustPeek(expected: string): string {
         const c = this.peek();
         if (!c)
             throw new ParseError(
-                `Expected ${description}, but found EOF"`,
+                `Expected ${expected}, but found EOF"`,
                 this.getPosition(),
                 this
             );
@@ -187,26 +187,15 @@ export abstract class Parser implements InputStream {
         return this.input.consume(count);
     }
 
-    /**
-     * Attempts to consume a specific string and throws an error if unsuccessful.
-     *
-     * @param str - The string to consume.
-     * @returns The consumed string.
-     * @throws {ParseError} if the expected string cannot be consumed.
-     */
-    protected mustConsume(str: string): string {
-        const consumed = this.consumeString(str);
-        if (consumed === undefined) {
-            const found = this.peek() ?? 'EOF';
-            throw new ParseError(
-                `Expected "${str}", but found "${found}"`,
-                this.getPosition(),
-                this
-            );
+    protected consumeKeyword(keyword: string): string | undefined {
+        const pos = this.getPosition();
+        const consumed = this.consumeIdentifierForKeyword();
+        if (consumed === undefined || consumed !== keyword) {
+            this.restorePosition(pos);
+            return undefined;
         }
         return consumed;
     }
-
     /**
      * Attempts to consume a keyword and throws an error if unsuccessful.
      *
@@ -215,18 +204,7 @@ export abstract class Parser implements InputStream {
      * @throws {ParseError} if the expected keyword cannot be consumed.
      */
     protected mustConsumeKeyword(keyword: string): string {
-        const pos = this.getPosition();
-        const consumed = this.consumeIdentifierForKeyword();
-        if (consumed === undefined || consumed !== keyword) {
-            const found = consumed ?? this.peek() ?? 'EOF';
-            this.restorePosition(pos);
-            throw new ParseError(
-                `Expected "${keyword}", but found "${found}"`,
-                pos,
-                this
-            );
-        }
-        return consumed;
+        return this.must(this.consumeKeyword(keyword), keyword);
     }
 
     /**
@@ -235,6 +213,10 @@ export abstract class Parser implements InputStream {
     consumeRegex(regex: RegExp): string | undefined {
         this.skipTriviaIfEnabled();
         return this.input.consumeRegex(regex);
+    }
+
+    mustConsumeRegex(regex: RegExp, expected: string): string {
+        return this.must(this.consumeRegex(regex), expected);
     }
 
     /**
@@ -246,11 +228,29 @@ export abstract class Parser implements InputStream {
     }
 
     /**
+     * Attempts to consume a specific string and throws an error if unsuccessful.
+     *
+     * @param str - The string to consume.
+     * @returns The consumed string.
+     * @throws {ParseError} if the expected string cannot be consumed.
+     */
+    protected mustConsumeString(str: string): string {
+        return this.consumeString(str), str;
+    }
+
+    /**
      * @inheritdoc
      */
     consumeWhile(predicate: (char: string) => boolean): string | undefined {
         this.skipTriviaIfEnabled();
         return this.input.consumeWhile(predicate);
+    }
+
+    mustConsumeWhile(
+        predicate: (char: string) => boolean,
+        expected: string
+    ): string {
+        return this.must(this.consumeWhile(predicate), expected);
     }
 
     /**
@@ -338,9 +338,14 @@ export abstract class Parser implements InputStream {
      * @returns The value if it is defined.
      * @throws {ParseError} if the value is undefined.
      */
-    protected must<T>(value: T | undefined, errorMessage: string): T {
+    protected must<T>(value: T | undefined, expected: string): T {
         if (value === undefined) {
-            throw new ParseError(errorMessage, this.getPosition(), this);
+            const found = this.peek() ?? 'EOF';
+            throw new ParseError(
+                `Expected "${expected}", but found "${found}"`,
+                this.getPosition(),
+                this
+            );
         }
         return value;
     }

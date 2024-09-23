@@ -33,11 +33,11 @@ grammar model {
 
     GenericType = | TupleType | MapType | SetType | SequenceType | OptionType | ResultType ;
     TupleType = 'tuple<' member:Type ( ',' member:Type )* '>' ;
-    MapType = 'map<' key:Type ',' value:Type '>' ;
-    SetType = 'set<' key:Type '>' ;
+    MapType = 'map<' key_type:Type ',' value_type:Type '>' ;
+    SetType = 'set<' key_type:Type '>' ;
     SequenceType = 'seq<' Type '>' ;
     OptionType = 'option<' Type '>' ;
-    ResultType = 'result<' ok:Type ',' err:Type '>' ;
+    ResultType = 'result<' ok_type:Type ',' err_type:Type '>' ;
 
     NamedTypeReference @noskip = name:Id ( '::' name:Id )* ;
 
