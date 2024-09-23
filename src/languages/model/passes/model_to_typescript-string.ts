@@ -127,6 +127,8 @@ export class ModelToTypescriptString {
             return 'boolean';
         } else if (type instanceof VoidType) {
             return 'void';
+        } else if (type instanceof EnumType) {
+            return type.members.map((member) => `'${member}'`).join(' | ');
         }
         throw new Error('Unexpected type: ' + type);
     }
