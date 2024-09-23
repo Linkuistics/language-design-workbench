@@ -16,7 +16,7 @@
   "Hex escape: \x41"
 
   ;; Symbols
-  symbol + -
+  symbol + - ...
 
   ;; Characters (including all named characters)
   #\a
