@@ -28,7 +28,8 @@ export class GrammarParser extends Parser {
             const name = this.parseName();
             this.mustConsumeString('{');
             const rules = this.zeroOrMore(() => {
-                return this.alternatives(
+                return this.firstAlternative(
+                    'grammar element',
                     () => this.parsePrattRule(),
                     () => this.parseIdentifierRule(),
                     () => this.parseRule()
@@ -119,7 +120,8 @@ export class GrammarParser extends Parser {
                 this.parseVersionAnnotation()
             );
             this.mustConsumeString('=');
-            return this.alternatives(
+            return this.firstAlternative(
+                'identifier rule body',
                 () => {
                     this.mustConsumeString('(');
                     let ruleBodies = [];
@@ -192,7 +194,8 @@ export class GrammarParser extends Parser {
 
     private parseRuleBody(): Model.RuleBody {
         return this.withContext('rule_body', () => {
-            return this.alternatives(
+            return this.firstAlternative(
+                'rule body',
                 () => new Model.SequenceRule(this.parseSequenceRule()),
                 () =>
                     new Model.AlternativeRules(
@@ -228,7 +231,8 @@ export class GrammarParser extends Parser {
 
     private parseRuleElement(): Model.RuleElement {
         return this.withContext('rule_element', () => {
-            return this.alternatives(
+            return this.firstAlternative(
+                'rule element or negative lookahead',
                 () => this.parseCountedRuleElement(),
                 () => this.parseNegativeLookahead()
             );
@@ -252,7 +256,8 @@ export class GrammarParser extends Parser {
 
     private parseCountableRuleElement(): Model.CountableRuleElement {
         return this.withContext('countable_rule_element', () => {
-            return this.alternatives(
+            return this.firstAlternative(
+                'countable rule element',
                 () => this.parseRuleReference(),
                 () => new Model.StringElement(this.parseString()),
                 () => this.parseCharset(),
@@ -358,7 +363,8 @@ export class GrammarParser extends Parser {
     private parseNegativeLookahead(): Model.NegativeLookahead {
         let content = this.ignoreTriviaDuring(() => {
             this.mustConsumeString('!');
-            return this.alternatives(
+            return this.firstAlternative(
+                'charset or string',
                 () => this.parseCharset(),
                 () => new Model.StringElement(this.parseString())
             );

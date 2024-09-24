@@ -260,7 +260,8 @@ export abstract class Parser implements InputStream {
      * @returns The result of the first successful parser.
      * @throws {ParseError} if all alternatives fail.
      */
-    protected alternatives<T extends any[]>(
+    protected firstAlternative<T extends any[]>(
+        expected: string,
         ...alternatives: { [K in keyof T]: () => T[K] }
     ): T[number] {
         const pos = this.getPosition();
@@ -274,7 +275,12 @@ export abstract class Parser implements InputStream {
                 } else throw error;
             }
         }
-        const error = new ParseError('alternatives', pos, this);
+        const found = this.peek() ?? 'EOF';
+        const error = new ParseError(
+            `Expected "${expected}", but found "${found}"`,
+            this.getPosition(),
+            this
+        );
         error.children = errors;
         throw error;
     }

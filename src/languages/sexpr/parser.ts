@@ -28,38 +28,18 @@ export class SexprParser extends Parser {
 
     private parseDatum(): Model.Datum {
         return this.withContext('datum', () => {
-            console.log('Parsing datum, next char:', this.peek());
-            return this.alternatives(
-                () => {
-                    return this.parseBoolean();
-                },
-                () => {
-                    return this.parseCharacter();
-                },
-                () => {
-                    return this.parseNumber();
-                },
-                () => {
-                    return this.parseAbbreviation();
-                },
-                () => {
-                    return this.parseString();
-                },
-                () => {
-                    return this.parseList();
-                },
-                () => {
-                    return this.parseVector();
-                },
-                () => {
-                    return this.parseByteVector();
-                },
-                () => {
-                    return this.parseStruct();
-                },
-                () => {
-                    return this.parseSymbol();
-                }
+            return this.firstAlternative(
+                'datum',
+                () => this.parseBoolean(),
+                () => this.parseCharacter(),
+                () => this.parseNumber(),
+                () => this.parseAbbreviation(),
+                () => this.parseString(),
+                () => this.parseList(),
+                () => this.parseVector(),
+                () => this.parseByteVector(),
+                () => this.parseStruct(),
+                () => this.parseSymbol()
             );
         });
     }

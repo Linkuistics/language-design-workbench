@@ -31,7 +31,7 @@ grammar model {
     ProductType = '{' member:ProductMember ( ',' member:ProductMember )* '}' ;
     ProductMember = name:Id ':' Type ;
 
-    GenericType = | TupleType | MapType | SetType | SequenceType | OptionType | ResultType ;
+    GenericType = | TupleType | MapType | SetType | OptionType | ResultType ;
     TupleType = 'tuple<' member:Type ( ',' member:Type )* '>' ;
     MapType = 'map<' key_type:Type ',' value_type:Type '>' ;
     SetType = 'set<' key_type:Type '>' ;
