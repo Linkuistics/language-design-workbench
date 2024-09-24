@@ -9,7 +9,7 @@ import { InputStream, LineAndColumn } from './inputStream';
  * Implements the {@link InputStream} interface, providing methods for reading and manipulating string input.
  * This class is designed to work with string-based input sources, allowing for efficient parsing and manipulation
  * of string content.
- * 
+ *
  * @implements {InputStream}
  */
 export class StringInputStream implements InputStream {
@@ -43,10 +43,10 @@ export class StringInputStream implements InputStream {
     /**
      * Converts a position to line and column information.
      * This method is useful for generating human-readable error messages.
-     * 
+     *
      * @param position - The position to convert.
      * @returns An object containing line and column information.
-     * 
+     *
      * @remarks
      * TODO: Optimize this method by caching values and using incremental calculation.
      */
@@ -77,7 +77,7 @@ export class StringInputStream implements InputStream {
     /**
      * Attempts to peek at upcoming characters in the input without consuming them.
      * This method is essential for lookahead operations in the parser.
-     * 
+     *
      * @param lookAhead - The number of characters to look ahead (default is 0).
      * @returns The character at the specified look-ahead position, or undefined if beyond the input length.
      */
@@ -91,7 +91,7 @@ export class StringInputStream implements InputStream {
 
     /**
      * Attempts to consume the specified number of characters from the input.
-     * 
+     *
      * @param count - The number of characters to consume (default is 1).
      * @returns The consumed characters as a string, or undefined if no characters could be consumed.
      */
@@ -108,10 +108,10 @@ export class StringInputStream implements InputStream {
     /**
      * Attempts to consume input matching a regular expression at the current position.
      * This method is useful for parsing complex patterns in the input.
-     * 
+     *
      * @param regex - The regular expression to match.
      * @returns The consumed string if successful, or undefined if no match.
-     * 
+     *
      * @remarks
      * TODO: Optimize this method to avoid creating a new string.
      */
@@ -129,7 +129,7 @@ export class StringInputStream implements InputStream {
     /**
      * Attempts to consume a specific string at the current position.
      * This method is particularly useful for parsing keywords or specific sequences.
-     * 
+     *
      * @param str - The string to consume.
      * @returns The consumed string if successful, or undefined if no match.
      */
@@ -144,7 +144,7 @@ export class StringInputStream implements InputStream {
     /**
      * Attempts to consume characters while the predicate function returns true.
      * This method allows for flexible, condition-based consumption of input.
-     * 
+     *
      * @param predicate - A function that takes a character and returns a boolean.
      * @returns The consumed string, or undefined if no characters were consumed.
      */

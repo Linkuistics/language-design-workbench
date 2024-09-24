@@ -187,38 +187,6 @@ export abstract class Parser implements InputStream {
         return this.input.consume(count);
     }
 
-    protected consumeKeyword(keyword: string): string | undefined {
-        const pos = this.getPosition();
-        const consumed = this.consumeIdentifierForKeyword();
-        if (consumed === undefined || consumed !== keyword) {
-            this.restorePosition(pos);
-            return undefined;
-        }
-        return consumed;
-    }
-    /**
-     * Attempts to consume a keyword and throws an error if unsuccessful.
-     *
-     * @param keyword - The keyword to consume.
-     * @returns The consumed keyword.
-     * @throws {ParseError} if the expected keyword cannot be consumed.
-     */
-    protected mustConsumeKeyword(keyword: string): string {
-        return this.must(this.consumeKeyword(keyword), keyword);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    consumeRegex(regex: RegExp): string | undefined {
-        this.skipTriviaIfEnabled();
-        return this.input.consumeRegex(regex);
-    }
-
-    mustConsumeRegex(regex: RegExp, expected: string): string {
-        return this.must(this.consumeRegex(regex), expected);
-    }
-
     /**
      * @inheritdoc
      */
@@ -235,7 +203,27 @@ export abstract class Parser implements InputStream {
      * @throws {ParseError} if the expected string cannot be consumed.
      */
     protected mustConsumeString(str: string): string {
-        return this.consumeString(str), str;
+        return this.must(this.consumeString(str), str);
+    }
+
+    protected consumeKeyword(keyword: string): string | undefined {
+        const pos = this.getPosition();
+        const consumed = this.consumeIdentifierForKeyword();
+        if (consumed !== keyword) {
+            this.restorePosition(pos);
+            return undefined;
+        }
+        return keyword;
+    }
+    /**
+     * Attempts to consume a keyword and throws an error if unsuccessful.
+     *
+     * @param keyword - The keyword to consume.
+     * @returns The consumed keyword.
+     * @throws {ParseError} if the expected keyword cannot be consumed.
+     */
+    protected mustConsumeKeyword(keyword: string): string {
+        return this.must(this.consumeKeyword(keyword), keyword);
     }
 
     /**
@@ -254,6 +242,18 @@ export abstract class Parser implements InputStream {
     }
 
     /**
+     * @inheritdoc
+     */
+    consumeRegex(regex: RegExp): string | undefined {
+        this.skipTriviaIfEnabled();
+        return this.input.consumeRegex(regex);
+    }
+
+    mustConsumeRegex(regex: RegExp, expected: string): string {
+        return this.must(this.consumeRegex(regex), expected);
+    }
+
+    /**
      * Attempts to parse using multiple alternative parsers.
      *
      * @param alternatives - An array of parser functions to try.
@@ -268,7 +268,8 @@ export abstract class Parser implements InputStream {
         const errors: ParseError[] = [];
         for (const alternative of alternatives) {
             try {
-                return alternative();
+                const result = alternative();
+                if (result !== undefined) return result;
             } catch (error) {
                 if (error instanceof ParseError) {
                     errors.push(error);
@@ -278,7 +279,7 @@ export abstract class Parser implements InputStream {
         const found = this.peek() ?? 'EOF';
         const error = new ParseError(
             `Expected "${expected}", but found "${found}"`,
-            this.getPosition(),
+            pos,
             this
         );
         error.children = errors;
