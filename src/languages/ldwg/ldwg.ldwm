@@ -16,7 +16,7 @@ model grammar {
 
     version_annotation_type = { "enabled" | "disabled" };
 
-    alternative = { label:optional<label>, version_annotation:seq<version_annotation>, sequence_rule:sequence_rule };
+    alternative = { label:option<label>, version_annotation:seq<version_annotation>, sequence_rule:sequence_rule };
 
     alternative_rules = { alternative:seq<alternative> };
 
@@ -24,15 +24,15 @@ model grammar {
 
     block_comment = { value:string };
 
-    char_set = { negated:boolean, range:seq<{ start_char:char_set_char, end_char:optional<{ end_char:char_set_char }> }> };
+    char_set = { negated:boolean, range:seq<{ start_char:char_set_char, end_char:option<{ end_char:char_set_char }> }> };
 
     char_set_char = { value:string };
 
-    counted_rule_element = { label:optional<label>, countable_rule_element:countable_rule_element, count:optional<count>, version_annotation:seq<version_annotation> };
+    counted_rule_element = { label:option<label>, countable_rule_element:countable_rule_element, count:option<count>, version_annotation:seq<version_annotation> };
 
     grammar = { name:name, rule:seq<{ { rule:rule } | { pratt_rule:pratt_rule } | { identifier_rule:identifier_rule } }> };
 
-    identifier_rule = { name:name, rule_annotation:optional<rule_annotation>, version_annotation:seq<version_annotation>, _0:{ { identifier_with_exclusions:identifier_with_exclusions } | { rule_body:rule_body } } };
+    identifier_rule = { name:name, rule_annotation:option<rule_annotation>, version_annotation:seq<version_annotation>, _0:{ { identifier_with_exclusions:identifier_with_exclusions } | { rule_body:rule_body } } };
 
     identifier_with_exclusions = { rule_body:rule_body, rule_body:rule_body };
 
@@ -50,7 +50,7 @@ model grammar {
 
     pratt_rule = { name:name, version_annotation:seq<version_annotation>, operators:seq<pratt_operator>, primary:pratt_primary };
 
-    rule = { name:name, annotation:optional<rule_annotation>, version_annotation:seq<version_annotation>, body:rule_body };
+    rule = { name:name, annotation:option<rule_annotation>, version_annotation:seq<version_annotation>, body:rule_body };
 
     rule_reference = { name:name, name:seq<{ name:name }> };
 

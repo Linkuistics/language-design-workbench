@@ -32,7 +32,7 @@ model model {
 
     MemberModification = { name:Id, _2:seq<{ { MemberDeletion:MemberDeletion } | { MemberAddition:MemberAddition } }> };
 
-    Model = { name:Id, parent_name:optional<{ parent_name:Id }>, _1:seq<{ { Definition:Definition } | { Deletion:Deletion } | { MemberModification:MemberModification } }> };
+    Model = { name:Id, parent_name:option<{ parent_name:Id }>, _1:seq<{ { Definition:Definition } | { Deletion:Deletion } | { MemberModification:MemberModification } }> };
 
     NamedTypeReference = { name:Id, name:seq<{ name:Id }> };
 
@@ -42,7 +42,7 @@ model model {
 
     ProductMember = { name:Id, Type:Type };
 
-    ProductType = { member:optional<{ member:ProductMember, member:seq<{ member:ProductMember }> }> };
+    ProductType = { member:option<{ member:ProductMember, member:seq<{ member:ProductMember }> }> };
 
     ResultType = { ok_type:Type, err_type:Type };
 

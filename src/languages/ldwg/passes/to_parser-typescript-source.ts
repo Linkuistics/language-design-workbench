@@ -16,7 +16,7 @@ import {
     StringElement
 } from '../model';
 
-export class GrammarToParser {
+export class ToParserTypescriptSource {
     anonymousNameCounter: number = 0;
     parsers: string[] = [];
 

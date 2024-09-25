@@ -14,7 +14,7 @@ import {
     VoidType
 } from '../model';
 
-export class ModelToModelString {
+export class ToLDWMSource {
     constructor() {}
 
     transform(model: Model): string {
@@ -79,7 +79,7 @@ export class ModelToModelString {
         } else if (type instanceof NamedTypeReference) {
             return escapeName(type.target.name);
         } else if (type instanceof OptionalType) {
-            return `optional<${this.source(type.elementType)}>`;
+            return `option<${this.source(type.elementType)}>`;
         } else if (type instanceof ArrayType) {
             return `seq<${this.source(type.elementType)}>`;
         } else if (type instanceof StringType) {

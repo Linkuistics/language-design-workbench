@@ -10,7 +10,7 @@ model sexpr {
 
     datum = { { %boolean:%boolean } | { character:character } | { number:number } | { %string:%string } | { list:list } | { vector:vector } | { byte_vector:byte_vector } | { struct:struct } | { symbol:symbol } };
 
-    list = { { _1:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { _3:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { _5:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { abbreviation:abbreviation } };
+    list = { { _1:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { _3:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { _5:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { abbreviation:abbreviation } };
 
     number = { { num2:num2 } | { num10:num10 } | { num16:num16 } };
 

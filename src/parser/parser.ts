@@ -275,6 +275,7 @@ export abstract class Parser implements InputStream {
                     errors.push(error);
                 } else throw error;
             }
+            this.restorePosition(pos);
         }
         const found = this.peek() ?? 'EOF';
         const error = new ParseError(
@@ -385,12 +386,26 @@ export abstract class Parser implements InputStream {
      * @returns The result of the parsing operation.
      * @throws {ParseError} with added context information if the parsing operation fails.
      */
+    private indent = 0;
     protected withContext<T>(context: string, parser: () => T): T {
         const pos = this.getPosition();
         try {
-            return parser();
+            // console.log(
+            //     '  '.repeat(this.indent),
+            //     '+',
+            //     context,
+            //     `"${this.peek()}"`,
+            //     this.getPosition()
+            // );
+            this.indent++;
+            const result = parser();
+            this.indent--;
+            // console.log('  '.repeat(this.indent), '-', context);
+            return result;
         } catch (error) {
+            this.indent--;
             if (error instanceof ParseError) {
+                // console.log('  '.repeat(this.indent), 'x', context);
                 const newError = new ParseError(`«${context}»`, pos, this);
                 newError.children = [error];
                 throw newError;

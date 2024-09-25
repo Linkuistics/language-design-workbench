@@ -4,6 +4,7 @@ import { Parser } from '../../parser/parser';
 import { ParseError } from '../../parser/parseError';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
+type Id = string;
 
 export class LDWMParser extends Parser {
     constructor(input: InputStream) {
@@ -22,89 +23,108 @@ export class LDWMParser extends Parser {
         return model;
     }
 
-    private parseModel(): void {
-        this.mustConsumeKeyword('model');
-        this.parseId();
-        this.mustConsumeString('{');
-        this.maybe(() => {
-            this.mustConsumeKeyword('modifies');
-            return this.parseId();
+    private parseModel(): Model.Model {
+        return this.withContext('model', () => {
+            this.mustConsumeKeyword('model');
+            const name = this.parseId();
+            this.mustConsumeString('{');
+            const parentName = this.maybe(() => {
+                this.mustConsumeKeyword('modifies');
+                return this.parseId();
+            });
+            const values: (
+                | Model.Definition
+                | Model.Deletion
+                | Model.MemberModification
+            )[] = [];
+            this.zeroOrMore(() => {
+                values.push(
+                    this.firstAlternative(
+                        'model element',
+                        () => this.parseDefinition(),
+                        () => this.parseDeletion(),
+                        () => this.parseMemberModification()
+                    )
+                );
+                this.mustConsumeString(';');
+            });
+            this.mustConsumeString('}');
+            return new Model.Model(name, parentName, values);
         });
-        this.zeroOrMore(() => {
-            this.firstAlternative(
-                '',
-                () => this.parseDefinition(),
-                () => this.parseDeletion(),
-                () => this.parseMemberModification()
-            );
-            this.mustConsumeString(';');
-        });
-        this.mustConsumeString('}');
     }
 
-    parseDefinition(): void {
-        this.parseId();
-        this.mustConsumeString('=');
-        this.parseType();
+    parseDefinition(): Model.Definition {
+        return this.withContext('definition', () => {
+            const name = this.parseId();
+            this.mustConsumeString('=');
+            const type = this.parseType();
+            return new Model.Definition(name, type);
+        });
     }
 
-    parseDeletion(): void {
+    parseDeletion(): Model.Deletion {
         this.mustConsumeKeyword('delete');
-        this.parseId();
+        const name = this.parseId();
+        return new Model.Deletion(name);
     }
 
-    parseMemberModification(): void {
+    parseMemberModification(): Model.MemberModification {
         this.mustConsumeKeyword('modify');
-        this.parseId();
-        this.zeroOrMore(() => {
-            this.firstAlternative(
-                '',
-                () => this.parseMemberDeletion(),
-                () => this.parseMemberAddition()
+        const name = this.parseId();
+        const values: (Model.MemberDeletion | Model.MemberAddition)[] = [];
+        this.oneOrMore(() => {
+            values.push(
+                this.firstAlternative(
+                    'member modification element',
+                    () => this.parseMemberDeletion(),
+                    () => this.parseMemberAddition()
+                )
             );
         });
+        return new Model.MemberModification(name, values);
     }
 
-    parseMemberDeletion(): void {
+    parseMemberDeletion(): Model.MemberDeletion {
         this.mustConsumeString('-=');
-        this.zeroOrMore(() => {
-            this.firstAlternative(
-                '',
-                () => this.parseId(),
+        const name = this.firstAlternative(
+            'member deletion element',
+            () => this.parseId(),
+            () => this.parseNamedTypeReference()
+        );
+        return new Model.MemberDeletion(name);
+    }
+
+    parseMemberAddition(): Model.MemberAddition {
+        this.mustConsumeString('+=');
+        const value = this.firstAlternative(
+            'member addition element',
+            () => this.parseType(),
+            () => this.parseProductMember()
+        );
+        return new Model.MemberAddition(value);
+    }
+
+    parseType(): Model.Type {
+        return this.withContext('type', () => {
+            return this.firstAlternative(
+                'type',
+                () => this.parseVoidType(),
+                () => this.parsePrimitiveType(),
+                () => this.parseEnumType(),
+                () => this.parseTypeWithStructure(),
                 () => this.parseNamedTypeReference()
             );
         });
     }
 
-    parseMemberAddition(): void {
-        this.mustConsumeString('+=');
-        this.zeroOrMore(() => {
-            this.firstAlternative(
-                '',
-                () => this.parseType(),
-                () => this.parseProductMember()
-            );
-        });
-    }
-
-    parseType(): void {
-        this.firstAlternative(
-            '',
-            () => this.parseVoidType(),
-            () => this.parsePrimitiveType(),
-            () => this.parseEnumType(),
-            () => this.parseTypeWithStructure(),
-            () => this.parseNamedTypeReference()
-        );
-    }
-
-    parseVoidType(): void {
+    parseVoidType(): Model.VoidType {
         this.mustConsumeString('()');
+        return new Model.VoidType();
     }
 
-    parsePrimitiveType(): void {
-        this.firstAlternative(
-            '',
+    parsePrimitiveType(): Model.PrimitiveType {
+        return this.firstAlternative(
+            'primitive type',
             () => this.mustConsumeKeyword('boolean'),
             () => this.mustConsumeKeyword('char'),
             () => this.mustConsumeKeyword('string'),
@@ -118,123 +138,158 @@ export class LDWMParser extends Parser {
             () => this.mustConsumeKeyword('u64'),
             () => this.mustConsumeKeyword('f32'),
             () => this.mustConsumeKeyword('f64')
-        );
+        ) as Model.PrimitiveType;
     }
 
-    parseEnumType(): void {
-        this.mustConsumeString('{');
-        this.zeroOrMore(() => {
-            this.parseString();
+    parseEnumType(): Model.EnumType {
+        return this.withContext('enum type', () => {
+            this.mustConsumeString('{');
+            const members: Id[] = [];
+            members.push(this.parseString());
+            this.zeroOrMore(() => {
+                this.mustConsumeString('|');
+                members.push(this.parseString());
+            });
+            this.mustConsumeString('}');
+            return new Model.EnumType(members);
         });
-        this.mustConsumeString('}');
     }
 
-    parseString(): void {
+    parseString(): string {
         this.mustConsumeString('"');
-        this.mustConsumeRegex(/^[a-zA-Z0-9]+/, 'string');
+        const value = this.mustConsumeRegex(/^[a-zA-Z0-9]+/, 'string');
         this.mustConsumeString('"');
+        return value;
     }
 
-    parseTypeWithStructure(): void {
-        this.firstAlternative(
-            '',
-            () => this.parseSumType(),
-            () => this.parseProductType(),
-            () => this.parseGenericType()
-        );
-    }
-
-    parseSumType(): void {
-        this.mustConsumeString('{');
-        this.parseId();
-        this.zeroOrMore(() => {
-            this.mustConsumeString('|');
-            this.parseId();
+    parseTypeWithStructure(): Model.TypeWithStructure {
+        return this.withContext('type with structure', () => {
+            return this.firstAlternative(
+                'type with structure',
+                () => this.parseSumType(),
+                () => this.parseProductType(),
+                () => this.parseGenericType()
+            );
         });
-        this.mustConsumeString('}');
     }
 
-    parseProductType(): void {
-        this.mustConsumeString('{');
-        this.parseProductMember();
-        this.zeroOrMore(() => {
-            this.mustConsumeString(',');
-            this.parseProductMember();
+    parseSumType(): Model.SumType {
+        return this.withContext('sum type', () => {
+            this.mustConsumeString('{');
+            const members: Model.Type[] = [];
+            members.push(this.parseType());
+            this.zeroOrMore(() => {
+                this.mustConsumeString('|');
+                members.push(this.parseType());
+            });
+            this.mustConsumeString('}');
+            return new Model.SumType(members);
         });
-        this.mustConsumeString('}');
     }
 
-    parseProductMember(): void {
-        this.parseId();
-        this.mustConsumeString(':');
-        this.parseType();
+    parseProductType(): Model.ProductType {
+        return this.withContext('product type', () => {
+            this.mustConsumeString('{');
+            const members: Model.ProductMember[] = [];
+            this.maybe(() => {
+                members.push(this.parseProductMember());
+                this.zeroOrMore(() => {
+                    this.mustConsumeString(',');
+                    members.push(this.parseProductMember());
+                });
+            });
+            this.mustConsumeString('}');
+            return new Model.ProductType(members);
+        });
     }
 
-    parseGenericType(): void {
-        this.firstAlternative(
-            '',
-            () => this.parseTupleType(),
-            () => this.parseMapType(),
-            () => this.parseSetType(),
-            () => this.parseSequenceType(),
-            () => this.parseOptionType(),
-            () => this.parseResultType()
-        );
+    parseProductMember(): Model.ProductMember {
+        return this.withContext('product member', () => {
+            const name = this.parseId();
+            this.mustConsumeString(':');
+            const type = this.parseType();
+            return { name, type };
+        });
     }
 
-    parseTupleType(): void {
+    parseGenericType(): Model.GenericType {
+        return this.withContext('generic type', () => {
+            return this.firstAlternative(
+                'generic type',
+                () => this.parseTupleType(),
+                () => this.parseMapType(),
+                () => this.parseSetType(),
+                () => this.parseSequenceType(),
+                () => this.parseOptionType(),
+                () => this.parseResultType()
+            );
+        });
+    }
+
+    parseTupleType(): Model.TupleType {
         this.mustConsumeString('tuple<');
-        this.parseType();
+        const members: Model.Type[] = [];
+        members.push(this.parseType());
         this.zeroOrMore(() => {
             this.mustConsumeString(',');
-            this.parseType();
+            members.push(this.parseType());
         });
         this.mustConsumeString('>');
+        return new Model.TupleType(members);
     }
 
-    parseMapType(): void {
+    parseMapType(): Model.MapType {
         this.mustConsumeString('map<');
-        this.parseType();
+        const keyType = this.parseType();
         this.mustConsumeString(',');
-        this.parseType();
+        const valueType = this.parseType();
         this.mustConsumeString('>');
+        return new Model.MapType(keyType, valueType);
     }
 
-    parseSetType(): void {
+    parseSetType(): Model.SetType {
         this.mustConsumeString('set<');
-        this.parseType();
+        const keyType = this.parseType();
         this.mustConsumeString('>');
+        return new Model.SetType(keyType);
     }
 
-    parseSequenceType(): void {
+    parseSequenceType(): Model.SequenceType {
         this.mustConsumeString('seq<');
-        this.parseType();
+        const elementType = this.parseType();
         this.mustConsumeString('>');
+        return new Model.SequenceType(elementType);
     }
 
-    parseOptionType(): void {
+    parseOptionType(): Model.OptionType {
         this.mustConsumeString('option<');
-        this.parseType();
+        const type = this.parseType();
         this.mustConsumeString('>');
+        return new Model.OptionType(type);
     }
 
-    parseResultType(): void {
+    parseResultType(): Model.ResultType {
         this.mustConsumeString('result<');
-        this.parseType();
+        const okType = this.parseType();
         this.mustConsumeString(',');
-        this.parseType();
+        const errType = this.parseType();
         this.mustConsumeString('>');
+        return new Model.ResultType(okType, errType);
     }
 
-    parseNamedTypeReference(): void {
-        this.parseId();
-        this.zeroOrMore(() => {
-            this.mustConsumeString('::');
-            this.parseId();
+    parseNamedTypeReference(): Model.NamedTypeReference {
+        return this.withContext('named type reference', () => {
+            const names: Id[] = [];
+            names.push(this.parseId());
+            this.zeroOrMore(() => {
+                this.mustConsumeString('::');
+                names.push(this.parseId());
+            });
+            return { names };
         });
     }
 
-    parseId(): string {
+    parseId(): Id {
         return this.mustConsumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/, 'id');
     }
 

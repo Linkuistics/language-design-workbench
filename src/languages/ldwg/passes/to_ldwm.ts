@@ -31,7 +31,7 @@ import {
 } from '../model';
 import { alternativeRulesAsEnum } from '../utils';
 
-export class GrammarToModel {
+export class ToLDWM {
     private rules: Map<string, Rule | PrattRule | IdentifierRule> = new Map();
     private typeReferenceFixups: {
         typeReference: NamedTypeReference;

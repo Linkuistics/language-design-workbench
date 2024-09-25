@@ -14,9 +14,9 @@ model json {
 
     line_comment = { value:string };
 
-    list = { value:optional<{ value:value, value:seq<{ value:value }> }> };
+    list = { value:option<{ value:value, value:seq<{ value:value }> }> };
 
-    map = { map_entry:optional<{ map_entry:map_entry, map_entry:seq<{ map_entry:map_entry }> }> };
+    map = { map_entry:option<{ map_entry:map_entry, map_entry:seq<{ map_entry:map_entry }> }> };
 
     map_entry = { key:%string, value:value };
 

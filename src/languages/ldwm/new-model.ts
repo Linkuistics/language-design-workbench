@@ -1,29 +1,35 @@
 export class Model {
     constructor(
-        name: Id,
-        parentName: Id | undefined,
-        values: (Definition | Deletion | MemberModification)[]
+        public name: Id,
+        public parentName: Id | undefined,
+        public values: (Definition | Deletion | MemberModification)[]
     ) {}
 }
 
 export class Definition {
-    constructor(name: Id, type: Type) {}
+    constructor(
+        public name: Id,
+        public type: Type
+    ) {}
 }
 
 export class Deletion {
-    constructor(name: Id) {}
+    constructor(public name: Id) {}
 }
 
 export class MemberModification {
-    constructor(name: Id, values: (MemberDeletion | MemberAddition)[]) {}
+    constructor(
+        public name: Id,
+        public values: (MemberDeletion | MemberAddition)[]
+    ) {}
 }
 
 export class MemberDeletion {
-    constructor(name: Id) {}
+    constructor(public name: Id | NamedTypeReference) {}
 }
 
 export class MemberAddition {
-    constructor(value: Type | ProductMember) {}
+    constructor(public value: Type | ProductMember) {}
 }
 
 export type Type =
@@ -57,11 +63,11 @@ export class EnumType {
 export type TypeWithStructure = SumType | ProductType | GenericType;
 
 export class SumType {
-    constructor(members: Type[]) {}
+    constructor(public members: Type[]) {}
 }
 
 export class ProductType {
-    constructor(members: ProductMember[]) {}
+    constructor(public members: ProductMember[]) {}
 }
 
 export interface ProductMember {
@@ -73,27 +79,38 @@ export type GenericType =
     | TupleType
     | MapType
     | SetType
+    | SequenceType
     | OptionType
     | ResultType;
 
 export class TupleType {
-    constructor(members: Type[]) {}
+    constructor(public members: Type[]) {}
 }
 
 export class MapType {
-    constructor(keyType: Type, valueType: Type) {}
+    constructor(
+        public keyType: Type,
+        public valueType: Type
+    ) {}
 }
 
 export class SetType {
-    constructor(keyType: Type) {}
+    constructor(public keyType: Type) {}
+}
+
+export class SequenceType {
+    constructor(public elementType: Type) {}
 }
 
 export class OptionType {
-    constructor(type: Type) {}
+    constructor(public type: Type) {}
 }
 
 export class ResultType {
-    constructor(okType: Type, errType: Type) {}
+    constructor(
+        public okType: Type,
+        public errType: Type
+    ) {}
 }
 
 export interface NamedTypeReference {

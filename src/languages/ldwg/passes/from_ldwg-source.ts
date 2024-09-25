@@ -2,7 +2,7 @@ import { StringInputStream } from '../../../parser/stringInputStream';
 import { GrammarLanguage } from '../model';
 import { GrammarParser } from '../parser';
 
-export class StringToGrammar {
+export class FromLDWGSoruce {
     transform(input: string): GrammarLanguage {
         const inputStream = new StringInputStream(input);
         const parser = new GrammarParser(inputStream);

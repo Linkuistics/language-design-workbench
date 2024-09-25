@@ -1,5 +1,4 @@
-import { assert } from 'console';
-import { pascalCase, snakeCase } from 'literal-case';
+import { camelCase, pascalCase } from 'literal-case';
 import {
     ArrayType,
     BooleanType,
@@ -15,11 +14,18 @@ import {
     VoidType
 } from '../model';
 
-export class ModelToRustString {
+export class ToModelTypescriptSource {
+    constructor(public useGenerics: boolean) {}
+
     transform(model: Model): string {
         let typeNames = Array.from(model.namedTypes.keys());
         typeNames.sort();
         let definitionsSource = '';
+
+        if (this.useGenerics) {
+            definitionsSource += `type Optional<T> = T | undefined;\n\n`;
+        }
+
         for (const typeName of typeNames) {
             const definition = model.namedTypes.get(typeName)!;
             if (
@@ -31,6 +37,7 @@ export class ModelToRustString {
                 definitionsSource += this.definitionSource(definition);
             }
         }
+        definitionsSource += '\n';
         for (const typeName of typeNames) {
             const definition = model.namedTypes.get(typeName)!;
             if (definition.type instanceof EnumType) {
@@ -47,39 +54,30 @@ export class ModelToRustString {
     }
 
     private definitionSource(type: NamedType): string {
-        if (type.type instanceof SumType) {
+        if (type.type instanceof ProductType) {
             let result = '';
-            result += `pub enum ${pascalCase(type.name)} {\n`;
-            for (const member of type.type.members) {
-                assert(member instanceof NamedTypeReference);
-                const name = pascalCase(
-                    (member as NamedTypeReference).target.name
-                );
-                result += `    ${name}(${name}),\n`;
+            if (type.type.fields.length === 0) {
+                return `export class ${pascalCase(type.name)} {}\n\n`;
             }
-            result += `}\n\n`;
-            return result;
-        } else if (type.type instanceof ProductType) {
-            let result = '';
-            result += `pub struct ${pascalCase(type.name)} {\n`;
+            result += `export class ${pascalCase(type.name)} {\n    constructor(\n`;
             result += type.type.fields
                 .map(
                     (field) =>
-                        `    pub ${snakeCase(field.name)}: ${this.inlineSource(field.type)}`
+                        `        public ${camelCase(field.name)}: ${this.inlineSource(field.type)}`
                 )
                 .join(',\n');
-            result += '\n}\n\n';
+            result += '\n    ) {}\n}\n\n';
             return result;
         } else if (type.type instanceof EnumType) {
             let result = '';
-            result += `pub enum ${pascalCase(type.name)} {\n`;
+            result += `export enum ${pascalCase(type.name)} {\n`;
             result += type.type.members
                 .map((member) => `    ${pascalCase(member)}`)
                 .join(',\n');
             result += `\n}\n\n`;
             return result;
         } else {
-            return `pub type ${pascalCase(type.name)} = ${this.inlineSource(type.type)};\n\n`;
+            return `export type ${pascalCase(type.name)} = ${this.inlineSource(type.type)};\n`;
         }
     }
 
@@ -87,31 +85,47 @@ export class ModelToRustString {
         if (type instanceof NamedTypeReference) {
             return pascalCase(type.target.name);
         } else if (type instanceof ArrayType) {
-            return `Vec<${this.inlineSource(type.elementType)}>`;
+            if (this.useGenerics) {
+                return `Array<${this.inlineSource(type.elementType)}>`;
+            } else {
+                if (
+                    type.elementType instanceof SumType ||
+                    type.elementType instanceof OptionalType
+                ) {
+                    return `(${this.inlineSource(type.elementType)})[]`;
+                } else {
+                    return `${this.inlineSource(type.elementType)}[]`;
+                }
+            }
         } else if (type instanceof OptionalType) {
-            return `Option<${this.inlineSource(type.elementType)}>`;
-        } else if (type instanceof SumType) {
-            let result = type.members
-                .map((member) => this.inlineSource(member))
-                .join(' | ');
-            return `() /* ${result} */`;
+            if (this.useGenerics) {
+                return `Optional<${this.inlineSource(type.elementType)}>`;
+            } else {
+                return `${this.inlineSource(type.elementType)} | undefined`;
+            }
         } else if (type instanceof ProductType) {
             let result = '';
             result += `{ `;
             result += type.fields
                 .map(
                     (field) =>
-                        `${snakeCase(field.name)}: ${this.inlineSource(field.type)}`
+                        `${camelCase(field.name)}: ${this.inlineSource(field.type)}`
                 )
                 .join(', ');
-            result += '}';
-            return `() /* ${result} */`;
+            result += ' }';
+            return result;
+        } else if (type instanceof SumType) {
+            return type.members
+                .map((member) => this.inlineSource(member))
+                .join(' | ');
         } else if (type instanceof StringType) {
-            return 'String';
+            return 'string';
         } else if (type instanceof BooleanType) {
-            return 'bool';
+            return 'boolean';
         } else if (type instanceof VoidType) {
-            return '()';
+            return 'void';
+        } else if (type instanceof EnumType) {
+            return type.members.map((member) => `'${member}'`).join(' | ');
         }
         throw new Error('Unexpected type: ' + type);
     }

@@ -21,7 +21,7 @@ grammar model {
 
     VoidType = '()' ;
     PrimitiveType = type: (| 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64') ;
-    EnumType = '{' ( member:String )* '}' ;
+    EnumType = '{' member:String ( '|' member:String )* ) '}' ;
     String @noskip = '"' Id '"' ;
 
     TypeWithStructure = | SumType | ProductType | GenericType ;
