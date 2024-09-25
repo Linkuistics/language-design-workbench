@@ -1,0 +1,69 @@
+model grammar {
+
+    countable_rule_element = { { rule_reference:rule_reference } | { %string:%string } | { char_set:char_set } | { any:any } | { rule_body:rule_body } };
+
+    rule_body = { { sequence_rule:sequence_rule } | { alternative_rules:alternative_rules } };
+
+    rule_element = { { counted_rule_element:counted_rule_element } | { negative_lookahead:negative_lookahead } };
+
+    trivia = { { line_comment:line_comment } | { block_comment:block_comment } | { whitespace:whitespace } };
+
+    count = { "one_or_more" | "zero_or_more" | "optional" };
+
+    pratt_operator_type = { "prefix" | "postfix" | "left" | "right" };
+
+    rule_annotation = { "no_skip" | "atomic" };
+
+    version_annotation_type = { "enabled" | "disabled" };
+
+    alternative = { label:optional<label>, version_annotation:seq<version_annotation>, sequence_rule:sequence_rule };
+
+    alternative_rules = { alternative:seq<alternative> };
+
+    any = {  };
+
+    block_comment = { value:string };
+
+    char_set = { negated:boolean, range:seq<{ start_char:char_set_char, end_char:optional<{ end_char:char_set_char }> }> };
+
+    char_set_char = { value:string };
+
+    counted_rule_element = { label:optional<label>, countable_rule_element:countable_rule_element, count:optional<count>, version_annotation:seq<version_annotation> };
+
+    grammar = { name:name, rule:seq<{ { rule:rule } | { pratt_rule:pratt_rule } | { identifier_rule:identifier_rule } }> };
+
+    identifier_rule = { name:name, rule_annotation:optional<rule_annotation>, version_annotation:seq<version_annotation>, _0:{ { identifier_with_exclusions:identifier_with_exclusions } | { rule_body:rule_body } } };
+
+    identifier_with_exclusions = { rule_body:rule_body, rule_body:rule_body };
+
+    label = { name:name };
+
+    line_comment = { value:string };
+
+    name = { value:string };
+
+    negative_lookahead = { _1:{ { char_set:char_set } | { %string:%string } } };
+
+    pratt_operator = { pratt_operator_type:pratt_operator_type, name:name, version_annotation:seq<version_annotation>, body:rule_body };
+
+    pratt_primary = { name:name, body:rule_body };
+
+    pratt_rule = { name:name, version_annotation:seq<version_annotation>, operators:seq<pratt_operator>, primary:pratt_primary };
+
+    rule = { name:name, annotation:optional<rule_annotation>, version_annotation:seq<version_annotation>, body:rule_body };
+
+    rule_reference = { name:name, name:seq<{ name:name }> };
+
+    sequence_rule = { rule_element:seq<rule_element> };
+
+    %string = { value:string };
+
+    version_annotation = { version_annotation_type:version_annotation_type, version_number:version_number };
+
+    version_number = { segment:version_segment, segment:seq<{ segment:version_segment }> };
+
+    version_segment = { value:string };
+
+    whitespace = { value:string };
+
+}

@@ -1,6 +1,6 @@
 import assert from 'assert';
 import {
-    ModelLanguage,
+    Model,
     NamedType,
     NamedTypeReference,
     PrimitiveType,
@@ -35,7 +35,7 @@ import {
 */
 
 export class FullyResolveTypeAliases {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         // TODO: guard against circularity
         function resolveTypeAliases(namedType: NamedType): Type {
             let type = namedType.type;

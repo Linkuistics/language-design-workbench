@@ -1,4 +1,4 @@
-import { ModelLanguage, ProductType, Visitor } from '../model';
+import { Model, ProductType, Visitor } from '../model';
 import { findFieldName } from '../util';
 
 /*
@@ -27,7 +27,7 @@ import { findFieldName } from '../util';
 */
 
 export class AssignNameToAnonymousFields {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new MyVisitor();
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

@@ -1,6 +1,6 @@
 import assert from 'assert';
 import {
-    ModelLanguage,
+    Model,
     NamedType,
     NamedTypeReference,
     PrimitiveType,
@@ -59,7 +59,7 @@ import {
 */
 
 export class UnwrapPrimitiveWrappers {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const primitiveWrappers = new Map<string, NamedType>();
 
         // Identify primitive wrappers

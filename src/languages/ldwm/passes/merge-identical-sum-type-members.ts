@@ -1,9 +1,4 @@
-import {
-    ModelLanguage,
-    Visitor as ModelVisitor,
-    SumType,
-    VisitResult
-} from '../model';
+import { Model, Visitor as ModelVisitor, SumType, VisitResult } from '../model';
 import { typesAreEqual } from '../util';
 
 /*
@@ -27,7 +22,7 @@ import { typesAreEqual } from '../util';
 */
 
 export class MergeIdenticalSumTypeMembers {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new Visitor();
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

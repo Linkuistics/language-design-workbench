@@ -1,0 +1,39 @@
+model json {
+
+    comment = { { line_comment:line_comment } | { block_comment:block_comment } };
+
+    trivia = { { whitespace:whitespace } | { comment:comment } };
+
+    value = { { %boolean:%boolean } | { number:number } | { %string:%string } | { null:null } | { list:list } | { map:map } };
+
+    %boolean = { "true" | "false" };
+
+    block_comment = { value:string };
+
+    digit = {  };
+
+    line_comment = { value:string };
+
+    list = { value:optional<{ value:value, value:seq<{ value:value }> }> };
+
+    map = { map_entry:optional<{ map_entry:map_entry, map_entry:seq<{ map_entry:map_entry }> }> };
+
+    map_entry = { key:%string, value:value };
+
+    null = {  };
+
+    number = { value:string };
+
+    sign = {  };
+
+    %string = { value:string };
+
+    string_character = { value:string };
+
+    uinteger = { value:string };
+
+    ureal = { value:string };
+
+    whitespace = { value:string };
+
+}

@@ -1,0 +1,63 @@
+model model {
+
+    GenericType = { { TupleType:TupleType } | { MapType:MapType } | { SetType:SetType } | { OptionType:OptionType } | { ResultType:ResultType } };
+
+    Trivia = { { LineComment:LineComment } | { BlockComment:BlockComment } | { Whitespace:Whitespace } };
+
+    Type = { { VoidType:VoidType } | { PrimitiveType:PrimitiveType } | { EnumType:EnumType } | { TypeWithStructure:TypeWithStructure } | { NamedTypeReference:NamedTypeReference } };
+
+    TypeWithStructure = { { SumType:SumType } | { ProductType:ProductType } | { GenericType:GenericType } };
+
+    BlockComment = { value:string };
+
+    Definition = { name:Id, Type:Type };
+
+    Deletion = { name:Id };
+
+    EnumType = { member:seq<{ member:String }> };
+
+    Id = { value:string };
+
+    IdentifierChar = { value:string };
+
+    InitialIdentifierChar = { value:string };
+
+    LineComment = { value:string };
+
+    MapType = { key_type:Type, value_type:Type };
+
+    MemberAddition = { _4:{ { Type:Type } | { ProductMember:ProductMember } } };
+
+    MemberDeletion = { _3:{ { name:Id } | { NamedTypeReference:NamedTypeReference } } };
+
+    MemberModification = { name:Id, _2:seq<{ { MemberDeletion:MemberDeletion } | { MemberAddition:MemberAddition } }> };
+
+    Model = { name:Id, parent_name:optional<{ parent_name:Id }>, _1:seq<{ { Definition:Definition } | { Deletion:Deletion } | { MemberModification:MemberModification } }> };
+
+    NamedTypeReference = { name:Id, name:seq<{ name:Id }> };
+
+    OptionType = { Type:Type };
+
+    PrimitiveType = { type:{ "boolean" | "char" | "string" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" } };
+
+    ProductMember = { name:Id, Type:Type };
+
+    ProductType = { member:optional<{ member:ProductMember, member:seq<{ member:ProductMember }> }> };
+
+    ResultType = { ok_type:Type, err_type:Type };
+
+    SequenceType = { Type:Type };
+
+    SetType = { key_type:Type };
+
+    String = { Id:Id };
+
+    SumType = { member:Type, member:seq<{ member:Type }> };
+
+    TupleType = { member:Type, member:seq<{ member:Type }> };
+
+    VoidType = {  };
+
+    Whitespace = { value:string };
+
+}

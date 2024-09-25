@@ -1,4 +1,4 @@
-import { ModelLanguage, NamedTypeReference, ProductType } from '../model';
+import { Model, NamedTypeReference, ProductType } from '../model';
 
 /*
     This pass denests wrapper types by removing unnecessary nesting.
@@ -31,7 +31,7 @@ import { ModelLanguage, NamedTypeReference, ProductType } from '../model';
 */
 
 export class DenestWrappers {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         for (const namedType of input.namedTypes.values()) {
             let type = namedType.type;
             if (type.isWrapperProductType()) {

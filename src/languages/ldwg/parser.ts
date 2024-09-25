@@ -27,14 +27,14 @@ export class GrammarParser extends Parser {
             this.mustConsumeKeyword('grammar');
             const name = this.parseName();
             this.mustConsumeString('{');
-            const rules = this.zeroOrMore(() => {
-                return this.firstAlternative(
+            const rules = this.zeroOrMore(() =>
+                this.firstAlternative(
                     'grammar element',
                     () => this.parsePrattRule(),
                     () => this.parseIdentifierRule(),
                     () => this.parseRule()
-                );
-            });
+                )
+            );
             this.mustConsumeString('}');
             return new Model.Grammar(name, rules);
         });
@@ -299,7 +299,7 @@ export class GrammarParser extends Parser {
         const startPos = this.getPosition();
         const name = this.maybe(() => this.parseName());
         if (name && this.consumeString(':')) {
-            return name + ':';
+            return name;
         }
         this.restorePosition(startPos);
         return undefined;

@@ -1,5 +1,5 @@
 import {
-    ModelLanguage,
+    Model,
     NamedTypeReference,
     ProductType,
     VisitResult,
@@ -25,7 +25,7 @@ import {
 export class RemoveUnreferencedTypes {
     constructor(public rootTypeNames: string[]) {}
 
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const nameSet = new Set<string>();
         const visitor = new MyVisitor(nameSet);
         for (const name of this.rootTypeNames) {

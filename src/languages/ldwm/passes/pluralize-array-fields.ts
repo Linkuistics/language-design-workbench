@@ -1,7 +1,7 @@
 import pluralize from 'pluralize';
 import {
     ArrayType,
-    ModelLanguage,
+    Model,
     ProductType,
     Visitor as TypeModelVisitor
 } from '../model';
@@ -38,7 +38,7 @@ import {
 */
 
 export class PluralizeArrayFields {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new Visitor();
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

@@ -1,0 +1,73 @@
+model sexpr {
+
+    abbreviation = { { quote:datum } | { quasiquote:datum } | { unquote:datum } | { unquote_splicing:datum } };
+
+    byte_vector = { { number:seq<number> } | { number:seq<number> } | { number:seq<number> } };
+
+    character = { { char:string } | { character_name:character_name } | { uinteger16:uinteger16 } };
+
+    comment = { { line_comment:line_comment } | { block_comment:block_comment } | { datum_comment:datum_comment } };
+
+    datum = { { %boolean:%boolean } | { character:character } | { number:number } | { %string:%string } | { list:list } | { vector:vector } | { byte_vector:byte_vector } | { struct:struct } | { symbol:symbol } };
+
+    list = { { _1:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { _3:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { _5:optional<{ datum:seq<datum>, tail:optional<{ tail:datum }> }> } | { abbreviation:abbreviation } };
+
+    number = { { num2:num2 } | { num10:num10 } | { num16:num16 } };
+
+    struct = { { name:symbol, datum:seq<datum> } | { name:symbol, datum:seq<datum> } | { name:symbol, datum:seq<datum> } };
+
+    trivia = { { whitespace:whitespace } | { comment:comment } };
+
+    vector = { { datum:seq<datum> } | { datum:seq<datum> } | { datum:seq<datum> } };
+
+    %boolean = { "true" | "false" };
+
+    character_name = { "alarm" | "backspace" | "delete" | "esc" | "linefeed" | "newline" | "page" | "return" | "space" | "tab" | "vtab" };
+
+    block_comment = { value:string };
+
+    datum_comment = { datum:datum };
+
+    digit10 = { value:string };
+
+    digit16 = { value:string };
+
+    digit2 = { value:string };
+
+    ident = { value:string };
+
+    ident_continue = { value:string };
+
+    ident_start = { value:string };
+
+    line_comment = { value:string };
+
+    num10 = { value:string };
+
+    num16 = { value:string };
+
+    num2 = { value:string };
+
+    sign = {  };
+
+    %string = { value:string };
+
+    string_character = { value:string };
+
+    symbol = { ident:ident };
+
+    uinteger10 = { value:string };
+
+    uinteger16 = { value:string };
+
+    uinteger2 = { value:string };
+
+    ureal10 = { value:string };
+
+    ureal16 = { value:string };
+
+    ureal2 = { value:string };
+
+    whitespace = { value:string };
+
+}

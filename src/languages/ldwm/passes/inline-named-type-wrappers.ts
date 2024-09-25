@@ -1,5 +1,5 @@
 import {
-    ModelLanguage,
+    Model,
     NamedTypeReference,
     ProductType,
     VisitResult,
@@ -46,7 +46,7 @@ import {
 */
 
 export class InlineNamedTypeWrappers {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new MyVisitor();
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

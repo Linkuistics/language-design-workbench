@@ -1,0 +1,65 @@
+grammar grammar {
+    
+    // This is a meta-circular grammar, that is the definition its own format
+
+    grammar = 'grammar' name '{' rule:( | rule | pratt_rule | identifier_rule )* '}' ;
+
+    rule = name annotation:rule_annotation? version_annotation* '=' body:rule_body ';' ;
+    rule_annotation = | no_skip:'@noskip' | atomic:'@atomic' ;
+
+    pratt_rule = 'pratt' name version_annotation* '{' operators:pratt_operator+ primary:pratt_primary '}' ;
+    pratt_operator = pratt_operator_type name version_annotation* '=' body:rule_body ';' ;
+    pratt_primary = 'primary' name '=' body:rule_body ';' ;
+    pratt_operator_type = | 'prefix' | 'postfix' | 'left' | 'right' ;
+
+    identifier_rule = 'identifier' name rule_annotation? version_annotation* '=' ( | identifier_with_exclusions | rule_body ) ; 
+    identifier_with_exclusions = '(' rule_body ')' 'excluding' '(' rule_body ')' ;
+
+    version_annotation @noskip = version_annotation_type '(' version_number ')' ;
+    version_annotation_type = | '@enabled' | '@disabled' ;
+    version_number = segment:version_segment ( '.' segment:version_segment )* ;
+    version_segment @atomic = [0-9]+ ;
+
+    rule_body = | sequence_rule | alternative_rules ;
+    
+    sequence_rule = rule_element+ ;
+    
+    alternative_rules = alternative+ ;
+    alternative = label? '|' version_annotation* sequence_rule ;
+    
+    rule_element = | counted_rule_element | negative_lookahead ;
+    counted_rule_element = label? countable_rule_element count? version_annotation* ;
+    countable_rule_element =
+        | rule_reference
+        | string
+        | char_set
+        | any
+        | '(' rule_body ')'
+        ;
+
+    rule_reference @noskip = name ( '::' name )* ;
+
+    count = | one_or_more:'+' | zero_or_more:'*' | optional:'?' ;
+
+    identifier name @atomic = [a-zA-Z_] [a-zA-Z0-9_]* ;
+    
+    label @noskip = name ':' ;
+
+    string @atomic =
+        | "'" ( | [^'\\\n]* | ( "\\" ['\\] ) )* "'"
+        | '"' ( | [^"\\\n]* | ( '\\' ["\\] ) )* '"'
+        ;
+
+    char_set @noskip = '[' negated:'^'? range:(start_char:char_set_char ( '-' end_char:char_set_char )?)+ ']' ;
+    char_set_char @atomic = | [^\\\-\]] | '\\' [\^\\\-\]nt] ;
+    
+    any = '.' ;
+
+    negative_lookahead @noskip = '!' ( | char_set | string ) ;
+
+    trivia        @noskip = | line_comment | block_comment | whitespace ;
+    line_comment  @atomic = '//' [^\n]* '\n'? ;
+    block_comment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
+    whitespace    @atomic = [\n\t ]+ ;
+
+}

@@ -1,6 +1,6 @@
 import {
     ArrayType,
-    ModelLanguage,
+    Model,
     Visitor as ModelVisitor,
     ProductType,
     Type,
@@ -42,7 +42,7 @@ import { typesAreEqual } from '../util';
 */
 
 export class MergeEquivalentProductTypeFields {
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new Visitor();
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

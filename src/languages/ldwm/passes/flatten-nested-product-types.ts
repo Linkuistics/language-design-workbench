@@ -1,7 +1,7 @@
 import {
     ArrayType,
     CountedType,
-    ModelLanguage,
+    Model,
     OptionalType,
     ProductType,
     ProductTypeField,
@@ -45,7 +45,7 @@ import { findFieldName, isNameAnonymous } from '../util';
 export class FlattenNestedProductTypes {
     constructor(public onlyAnonymousFields: boolean) {}
 
-    transform(input: ModelLanguage): ModelLanguage {
+    transform(input: Model): Model {
         const visitor = new MyVisitor(this.onlyAnonymousFields);
         for (const type of input.namedTypes.values()) {
             type.visit(visitor);

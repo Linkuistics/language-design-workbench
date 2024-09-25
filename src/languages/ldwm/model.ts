@@ -1,6 +1,8 @@
 import { Language } from '../language';
 
-export class ModelLanguage extends Language {
+export class Model {
+    constructor(public name: string) {}
+
     public namedTypes: Map<string, NamedType> = new Map();
 
     addNamedType(name: string, type: Type): NamedTypeReference {
@@ -23,7 +25,6 @@ export abstract class PrimitiveType extends Type {
 
 export class VoidType extends PrimitiveType {}
 export class BooleanType extends PrimitiveType {}
-export class CharType extends PrimitiveType {}
 export class StringType extends PrimitiveType {}
 
 export class EnumType extends Type {

@@ -2,9 +2,8 @@ grammar model {
     
     Model =
         'model' name:Id 
-        'root' root_name:Id
         ( 'modifies' parent_name:Id )? 
-        '{' ( | Definition | Deletion | MemberModification )* ';' '}'
+        '{' ( ( | Definition | Deletion | MemberModification ) ';' )* '}'
         ;
 
     Definition = name:Id '=' Type  ;
@@ -21,14 +20,15 @@ grammar model {
     Type = | VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference ;
 
     VoidType = '()' ;
-    PrimitiveType = | 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' ;
-    EnumType = 'enum' '{' ( member:Id )* '}' ;
+    PrimitiveType = type: (| 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64') ;
+    EnumType = '{' ( member:String )* '}' ;
+    String @noskip = '"' Id '"' ;
 
     TypeWithStructure = | SumType | ProductType | GenericType ;
     
     SumType = '{' member:Type ( '|' member:Type )+ '}' ;
 
-    ProductType = '{' member:ProductMember ( ',' member:ProductMember )* '}' ;
+    ProductType = '{' ( member:ProductMember ( ',' member:ProductMember )* )? '}' ;
     ProductMember = name:Id ':' Type ;
 
     GenericType = | TupleType | MapType | SetType | OptionType | ResultType ;
@@ -55,9 +55,9 @@ grammar model {
      * Trivia
      ************************************/
 
-    trivia        @noskip = | line_comment | block_comment | whitespace ;
-    whitespace    @atomic = [\n\t ]+ ;
-    line_comment  @atomic = '//' [^\n]* '\n'? ;
-    block_comment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
+    Trivia        @noskip = | LineComment | BlockComment | Whitespace ;
+    Whitespace    @atomic = [\n\t ]+ ;
+    LineComment  @atomic = '//' [^\n]* '\n'? ;
+    BlockComment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
 
 }
