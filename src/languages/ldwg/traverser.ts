@@ -1,9 +1,12 @@
 import {
+    AlternativeRule,
     AlternativeRules,
     AnyElement,
     CharSet,
+    CharSetChar,
     CountableRuleElement,
     CountedRuleElement,
+    Grammar,
     GrammarLanguage,
     IdentifierRule,
     NegativeLookahead,
@@ -15,177 +18,421 @@ import {
     RuleElement,
     RuleReference,
     SequenceRule,
-    StringElement
+    StringElement,
+    VersionAnnotation,
+    VersionNumber
 } from './model';
 
 export interface TraverseDelegate {
-    preVisitGrammar?(grammar: GrammarLanguage): void;
-    postVisitGrammar?(grammar: GrammarLanguage): void;
+    visitGrammar?(grammar: Grammar, traverser: Traverser): Grammar;
 
-    preVisitRule?(rule: Rule): void;
-    postVisitRule?(rule: Rule): void;
+    visitRule?(rule: Rule, traverser: Traverser): Rule;
 
-    preVisitRuleBody?(ruleBody: RuleBody): void;
-    postVisitRuleBody?(ruleBody: RuleBody): void;
+    visitRuleBody?(ruleBody: RuleBody, traverser: Traverser): RuleBody;
 
-    preVisitPrattRule?(rule: PrattRule): void;
-    postVisitPrattRule?(rule: PrattRule): void;
+    visitPrattRule?(rule: PrattRule, traverser: Traverser): PrattRule;
 
-    preVisitPrattOperator?(operator: PrattOperator): void;
-    postVisitPrattOperator?(operator: PrattOperator): void;
+    visitPrattOperator?(
+        operator: PrattOperator,
+        traverser: Traverser
+    ): PrattOperator;
 
-    preVisitPrattPrimary?(primary: PrattPrimary): void;
-    postVisitPrattPrimary?(primary: PrattPrimary): void;
+    visitPrattPrimary?(
+        primary: PrattPrimary,
+        traverser: Traverser
+    ): PrattPrimary;
 
-    preVisitIdentifierRule?(rule: IdentifierRule): void;
-    postVisitIdentifierRule?(rule: IdentifierRule): void;
+    visitIdentifierRule?(
+        rule: IdentifierRule,
+        traverser: Traverser
+    ): IdentifierRule;
 
-    preVisitSequenceRule?(sequenceRule: SequenceRule): void;
-    postVisitSequenceRule?(sequenceRule: SequenceRule): void;
+    visitSequenceRule?(
+        sequenceRule: SequenceRule,
+        traverser: Traverser
+    ): SequenceRule;
 
-    preVisitRuleElement?(ruleElement: RuleElement): void;
-    postVisitRuleElement?(ruleElement: RuleElement): void;
+    visitRuleElement?(
+        ruleElement: RuleElement,
+        traverser: Traverser
+    ): RuleElement;
 
-    preVisitAlternativeRules?(rules: AlternativeRules): void;
-    postVisitAlternativeRules?(rules: AlternativeRules): void;
+    visitAlternativeRules?(
+        rules: AlternativeRules,
+        traverser: Traverser
+    ): AlternativeRules;
 
-    preVisitCountableRuleElement?(cre: CountableRuleElement): void;
-    postVisitCountableRuleElement?(cre: CountableRuleElement): void;
+    visitAlternativeRule?(
+        rule: AlternativeRule,
+        traverser: Traverser
+    ): AlternativeRule;
 
-    preVisitCountedRuleElement?(element: CountedRuleElement): void;
-    postVisitCountedRuleElement?(element: CountedRuleElement): void;
+    visitCountableRuleElement?(
+        cre: CountableRuleElement,
+        traverser: Traverser
+    ): CountableRuleElement;
 
-    preVisitNegativeLookahead?(ruleElement: NegativeLookahead): void;
-    postVisitNegativeLookahead?(ruleElement: NegativeLookahead): void;
+    visitCountedRuleElement?(
+        element: CountedRuleElement,
+        traverser: Traverser
+    ): CountedRuleElement;
 
-    visitRuleReference?(ruleReference: RuleReference): void;
-    visitStringElement?(string: StringElement): void;
-    visitCharSet?(charSet: CharSet): void;
-    visitAny?(any: AnyElement): void;
+    visitNegativeLookahead?(
+        ruleElement: NegativeLookahead,
+        traverser: Traverser
+    ): NegativeLookahead;
+
+    visitRuleReference?(
+        ruleReference: RuleReference,
+        traverser: Traverser
+    ): RuleReference;
+
+    visitStringElement?(
+        string: StringElement,
+        traverser: Traverser
+    ): StringElement;
+
+    visitCharSet?(charSet: CharSet, traverser: Traverser): CharSet;
+
+    visitAnyElement?(anyElement: AnyElement, traverser: Traverser): AnyElement;
+
+    visitCharSetRange?(
+        range: { startChar: CharSetChar; endChar?: CharSetChar },
+        traverser: Traverser
+    ): { startChar: CharSetChar; endChar?: CharSetChar };
+
+    visitVersionAnnotation?(
+        versionAnnotation: VersionAnnotation,
+        traverser: Traverser
+    ): VersionAnnotation;
+
+    visitVersionNumber?(
+        versionNumber: VersionNumber,
+        traverser: Traverser
+    ): VersionNumber;
 }
 
 export class Traverser {
     constructor(public delegate: TraverseDelegate) {}
 
-    processGrammar(grammar: GrammarLanguage) {
-        this.delegate.preVisitGrammar?.(grammar);
-        grammar.grammar.rules.forEach((rule) => {
-            if (rule instanceof Rule) {
-                this.processRule(rule);
-            } else if (rule instanceof PrattRule) {
-                this.processPrattRule(rule);
-            } else {
-                // if (rule instanceof IdentifierRule) {
-                this.processIdentifierRule(rule);
-            }
-        });
-        this.delegate.postVisitGrammar?.(grammar);
+    visitGrammar(grammar: Grammar): Grammar {
+        if (this.delegate.visitGrammar)
+            return this.delegate.visitGrammar(grammar, this);
+        this.visitGrammarChildren(grammar);
+        return grammar;
     }
 
-    processRule(rule: Rule) {
-        this.delegate.preVisitRule?.(rule);
-        this.processRuleBody(rule.body);
-        this.delegate.postVisitRule?.(rule);
+    visitGrammarChildren(grammar: Grammar) {
+        for (let i = 0; i < grammar.rules.length; i++) {
+            grammar.rules[i] = this.dispatchGrammarRule(grammar.rules[i]);
+        }
     }
 
-    processRuleBody(ruleBody: RuleBody) {
-        this.delegate.preVisitRuleBody?.(ruleBody);
+    dispatchGrammarRule(rule: Rule | PrattRule | IdentifierRule) {
+        if (rule instanceof Rule) {
+            return this.visitRule(rule);
+        } else if (rule instanceof PrattRule) {
+            return this.visitPrattRule(rule);
+        } else {
+            // if (rule instanceof IdentifierRule) {
+            return this.visitIdentifierRule(rule);
+        }
+    }
+
+    visitRule(rule: Rule): Rule {
+        if (this.delegate.visitRule) return this.delegate.visitRule(rule, this);
+        this.visitRuleChildren(rule);
+        return rule;
+    }
+
+    visitRuleChildren(rule: Rule) {
+        rule.body = this.visitRuleBody(rule.body);
+        if (rule.annotation) {
+            // Assuming annotation doesn't need to be visited
+        }
+        for (let i = 0; i < rule.versionAnnotations.length; i++) {
+            rule.versionAnnotations[i] = this.visitVersionAnnotation(
+                rule.versionAnnotations[i]
+            );
+        }
+    }
+
+    visitRuleBody(ruleBody: RuleBody): RuleBody {
+        if (this.delegate.visitRuleBody)
+            return this.delegate.visitRuleBody(ruleBody, this);
+        return this.dispatchRuleBody(ruleBody);
+    }
+
+    dispatchRuleBody(ruleBody: RuleBody): RuleBody {
         if (ruleBody instanceof SequenceRule) {
-            this.processSequenceRule(ruleBody);
+            return this.visitSequenceRule(ruleBody);
         } else {
             // if (ruleBody instanceof AlternativeRules) {
-            this.processAlternativeRules(ruleBody);
+            return this.visitAlternativeRules(ruleBody);
         }
-        this.delegate.postVisitRuleBody?.(ruleBody);
     }
 
-    processPrattRule(rule: PrattRule) {
-        this.delegate.preVisitPrattRule?.(rule);
-        rule.operators.forEach((operator) => {
-            this.processPrattOperator(operator);
-        });
-        this.processPrattPrimary(rule.primary);
-        this.delegate.postVisitPrattRule?.(rule);
+    visitPrattRule(rule: PrattRule): PrattRule {
+        if (this.delegate.visitPrattRule)
+            return this.delegate.visitPrattRule(rule, this);
+        this.visitPrattRuleChildren(rule);
+        return rule;
     }
 
-    processPrattOperator(operator: PrattOperator) {
-        this.delegate.preVisitPrattOperator?.(operator);
-        this.processRuleBody(operator.body);
-        this.delegate.postVisitPrattOperator?.(operator);
+    visitPrattRuleChildren(rule: PrattRule) {
+        for (let i = 0; i < rule.operators.length; i++)
+            rule.operators[i] = this.visitPrattOperator(rule.operators[i]);
+        rule.primary = this.visitPrattPrimary(rule.primary);
+        for (let i = 0; i < rule.versionAnnotations.length; i++) {
+            rule.versionAnnotations[i] = this.visitVersionAnnotation(
+                rule.versionAnnotations[i]
+            );
+        }
     }
 
-    processPrattPrimary(primary: PrattPrimary) {
-        this.delegate.preVisitPrattPrimary?.(primary);
-        this.processRuleBody(primary.body);
-        this.delegate.postVisitPrattPrimary?.(primary);
+    visitPrattOperator(operator: PrattOperator): PrattOperator {
+        if (this.delegate.visitPrattOperator)
+            return this.delegate.visitPrattOperator(operator, this);
+        this.visitPrattOperatorChildren(operator);
+        return operator;
     }
 
-    processIdentifierRule(rule: IdentifierRule) {
-        this.delegate.preVisitIdentifierRule?.(rule);
-        rule.ruleBodies.forEach((ruleBody) => {
-            this.processRuleBody(ruleBody);
-        });
-        this.delegate.postVisitIdentifierRule?.(rule);
+    visitPrattOperatorChildren(operator: PrattOperator) {
+        operator.body = this.visitRuleBody(operator.body);
+        for (let i = 0; i < operator.versionAnnotations.length; i++) {
+            operator.versionAnnotations[i] = this.visitVersionAnnotation(
+                operator.versionAnnotations[i]
+            );
+        }
     }
 
-    processSequenceRule(sequenceRule: SequenceRule) {
-        this.delegate.preVisitSequenceRule?.(sequenceRule);
-        sequenceRule.elements.forEach((element) => {
-            this.processRuleElement(element);
-        });
-        this.delegate.postVisitSequenceRule?.(sequenceRule);
+    visitPrattPrimary(primary: PrattPrimary): PrattPrimary {
+        if (this.delegate.visitPrattPrimary)
+            return this.delegate.visitPrattPrimary(primary, this);
+        this.visitPrattPrimaryChildren(primary);
+        return primary;
     }
 
-    processRuleElement(ruleElement: RuleElement) {
-        this.delegate.preVisitRuleElement?.(ruleElement);
+    visitPrattPrimaryChildren(primary: PrattPrimary) {
+        primary.body = this.visitRuleBody(primary.body);
+    }
+
+    visitIdentifierRule(rule: IdentifierRule): IdentifierRule {
+        if (this.delegate.visitIdentifierRule)
+            return this.delegate.visitIdentifierRule(rule, this);
+        this.visitIdentifierRuleChildren(rule);
+        return rule;
+    }
+
+    visitIdentifierRuleChildren(rule: IdentifierRule) {
+        for (let i = 0; i < rule.ruleBodies.length; i++) {
+            rule.ruleBodies[i] = this.visitRuleBody(rule.ruleBodies[i]);
+        }
+        if (rule.ruleAnnotation) {
+            // Assuming ruleAnnotation doesn't need to be visited
+        }
+        for (let i = 0; i < rule.versionAnnotations.length; i++) {
+            rule.versionAnnotations[i] = this.visitVersionAnnotation(
+                rule.versionAnnotations[i]
+            );
+        }
+    }
+
+    visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
+        if (this.delegate.visitSequenceRule)
+            return this.delegate.visitSequenceRule(sequenceRule, this);
+        this.visitSequenceRuleChildren(sequenceRule);
+        return sequenceRule;
+    }
+
+    visitSequenceRuleChildren(sequenceRule: SequenceRule) {
+        for (let i = 0; i < sequenceRule.elements.length; i++) {
+            sequenceRule.elements[i] = this.visitRuleElement(
+                sequenceRule.elements[i]
+            );
+        }
+    }
+
+    visitRuleElement(ruleElement: RuleElement): RuleElement {
+        if (this.delegate.visitRuleElement)
+            return this.delegate.visitRuleElement(ruleElement, this);
+        return this.dispatchRuleElement(ruleElement);
+    }
+
+    dispatchRuleElement(ruleElement: RuleElement): RuleElement {
         if (ruleElement instanceof CountedRuleElement) {
-            this.processCountedRuleElement(ruleElement);
+            return this.visitCountedRuleElement(ruleElement);
         } else {
             // if (ruleElement instanceof NegativeLookahead) {
-            this.processNegativeLookahead(ruleElement);
+            return this.visitNegativeLookahead(ruleElement);
         }
-        this.delegate.postVisitRuleElement?.(ruleElement);
     }
 
-    processNegativeLookahead(ruleElement: NegativeLookahead) {
-        this.delegate.preVisitNegativeLookahead?.(ruleElement);
-        if (ruleElement.content instanceof CharSet) {
-            this.delegate.visitCharSet?.(ruleElement.content);
-        } else {
-            // if (ruleElement.content instanceof StringElement) {
-            this.delegate.visitStringElement?.(ruleElement.content);
-        }
-        this.delegate.postVisitNegativeLookahead?.(ruleElement);
+    visitCharSet(charSet: CharSet): CharSet {
+        if (this.delegate.visitCharSet)
+            return this.delegate.visitCharSet(charSet, this);
+        this.visitCharSetChildren(charSet);
+        return charSet;
     }
 
-    processAlternativeRules(rules: AlternativeRules) {
-        this.delegate.preVisitAlternativeRules?.(rules);
-        rules.alternatives.forEach((alternative) =>
-            this.processSequenceRule(alternative.sequenceRule)
+    visitCharSetChildren(charSet: CharSet) {
+        for (let i = 0; i < charSet.ranges.length; i++) {
+            charSet.ranges[i] = this.visitCharSetRange(charSet.ranges[i]);
+        }
+    }
+
+    visitCharSetRange(range: {
+        startChar: CharSetChar;
+        endChar?: CharSetChar;
+    }): { startChar: CharSetChar; endChar?: CharSetChar } {
+        if (this.delegate.visitCharSetRange)
+            return this.delegate.visitCharSetRange(range, this);
+        return range;
+    }
+
+    visitNegativeLookahead(
+        negativeLookahead: NegativeLookahead
+    ): NegativeLookahead {
+        if (this.delegate.visitNegativeLookahead)
+            return this.delegate.visitNegativeLookahead(
+                negativeLookahead,
+                this
+            );
+        this.visitNegativeLookaheadChildren(negativeLookahead);
+        return negativeLookahead;
+    }
+
+    visitNegativeLookaheadChildren(negativeLookahead: NegativeLookahead) {
+        negativeLookahead.content = this.dispatchNegativeLookaheadContent(
+            negativeLookahead.content
         );
-        this.delegate.postVisitAlternativeRules?.(rules);
     }
 
-    processCountedRuleElement(element: CountedRuleElement) {
-        this.delegate.preVisitCountedRuleElement?.(element);
-        this.processCountableRuleElement(element.countableRuleElement);
-        this.delegate.postVisitCountedRuleElement?.(element);
+    dispatchNegativeLookaheadContent(content: CharSet | StringElement) {
+        if (content instanceof CharSet) {
+            return this.visitCharSet(content);
+        } else {
+            // if (content instanceof StringElement) {
+            return this.visitStringElement(content);
+        }
     }
 
-    processCountableRuleElement(cre: CountableRuleElement) {
-        this.delegate.preVisitCountableRuleElement?.(cre);
+    visitAlternativeRules(rules: AlternativeRules): AlternativeRules {
+        if (this.delegate.visitAlternativeRules)
+            return this.delegate.visitAlternativeRules(rules, this);
+        this.visitAlternativeRulesChildren(rules);
+        return rules;
+    }
+
+    visitAlternativeRulesChildren(rules: AlternativeRules) {
+        for (let i = 0; i < rules.alternatives.length; i++) {
+            rules.alternatives[i] = this.visitAlternativeRule(
+                rules.alternatives[i]
+            );
+        }
+    }
+
+    visitAlternativeRule(alternative: AlternativeRule): AlternativeRule {
+        if (this.delegate.visitAlternativeRule)
+            return this.delegate.visitAlternativeRule(alternative, this);
+        this.visitAlternativeRuleChildren(alternative);
+        return alternative;
+    }
+
+    visitAlternativeRuleChildren(alternative: AlternativeRule) {
+        alternative.sequenceRule = this.visitSequenceRule(
+            alternative.sequenceRule
+        );
+        for (let i = 0; i < alternative.versionAnnotations.length; i++) {
+            alternative.versionAnnotations[i] = this.visitVersionAnnotation(
+                alternative.versionAnnotations[i]
+            );
+        }
+    }
+
+    visitCountedRuleElement(element: CountedRuleElement): CountedRuleElement {
+        if (this.delegate.visitCountedRuleElement) {
+            return this.delegate.visitCountedRuleElement(element, this);
+        }
+        this.visitCountedRuleElementChildren(element);
+        return element;
+    }
+
+    visitCountedRuleElementChildren(element: CountedRuleElement) {
+        element.countableRuleElement = this.visitCountableRuleElement(
+            element.countableRuleElement
+        );
+        for (let i = 0; i < element.versionAnnotations.length; i++) {
+            element.versionAnnotations[i] = this.visitVersionAnnotation(
+                element.versionAnnotations[i]
+            );
+        }
+    }
+
+    visitCountableRuleElement(cre: CountableRuleElement): CountableRuleElement {
+        if (this.delegate.visitCountableRuleElement)
+            return this.delegate.visitCountableRuleElement(cre, this);
+
+        return this.dispatchCountableRuleElement(cre);
+    }
+
+    dispatchCountableRuleElement(
+        cre: CountableRuleElement
+    ): CountableRuleElement {
         if (cre instanceof RuleReference) {
-            this.delegate.visitRuleReference?.(cre);
+            return this.visitRuleReference(cre);
         } else if (cre instanceof AnyElement) {
-            this.delegate.visitAny?.(cre);
+            return this.visitAnyElement(cre);
         } else if (cre instanceof StringElement) {
-            this.delegate.visitStringElement?.(cre);
+            return this.visitStringElement(cre);
         } else if (cre instanceof CharSet) {
-            this.delegate.visitCharSet?.(cre);
+            return this.visitCharSet(cre);
         } else {
             // if (cre instanceof RuleBody) {
-            this.processRuleBody(cre);
+            return this.visitRuleBody(cre);
         }
-        this.delegate.postVisitCountableRuleElement?.(cre);
+    }
+
+    visitRuleReference(ruleReference: RuleReference): RuleReference {
+        if (this.delegate.visitRuleReference)
+            return this.delegate.visitRuleReference(ruleReference, this);
+        return ruleReference;
+    }
+
+    visitStringElement(string: StringElement): StringElement {
+        if (this.delegate.visitStringElement)
+            return this.delegate.visitStringElement(string, this);
+        return string;
+    }
+
+    visitAnyElement(anyElement: AnyElement): AnyElement {
+        if (this.delegate.visitAnyElement)
+            return this.delegate.visitAnyElement(anyElement, this);
+        return anyElement;
+    }
+
+    visitVersionAnnotation(
+        versionAnnotation: VersionAnnotation
+    ): VersionAnnotation {
+        if (this.delegate.visitVersionAnnotation)
+            return this.delegate.visitVersionAnnotation(
+                versionAnnotation,
+                this
+            );
+        this.visitVersionAnnotationChildren(versionAnnotation);
+        return versionAnnotation;
+    }
+
+    visitVersionAnnotationChildren(versionAnnotation: VersionAnnotation) {
+        versionAnnotation.version = this.visitVersionNumber(
+            versionAnnotation.version
+        );
+    }
+
+    visitVersionNumber(versionNumber: VersionNumber): VersionNumber {
+        if (this.delegate.visitVersionNumber)
+            return this.delegate.visitVersionNumber(versionNumber, this);
+        // VersionSegment doesn't need to be visited
+        return versionNumber;
     }
 }

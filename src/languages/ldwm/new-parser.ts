@@ -285,7 +285,7 @@ export class LDWMParser extends Parser {
                 this.mustConsumeString('::');
                 names.push(this.parseId());
             });
-            return { names };
+            return new Model.NamedTypeReference(names);
         });
     }
 

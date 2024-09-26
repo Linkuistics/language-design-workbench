@@ -1,6 +1,6 @@
 import { StringInputStream } from '../../../parser/stringInputStream';
 import { Model } from '../new-model';
-import { LDWMParser } from '../parser';
+import { LDWMParser } from '../new-parser';
 
 export class FromLDWMSource {
     transform(input: string): Model {

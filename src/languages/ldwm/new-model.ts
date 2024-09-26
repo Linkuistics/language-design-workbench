@@ -113,8 +113,8 @@ export class ResultType {
     ) {}
 }
 
-export interface NamedTypeReference {
-    names: Id[];
+export class NamedTypeReference {
+    constructor(public names: Id[]) {}
 }
 
 type Id = string;

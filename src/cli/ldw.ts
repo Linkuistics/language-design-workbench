@@ -23,7 +23,7 @@ import { InlineUndiscriminatedTypeWrappers } from '../languages/ldwm/passes/inli
 import { ToLDWMSource } from '../languages/ldwm/passes/to_ldwm-source';
 import { ToParserTypescriptSource } from '../languages/ldwg/passes/to_parser-typescript-source';
 import { AllocateLabels } from '../languages/ldwg/passes/allocate-labels';
-import { FromLDWMSource } from '../languages/ldwm/passes/from_ldwm-source';
+import { FromLDWMSource } from '../languages/ldwm/new-passes/from_ldwm-source';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 

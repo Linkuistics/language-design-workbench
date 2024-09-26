@@ -4,7 +4,9 @@ import { Counter } from '../utils';
 
 export class AllocateLabels {
     transform(input: GrammarLanguage): GrammarLanguage {
-        new Traverser(new LabelAllocator()).processGrammar(input);
+        input.grammar = new Traverser(new LabelAllocator()).visitGrammar(
+            input.grammar
+        );
         return input;
     }
 }
@@ -15,7 +17,12 @@ class ValueDetector implements TraverseDelegate {
         public name: string | undefined = undefined
     ) {}
 
-    postVisitCountedRuleElement(element: CountedRuleElement): void {
+    visitCountedRuleElement(
+        element: CountedRuleElement,
+        traverser: Traverser
+    ): CountedRuleElement {
+        traverser.visitCountedRuleElementChildren(element);
+
         let newName;
         if (element.label !== undefined) newName = element.label;
         else if (element.countableRuleElement instanceof RuleReference)
@@ -29,19 +36,27 @@ class ValueDetector implements TraverseDelegate {
             else if (this.name !== newName)
                 this.name = `_${this.counter.next()}`;
         }
+
+        return element;
     }
 }
 
 class LabelAllocator implements TraverseDelegate {
     private counter: Counter = new Counter();
 
-    postVisitCountedRuleElement(element: CountedRuleElement): void {
+    visitCountedRuleElement(
+        element: CountedRuleElement,
+        traverser: Traverser
+    ): CountedRuleElement {
+        traverser.visitCountedRuleElementChildren(element);
+
         if (element.label === undefined) {
             const detector = new ValueDetector(this.counter);
-            new Traverser(detector).processCountedRuleElement(element);
+            traverser.visitCountedRuleElement(element);
             if (detector.name !== undefined) {
                 element.label = detector.name;
             }
         }
+        return element;
     }
 }
