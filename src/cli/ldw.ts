@@ -1,29 +1,14 @@
-#!/usr/bin/env node
-
 import { program } from 'commander';
 import * as fs from 'fs';
-import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
-import { FromLDWGSoruce as FromLDWGSource } from '../languages/ldwg/passes/from_ldwg-source';
-import { AssignNameToAnonymousFields as AssignNamesToAnonymousFields } from '../languages/ldwm/passes/assign-names-to-anonymous-fields';
-import { DenestWrappers } from '../languages/ldwm/passes/denest-wrappers';
-import { FlattenNestedProductTypes } from '../languages/ldwm/passes/flatten-nested-product-types';
-import { InlineNamedTypeWrappers } from '../languages/ldwm/passes/inline-named-type-wrappers';
-import { MergeEquivalentProductTypeFields } from '../languages/ldwm/passes/merge-equivalent-product-type-fields';
-import { ToModelRustSource } from '../languages/ldwm/passes/to_model-rust-source';
-import { ToModelTypescriptSource } from '../languages/ldwm/passes/to_model-typescript-source';
-import { PluralizeArrayFields } from '../languages/ldwm/passes/pluralize-array-fields';
-import { UnwrapPrimitiveWrappers } from '../languages/ldwm/passes/unwrap-primitive-wrappers';
-import { composePasses, optionalPass } from '../nanopass/util';
-import { ParseError } from '../parser/parseError';
-import { MergeIdenticalSumTypeMembers } from '../languages/ldwm/passes/merge-identical-sum-type-members';
-import { FullyResolveTypeAliases } from '../languages/ldwm/passes/fully-resolve-type-aliases';
-import { RemoveUnreferencedTypes } from '../languages/ldwm/passes/remove-unreferenced-types';
-import { InlineDiscriminatedTypeWrappers } from '../languages/ldwm/passes/inline-discriminated-type-wrappers';
-import { InlineUndiscriminatedTypeWrappers } from '../languages/ldwm/passes/inline-undiscriminated-type-wrappers';
-import { ToLDWMSource } from '../languages/ldwm/passes/to_ldwm-source';
-import { ToParserTypescriptSource } from '../languages/ldwg/passes/to_parser-typescript-source';
 import { AllocateLabels } from '../languages/ldwg/passes/allocate-labels';
+import { FromLDWGSoruce as FromLDWGSource } from '../languages/ldwg/passes/from_ldwg-source';
+import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
+import { ToParserTypescriptSource } from '../languages/ldwg/passes/to_parser-typescript-source';
 import { FromLDWMSource } from '../languages/ldwm/new-passes/from_ldwm-source';
+import { ToModelTypescriptSource } from '../languages/ldwm/new-passes/to_model-typescript-source';
+import { ToLDWMSource } from '../languages/ldwm/passes/to_ldwm-source';
+import { composePasses } from '../nanopass/util';
+import { ParseError } from '../parser/parseError';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 
@@ -41,37 +26,6 @@ program
             const parser = new FromLDWGSource();
             const grammar = parser.transform(input);
             const output = JSON.stringify(grammar, null, 2);
-
-            if (options.output) {
-                fs.writeFileSync(options.output, output);
-            } else {
-                console.log(output);
-            }
-        } catch (error) {
-            if (error instanceof ParseError) {
-                console.error(error.toString());
-            } else {
-                console.error(error);
-            }
-
-            process.exit(1);
-        }
-    });
-
-program
-    .command('ldwm-parse')
-    .description('Parse .ldwm source to JSON')
-    .option('-i, --input <file>', 'Input file (default: stdin)')
-    .option('-o, --output <file>', 'Output file (default: stdout)')
-    .action(async (options) => {
-        try {
-            const input = options.input
-                ? fs.readFileSync(options.input, 'utf-8')
-                : await readStdin();
-
-            const parser = new FromLDWMSource();
-            const model = parser.transform(input);
-            const output = JSON.stringify(model, null, 2);
 
             if (options.output) {
                 fs.writeFileSync(options.output, output);
@@ -173,70 +127,99 @@ program
         }
     });
 
-// program
-//     .command('ldwm-to-types')
-//     .description('Produce type definitions from .ldwm source')
-//     .option('-i, --input <file>', 'Input file (default: stdin)')
-//     .option('-o, --output <file>', 'Output file (default: stdout)')
-//     .option('-g, --generics', 'Use generics for typescript', false)
-//     .option(
-//         '-l, --language <lang>',
-//         'Output language (typescript or rust)',
-//         'typescript'
-//     )
-//     .option('-r, --roots <roots>', 'Comma-separated list of root types')
-//     .action(async (options) => {
-//         try {
-//             const input = options.input
-//                 ? fs.readFileSync(options.input, 'utf-8')
-//                 : await readStdin();
+program
+    .command('ldwm-parse')
+    .description('Parse .ldwm source to JSON')
+    .option('-i, --input <file>', 'Input file (default: stdin)')
+    .option('-o, --output <file>', 'Output file (default: stdout)')
+    .action(async (options) => {
+        try {
+            const input = options.input
+                ? fs.readFileSync(options.input, 'utf-8')
+                : await readStdin();
 
-//             const isTypescript = options.language === 'typescript';
-//             const roots = options.roots ? options.roots.split(',') : undefined;
+            const parser = new FromLDWMSource();
+            const model = parser.transform(input);
+            const output = JSON.stringify(model, null, 2);
 
-//             const output = composePasses(
-//                 new FromLDWMSource(),
-//                 // new MergeIdenticalSumTypeMembers(),
-//                 // for typescript we only need to flatten anonymous fields in product types
-//                 // whereas for rust we need to flatten all product types
+            if (options.output) {
+                fs.writeFileSync(options.output, output);
+            } else {
+                console.log(output);
+            }
+        } catch (error) {
+            if (error instanceof ParseError) {
+                console.error(error.toString());
+            } else {
+                console.error(error);
+            }
 
-//                 // new FlattenNestedProductTypes(isTypescript),
-//                 // new AssignNamesToAnonymousFields(),
-//                 // new InlineDiscriminatedTypeWrappers(),
-//                 // new InlineUndiscriminatedTypeWrappers(),
+            process.exit(1);
+        }
+    });
 
-//                 // new InlineNamedTypeWrappers(),
-//                 // new DenestWrappers(),
+program
+    .command('ldwm-to-types')
+    .description('Produce type definitions from .ldwm source')
+    .option('-i, --input <file>', 'Input file (default: stdin)')
+    .option('-o, --output <file>', 'Output file (default: stdout)')
+    .option('-g, --generics', 'Use generics for typescript', false)
+    .option(
+        '-l, --language <lang>',
+        'Output language (typescript or rust)',
+        'typescript'
+    )
+    .option('-r, --roots <roots>', 'Comma-separated list of root types')
+    .action(async (options) => {
+        try {
+            const input = options.input
+                ? fs.readFileSync(options.input, 'utf-8')
+                : await readStdin();
 
-//                 // new UnwrapPrimitiveWrappers(),
-//                 // new MergeEquivalentProductTypeFields(),
-//                 // new FullyResolveTypeAliases(),
-//                 // optionalPass(
-//                 //     roots !== undefined,
-//                 //     new RemoveUnreferencedTypes(roots)
-//                 // ),
-//                 // new PluralizeArrayFields(),
+            const isTypescript = options.language === 'typescript';
+            const roots = options.roots ? options.roots.split(',') : undefined;
 
-//                 isTypescript
-//                     ? new ToModelTypescriptSource(options.generics)
-//                     : new ToModelRustSource()
-//             ).transform(input);
+            const output = composePasses(
+                new FromLDWMSource(),
+                // new MergeIdenticalSumTypeMembers(),
+                // for typescript we only need to flatten anonymous fields in product types
+                // whereas for rust we need to flatten all product types
 
-//             if (options.output) {
-//                 fs.writeFileSync(options.output, output);
-//             } else {
-//                 console.log(output);
-//             }
-//         } catch (error) {
-//             if (error instanceof ParseError) {
-//                 console.error(error.toString());
-//             } else {
-//                 console.error(error);
-//             }
+                // new FlattenNestedProductTypes(isTypescript),
+                // new AssignNamesToAnonymousFields(),
+                // new InlineDiscriminatedTypeWrappers(),
+                // new InlineUndiscriminatedTypeWrappers(),
 
-//             process.exit(1);
-//         }
-//     });
+                // new InlineNamedTypeWrappers(),
+                // new DenestWrappers(),
+
+                // new UnwrapPrimitiveWrappers(),
+                // new MergeEquivalentProductTypeFields(),
+                // new FullyResolveTypeAliases(),
+                // optionalPass(
+                //     roots !== undefined,
+                //     new RemoveUnreferencedTypes(roots)
+                // ),
+                // new PluralizeArrayFields(),
+
+                new ToModelTypescriptSource(options.generics)
+            ).transform(input);
+
+            if (options.output) {
+                fs.writeFileSync(options.output, output);
+            } else {
+                console.log(output);
+            }
+        } catch (error) {
+            if (error instanceof ParseError) {
+                console.error(error.toString());
+            } else {
+                console.error(error);
+            }
+
+            process.exit(1);
+        }
+    });
 
 program.parse(process.argv);
 
