@@ -1,63 +1,151 @@
-model model {
+type OptionType<T> = T | undefined;
+type ResultType<O, E> = O | { error: E }
 
-    GenericType = { { TupleType:TupleType } | { MapType:MapType } | { SetType:SetType } | { OptionType:OptionType } | { ResultType:ResultType } };
 
-    Trivia = { { LineComment:LineComment } | { BlockComment:BlockComment } | { Whitespace:Whitespace } };
+export class Model {
+    constructor(
+        public name:Id,
+        public parentName:Option<Id>
+    ) {}
+}
 
-    Type = { { VoidType:VoidType } | { PrimitiveType:PrimitiveType } | { EnumType:EnumType } | { TypeWithStructure:TypeWithStructure } | { NamedTypeReference:NamedTypeReference } };
+export class Definition {
+    constructor(
+        public name:Id,
+        public type:Type
+    ) {}
+}
 
-    TypeWithStructure = { { SumType:SumType } | { ProductType:ProductType } | { GenericType:GenericType } };
+export class Deletion {
+    constructor(
+        public name:Id
+    ) {}
+}
 
-    BlockComment = { value:string };
+export class MemberModification {
+    constructor(
+        public name:Id
+    ) {}
+}
 
-    Definition = { name:Id, Type:Type };
+export class MemberDeletion {
+    constructor(
+        public namedTypeReference:NamedTypeReference
+    ) {}
+}
 
-    Deletion = { name:Id };
+export class MemberAddition {
+}
 
-    EnumType = { member:seq<{ member:String }> };
+export class Type {
+}
 
-    Id = { value:string };
+export class VoidType {
+}
 
-    IdentifierChar = { value:string };
+export class PrimitiveType {
+}
 
-    InitialIdentifierChar = { value:string };
+export class EnumType {
+    constructor(
+        public member:String,
+        public member:Array<String>
+    ) {}
+}
 
-    LineComment = { value:string };
+export class String {
+    constructor(
+        public id:Id
+    ) {}
+}
 
-    MapType = { key_type:Type, value_type:Type };
+export class TypeWithStructure {
+}
 
-    MemberAddition = { _4:{ { Type:Type } | { ProductMember:ProductMember } } };
+export class SumType {
+    constructor(
+        public member:Type,
+        public member:Array<Type>
+    ) {}
+}
 
-    MemberDeletion = { _3:{ { name:Id } | { NamedTypeReference:NamedTypeReference } } };
+export class ProductType {
+    constructor(
+        public member:Option<ProductMember>,
+        public member:Array<ProductMember>
+    ) {}
+}
 
-    MemberModification = { name:Id, _2:seq<{ { MemberDeletion:MemberDeletion } | { MemberAddition:MemberAddition } }> };
+export class ProductMember {
+    constructor(
+        public name:Id,
+        public type:Type
+    ) {}
+}
 
-    Model = { name:Id, parent_name:option<{ parent_name:Id }>, _1:seq<{ { Definition:Definition } | { Deletion:Deletion } | { MemberModification:MemberModification } }> };
+export class GenericType {
+}
 
-    NamedTypeReference = { name:Id, name:seq<{ name:Id }> };
+export class TupleType {
+    constructor(
+        public member:Type,
+        public member:Array<Type>
+    ) {}
+}
 
-    OptionType = { Type:Type };
+export class MapType {
+    constructor(
+        public keyType:Type,
+        public valueType:Type
+    ) {}
+}
 
-    PrimitiveType = { type:{ "boolean" | "char" | "string" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" } };
+export class SetType {
+    constructor(
+        public keyType:Type
+    ) {}
+}
 
-    ProductMember = { name:Id, Type:Type };
+export class SequenceType {
+    constructor(
+        public type:Type
+    ) {}
+}
 
-    ProductType = { member:option<{ member:ProductMember, member:seq<{ member:ProductMember }> }> };
+export class OptionType {
+    constructor(
+        public type:Type
+    ) {}
+}
 
-    ResultType = { ok_type:Type, err_type:Type };
+export class ResultType {
+    constructor(
+        public okType:Type,
+        public errType:Type
+    ) {}
+}
 
-    SequenceType = { Type:Type };
+export class NamedTypeReference {
+    constructor(
+        public name:Id,
+        public name:Array<Id>
+    ) {}
+}
 
-    SetType = { key_type:Type };
+export class InitialIdentifierChar {
+}
 
-    String = { Id:Id };
+export class IdentifierChar {
+}
 
-    SumType = { member:Type, member:seq<{ member:Type }> };
+export class Trivia {
+}
 
-    TupleType = { member:Type, member:seq<{ member:Type }> };
+export class Whitespace {
+}
 
-    VoidType = {  };
+export class LineComment {
+}
 
-    Whitespace = { value:string };
-
+export class BlockComment {
 }

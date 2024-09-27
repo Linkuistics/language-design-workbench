@@ -49,17 +49,14 @@ export class ToLDWMSource {
     }
 
     private definitionSource(type: NamedType): string {
-        return `    ${escapeName(type.name)} = ${this.source(type.type)};\n\n`;
+        return `    ${type.name} = ${this.source(type.type)};\n\n`;
     }
 
     private source(type: Type): string {
         if (type instanceof ProductType) {
             let result = '{ ';
             result += type.fields
-                .map(
-                    (field) =>
-                        `${escapeName(field.name)}:${this.source(field.type)}`
-                )
+                .map((field) => `${field.name}:${this.source(field.type)}`)
                 .join(', ');
             result += ' }';
             return result;
@@ -77,7 +74,7 @@ export class ToLDWMSource {
             result += ` }`;
             return result;
         } else if (type instanceof NamedTypeReference) {
-            return escapeName(type.target.name);
+            return type.target.name;
         } else if (type instanceof OptionalType) {
             return `option<${this.source(type.elementType)}>`;
         } else if (type instanceof ArrayType) {
@@ -92,22 +89,3 @@ export class ToLDWMSource {
         throw new Error('Unexpected type: ' + type);
     }
 }
-
-function escapeName(name: string): string {
-    return reservedWords.includes(name) ? `%${name}` : name;
-}
-const reservedWords = [
-    'string',
-    'boolean',
-    'void',
-    'i8',
-    'i16',
-    'i32',
-    'i64',
-    'u8',
-    'u16',
-    'u32',
-    'u64',
-    'f32',
-    'f64'
-];

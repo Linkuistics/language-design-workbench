@@ -1,73 +1,144 @@
-model sexpr {
+type OptionType<T> = T | undefined;
+type ResultType<O, E> = O | { error: E }
 
-    abbreviation = { { quote:datum } | { quasiquote:datum } | { unquote:datum } | { unquote_splicing:datum } };
 
-    byte_vector = { { number:seq<number> } | { number:seq<number> } | { number:seq<number> } };
+export class Datum {
+}
 
-    character = { { char:string } | { character_name:character_name } | { uinteger16:uinteger16 } };
+export class Boolean {
+}
 
-    comment = { { line_comment:line_comment } | { block_comment:block_comment } | { datum_comment:datum_comment } };
+export class Number {
+}
 
-    datum = { { %boolean:%boolean } | { character:character } | { number:number } | { %string:%string } | { list:list } | { vector:vector } | { byte_vector:byte_vector } | { struct:struct } | { symbol:symbol } };
+export class Num2 {
+    constructor(
+        public sign:Option<Sign>,
+        public ureal2:Ureal2
+    ) {}
+}
 
-    list = { { _1:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { _3:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { _5:option<{ datum:seq<datum>, tail:option<{ tail:datum }> }> } | { abbreviation:abbreviation } };
+export class Ureal2 {
+    constructor(
+        public uinteger2:Uinteger2
+    ) {}
+}
 
-    number = { { num2:num2 } | { num10:num10 } | { num16:num16 } };
+export class Uinteger2 {
+    constructor(
+        public digit2:Array<Digit2>
+    ) {}
+}
 
-    struct = { { name:symbol, datum:seq<datum> } | { name:symbol, datum:seq<datum> } | { name:symbol, datum:seq<datum> } };
+export class Digit2 {
+}
 
-    trivia = { { whitespace:whitespace } | { comment:comment } };
+export class Num10 {
+    constructor(
+        public sign:Option<Sign>,
+        public ureal10:Ureal10
+    ) {}
+}
 
-    vector = { { datum:seq<datum> } | { datum:seq<datum> } | { datum:seq<datum> } };
+export class Ureal10 {
+    constructor(
+        public uinteger10:Uinteger10
+    ) {}
+}
 
-    %boolean = { "true" | "false" };
+export class Uinteger10 {
+    constructor(
+        public digit10:Array<Digit10>
+    ) {}
+}
 
-    character_name = { "alarm" | "backspace" | "delete" | "esc" | "linefeed" | "newline" | "page" | "return" | "space" | "tab" | "vtab" };
+export class Digit10 {
+}
 
-    block_comment = { value:string };
+export class Num16 {
+    constructor(
+        public sign:Option<Sign>,
+        public ureal16:Ureal16
+    ) {}
+}
 
-    datum_comment = { datum:datum };
+export class Ureal16 {
+    constructor(
+        public uinteger16:Uinteger16
+    ) {}
+}
 
-    digit10 = { value:string };
+export class Uinteger16 {
+    constructor(
+        public digit16:Array<Digit16>
+    ) {}
+}
 
-    digit16 = { value:string };
+export class Digit16 {
+}
 
-    digit2 = { value:string };
+export class Sign {
+}
 
-    ident = { value:string };
+export class Character {
+}
 
-    ident_continue = { value:string };
+export class CharacterName {
+}
 
-    ident_start = { value:string };
+export class String {
+    constructor(
+        public stringCharacter:Array<StringCharacter>
+    ) {}
+}
 
-    line_comment = { value:string };
+export class StringCharacter {
+}
 
-    num10 = { value:string };
+export class Symbol {
+    constructor(
+        public ident:Ident
+    ) {}
+}
 
-    num16 = { value:string };
+export class List {
+}
 
-    num2 = { value:string };
+export class Abbreviation {
+}
 
-    sign = {  };
+export class Vector {
+}
 
-    %string = { value:string };
+export class ByteVector {
+}
 
-    string_character = { value:string };
+export class Struct {
+}
 
-    symbol = { ident:ident };
+export class IdentStart {
+}
 
-    uinteger10 = { value:string };
+export class IdentContinue {
+}
 
-    uinteger16 = { value:string };
+export class Trivia {
+}
 
-    uinteger2 = { value:string };
+export class Comment {
+}
 
-    ureal10 = { value:string };
+export class LineComment {
+}
 
-    ureal16 = { value:string };
+export class BlockComment {
+}
 
-    ureal2 = { value:string };
+export class DatumComment {
+    constructor(
+        public datum:Datum
+    ) {}
+}
 
-    whitespace = { value:string };
-
+export class Whitespace {
 }

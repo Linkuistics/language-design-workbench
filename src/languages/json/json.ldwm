@@ -1,39 +1,82 @@
-model json {
+type OptionType<T> = T | undefined;
+type ResultType<O, E> = O | { error: E }
 
-    comment = { { line_comment:line_comment } | { block_comment:block_comment } };
 
-    trivia = { { whitespace:whitespace } | { comment:comment } };
+export class Value {
+}
 
-    value = { { %boolean:%boolean } | { number:number } | { %string:%string } | { null:null } | { list:list } | { map:map } };
+export class Boolean {
+}
 
-    %boolean = { "true" | "false" };
+export class Number {
+    constructor(
+        public sign:Option<Sign>,
+        public ureal:Ureal
+    ) {}
+}
 
-    block_comment = { value:string };
+export class Ureal {
+    constructor(
+        public uinteger:Uinteger
+    ) {}
+}
 
-    digit = {  };
+export class Uinteger {
+    constructor(
+        public digit:Array<Digit>
+    ) {}
+}
 
-    line_comment = { value:string };
+export class Digit {
+}
 
-    list = { value:option<{ value:value, value:seq<{ value:value }> }> };
+export class Sign {
+}
 
-    map = { map_entry:option<{ map_entry:map_entry, map_entry:seq<{ map_entry:map_entry }> }> };
+export class String {
+    constructor(
+        public stringCharacter:Array<StringCharacter>
+    ) {}
+}
 
-    map_entry = { key:%string, value:value };
+export class StringCharacter {
+}
 
-    null = {  };
+export class Null {
+}
 
-    number = { value:string };
+export class List {
+    constructor(
+        public value:Option<Value>,
+        public value:Array<Value>
+    ) {}
+}
 
-    sign = {  };
+export class Map {
+    constructor(
+        public mapEntry:Option<MapEntry>,
+        public mapEntry:Array<MapEntry>
+    ) {}
+}
 
-    %string = { value:string };
+export class MapEntry {
+    constructor(
+        public key:String,
+        public value:Value
+    ) {}
+}
 
-    string_character = { value:string };
+export class Trivia {
+}
 
-    uinteger = { value:string };
+export class Comment {
+}
 
-    ureal = { value:string };
+export class LineComment {
+}
 
-    whitespace = { value:string };
+export class BlockComment {
+}
 
+export class Whitespace {
 }

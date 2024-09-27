@@ -1,69 +1,162 @@
-model grammar {
+type OptionType<T> = T | undefined;
+type ResultType<O, E> = O | { error: E }
 
-    countable_rule_element = { { rule_reference:rule_reference } | { %string:%string } | { char_set:char_set } | { any:any } | { rule_body:rule_body } };
 
-    rule_body = { { sequence_rule:sequence_rule } | { alternative_rules:alternative_rules } };
+export class Grammar {
+    constructor(
+        public name:Name
+    ) {}
+}
 
-    rule_element = { { counted_rule_element:counted_rule_element } | { negative_lookahead:negative_lookahead } };
+export class Rule {
+    constructor(
+        public name:Name,
+        public annotation:Option<RuleAnnotation>,
+        public versionAnnotation:Array<VersionAnnotation>,
+        public body:RuleBody
+    ) {}
+}
 
-    trivia = { { line_comment:line_comment } | { block_comment:block_comment } | { whitespace:whitespace } };
+export class RuleAnnotation {
+}
 
-    count = { "one_or_more" | "zero_or_more" | "optional" };
+export class PrattRule {
+    constructor(
+        public name:Name,
+        public versionAnnotation:Array<VersionAnnotation>,
+        public operator:Array<PrattOperator>,
+        public primary:PrattPrimary
+    ) {}
+}
 
-    pratt_operator_type = { "prefix" | "postfix" | "left" | "right" };
+export class PrattOperator {
+    constructor(
+        public prattOperatorType:PrattOperatorType,
+        public name:Name,
+        public versionAnnotation:Array<VersionAnnotation>,
+        public body:RuleBody
+    ) {}
+}
 
-    rule_annotation = { "no_skip" | "atomic" };
+export class PrattPrimary {
+    constructor(
+        public name:Name,
+        public body:RuleBody
+    ) {}
+}
 
-    version_annotation_type = { "enabled" | "disabled" };
+export class PrattOperatorType {
+}
 
-    alternative = { label:option<label>, version_annotation:seq<version_annotation>, sequence_rule:sequence_rule };
+export class IdentifierRule {
+    constructor(
+        public name:Name,
+        public ruleAnnotation:Option<RuleAnnotation>,
+        public versionAnnotation:Array<VersionAnnotation>
+    ) {}
+}
 
-    alternative_rules = { alternative:seq<alternative> };
+export class VersionAnnotation {
+    constructor(
+        public versionAnnotationType:VersionAnnotationType,
+        public versionNumber:VersionNumber
+    ) {}
+}
 
-    any = {  };
+export class VersionAnnotationType {
+}
 
-    block_comment = { value:string };
+export class VersionNumber {
+    constructor(
+        public segment:VersionSegment,
+        public segment:Array<VersionSegment>
+    ) {}
+}
 
-    char_set = { negated:boolean, range:seq<{ start_char:char_set_char, end_char:option<{ end_char:char_set_char }> }> };
+export class VersionSegment {
+}
 
-    char_set_char = { value:string };
+export class RuleBody {
+}
 
-    counted_rule_element = { label:option<label>, countable_rule_element:countable_rule_element, count:option<count>, version_annotation:seq<version_annotation> };
+export class SequenceRule {
+    constructor(
+        public ruleElement:Array<RuleElement>
+    ) {}
+}
 
-    grammar = { name:name, rule:seq<{ { rule:rule } | { pratt_rule:pratt_rule } | { identifier_rule:identifier_rule } }> };
+export class AlternativeRules {
+    constructor(
+        public alternative:Array<Alternative>
+    ) {}
+}
 
-    identifier_rule = { name:name, rule_annotation:option<rule_annotation>, version_annotation:seq<version_annotation>, _0:{ { identifier_with_exclusions:identifier_with_exclusions } | { rule_body:rule_body } } };
+export class Alternative {
+    constructor(
+        public label:Option<Label>,
+        public versionAnnotation:Array<VersionAnnotation>,
+        public sequenceRule:SequenceRule
+    ) {}
+}
 
-    identifier_with_exclusions = { rule_body:rule_body, rule_body:rule_body };
+export class RuleElement {
+}
 
-    label = { name:name };
+export class CountedRuleElement {
+    constructor(
+        public label:Option<Label>,
+        public countableRuleElement:CountableRuleElement,
+        public count:Option<Count>,
+        public versionAnnotation:Array<VersionAnnotation>
+    ) {}
+}
 
-    line_comment = { value:string };
+export class CountableRuleElement {
+}
 
-    name = { value:string };
+export class RuleReference {
+    constructor(
+        public name:Name,
+        public name:Array<Name>
+    ) {}
+}
 
-    negative_lookahead = { _1:{ { char_set:char_set } | { %string:%string } } };
+export class Count {
+}
 
-    pratt_operator = { pratt_operator_type:pratt_operator_type, name:name, version_annotation:seq<version_annotation>, body:rule_body };
+export class Label {
+    constructor(
+        public name:Name
+    ) {}
+}
 
-    pratt_primary = { name:name, body:rule_body };
+export class String {
+}
 
-    pratt_rule = { name:name, version_annotation:seq<version_annotation>, operators:seq<pratt_operator>, primary:pratt_primary };
+export class CharSet {
+    constructor(
+        public startChar:Array<CharSetChar>,
+        public endChar:Array<CharSetChar>
+    ) {}
+}
 
-    rule = { name:name, annotation:option<rule_annotation>, version_annotation:seq<version_annotation>, body:rule_body };
+export class CharSetChar {
+}
 
-    rule_reference = { name:name, name:seq<{ name:name }> };
+export class Any {
+}
 
-    sequence_rule = { rule_element:seq<rule_element> };
+export class NegativeLookahead {
+}
 
-    %string = { value:string };
+export class Trivia {
+}
 
-    version_annotation = { version_annotation_type:version_annotation_type, version_number:version_number };
+export class LineComment {
+}
 
-    version_number = { segment:version_segment, segment:seq<{ segment:version_segment }> };
+export class BlockComment {
+}
 
-    version_segment = { value:string };
-
-    whitespace = { value:string };
-
+export class Whitespace {
 }

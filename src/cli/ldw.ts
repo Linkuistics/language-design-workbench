@@ -2,13 +2,13 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import { AllocateLabels } from '../languages/ldwg/passes/allocate-labels';
 import { FromLDWGSoruce as FromLDWGSource } from '../languages/ldwg/passes/from_ldwg-source';
-import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
 import { ToParserTypescriptSource } from '../languages/ldwg/passes/to_parser-typescript-source';
 import { FromLDWMSource } from '../languages/ldwm/new-passes/from_ldwm-source';
 import { ToModelTypescriptSource } from '../languages/ldwm/new-passes/to_model-typescript-source';
-import { ToLDWMSource } from '../languages/ldwm/passes/to_ldwm-source';
 import { composePasses } from '../nanopass/util';
 import { ParseError } from '../parser/parseError';
+import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
+import { TransformNamesCase } from '../languages/ldwg/passes/transform-names-case';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 
@@ -57,8 +57,9 @@ program
             const output = composePasses(
                 new FromLDWGSource(),
                 new AllocateLabels(),
+                new TransformNamesCase(),
                 new ToLDWM(),
-                new ToLDWMSource()
+                new ToModelTypescriptSource(true)
             ).transform(input);
 
             if (options.output) {

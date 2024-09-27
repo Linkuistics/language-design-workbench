@@ -2,6 +2,7 @@ import { InputStream } from '../../parser/inputStream';
 import * as Model from './model';
 import { Parser } from '../../parser/parser';
 import { ParseError } from '../../parser/parseError';
+import { pascalCase } from 'literal-case';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
 

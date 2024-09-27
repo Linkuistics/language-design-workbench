@@ -33,8 +33,8 @@ class ValueDetector implements TraverseDelegate {
 
         if (newName !== undefined) {
             if (this.name === undefined) this.name = newName;
-            else if (this.name !== newName)
-                this.name = `_${this.counter.next()}`;
+            else if (this.name !== newName) this.name = 'value';
+            // this.name = `_${this.counter.next()}`;
         }
 
         return element;
@@ -52,7 +52,7 @@ class LabelAllocator implements TraverseDelegate {
 
         if (element.label === undefined) {
             const detector = new ValueDetector(this.counter);
-            traverser.visitCountedRuleElement(element);
+            new Traverser(detector).visitCountedRuleElement(element);
             if (detector.name !== undefined) {
                 element.label = detector.name;
             }

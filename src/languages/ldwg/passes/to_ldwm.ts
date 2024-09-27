@@ -1,18 +1,12 @@
 import {
-    ArrayType,
-    BooleanType,
-    EnumType,
+    Definition,
     Model,
-    NamedType,
     NamedTypeReference,
-    OptionalType,
+    OptionType,
+    ProductMember,
     ProductType,
-    ProductTypeField,
-    StringType,
-    SumType,
-    Type,
-    VoidType
-} from '../../ldwm/model';
+    SequenceType
+} from '../../ldwm/new-model';
 import {
     AlternativeRule,
     AlternativeRules,
@@ -21,172 +15,124 @@ import {
     Count,
     CountedRuleElement,
     GrammarLanguage,
-    IdentifierRule,
-    PrattRule,
     Rule,
-    RuleAnnotation,
     RuleReference,
-    SequenceRule,
     StringElement
 } from '../model';
-import { alternativeRulesAsEnum } from '../utils';
+import { TraverseDelegate, Traverser } from '../traverser';
 
-export class ToLDWM {
-    private rules: Map<string, Rule | PrattRule | IdentifierRule> = new Map();
-    private typeReferenceFixups: {
-        typeReference: NamedTypeReference;
-        name: string;
-    }[] = [];
-    private output: Model = new Model('?');
+export class ToLDWM implements TraverseDelegate {
+    private definitions: Definition[] = [];
 
     transform(input: GrammarLanguage): Model {
-        this.output.name = input.grammar.name;
-
-        input.grammar.rules.forEach((rule) => {
-            this.rules.set(rule.name, rule);
-        });
-
-        for (const rule of input.grammar.rules) {
-            if (rule instanceof Rule) {
-                this.processRule(rule);
-            } else if (rule instanceof PrattRule) {
-                this.processPrattRule(rule);
-            } else if (rule instanceof IdentifierRule) {
-                this.processIdentifierRule(rule);
-            }
-        }
-
-        for (const { typeReference, name } of this.typeReferenceFixups) {
-            const target = this.output.namedTypes.get(name);
-            if (!target) {
-                throw new Error(`Type reference target not found: ${name}`);
-            }
-            typeReference.target = target;
-        }
-
-        return this.output;
-    }
-
-    processRule(rule: Rule) {
-        if (rule.annotation == RuleAnnotation.Atomic) {
-            const t = new ProductType();
-            t.fields.push(new ProductTypeField('value', new StringType()));
-            this.output.addNamedType(rule.name, t);
-        } else if (rule.body instanceof SequenceRule) {
-            this.output.addNamedType(
-                rule.name,
-                this.processSequenceRule(rule.body)
-            );
-        } else {
-            this.output.addNamedType(
-                rule.name,
-                this.processAlternativeRules(rule.body)
-            );
-        }
-    }
-
-    processPrattRule(rule: PrattRule) {
-        throw new Error('Pratt rules not implemented');
-    }
-
-    processIdentifierRule(rule: IdentifierRule) {
-        if (rule.ruleAnnotation == RuleAnnotation.Atomic) {
-            const t = new ProductType();
-            t.fields.push(new ProductTypeField('value', new StringType()));
-            this.output.addNamedType(rule.name, t);
-        } else if (rule.ruleBodies[0] instanceof SequenceRule) {
-            this.processSequenceRule(rule.ruleBodies[0]);
-        } else {
-            this.processAlternativeRules(rule.ruleBodies[0]);
-        }
-    }
-
-    processSequenceRule(sequenceRule: SequenceRule): Type {
-        let t = new ProductType();
-        for (const element of sequenceRule.elements) {
-            if (element instanceof CountedRuleElement) {
-                let field = this.processCountedRuleElement(element);
-                if (field) {
-                    t.fields.push(field);
-                }
-            }
-        }
-        return t;
-    }
-
-    processAlternativeRules(rules: AlternativeRules): Type {
-        if (rules.alternatives.length === 0) return new VoidType();
-
-        // all StringElement or labeled literal -> enum
-
-        let enumMembers = alternativeRulesAsEnum(rules);
-        if (enumMembers) {
-            const t = new EnumType();
-            t.members = enumMembers;
-            return t;
-        }
-
-        // otherwise -> union
-
-        const u = new SumType();
-        u.members = rules.alternatives.map((alternative) =>
-            this.processSequenceRule(alternative.sequenceRule)
+        new Traverser(this).visitGrammar(input.grammar);
+        const output = new Model(
+            input.grammar.name,
+            undefined,
+            this.definitions
         );
-        return u;
+        return output;
     }
 
-    processCountedRuleElement(
-        element: CountedRuleElement
-    ): ProductTypeField | undefined {
-        let type;
-        let name = element.label;
-        const cre = element.countableRuleElement;
-        if (cre instanceof RuleReference) {
-            let defaultName = cre.names[cre.names.length - 1];
-            // if (!name) name = defaultName;
-            // Use singleton for placeholder
-            type = new NamedTypeReference(
-                new NamedType('**Invalid**', new VoidType())
-            );
-            this.typeReferenceFixups.push({
-                typeReference: type,
-                name: defaultName
+    visitRule(rule: Rule, traverser: Traverser): Rule {
+        // Check for an enum type
+        const fieldCollector = new FieldCollector();
+        new Traverser(fieldCollector).visitRule(rule);
+        // check for a sum type
+        // merge fields with the same name.
+        // collapse identical types into a single array field
+        // collapse option<X>/array<X>/X into array<X>
+        // collapse non-identical types into sum type
+        // collapse option<X>/array<Y>/Z into array<X | Y | Z>
+        // collapse option<X>/option<Y>/Z into array<X | Y | Z> - both options may occur!
+        // collapse X/Y into array<X | Y>
+        this.definitions.push(
+            new Definition(rule.name, new ProductType(fieldCollector.members))
+        );
+        return rule;
+    }
+}
+
+// Collects the fields contributed by a model element
+class FieldCollector implements TraverseDelegate {
+    public members: ProductMember[] = [];
+
+    visitCountedRuleElement(
+        element: CountedRuleElement,
+        traverser: Traverser
+    ): CountedRuleElement {
+        let members: ProductMember[] = [];
+        if (element.countableRuleElement instanceof RuleReference) {
+            members.push({
+                name: element.label ?? element.countableRuleElement.names[0],
+                type: new NamedTypeReference(element.countableRuleElement.names)
             });
-        } else if (cre instanceof AnyElement) {
-            if (!name) return undefined;
-            // TODO: use singleton
-            type = new StringType();
-        } else if (cre instanceof StringElement) {
-            if (!name) return undefined;
-            // This represents the presence or not of a string,
-            // hence the representation is a boolean
-            // TODO: use singleton
-            type = new BooleanType();
-        } else if (cre instanceof CharSet) {
-            if (!name) return undefined;
-            // TODO: use singleton
-            type = new StringType();
-        } else if (cre instanceof SequenceRule) {
-            type = this.processSequenceRule(cre);
-        } else {
-            // if (cre instanceof AlternativeRules) {
-            type = this.processAlternativeRules(cre);
+        } else if (element.label) {
+            if (element.countableRuleElement instanceof CharSet) {
+                members.push({
+                    name: element.label,
+                    type: 'string'
+                });
+            } else if (element instanceof AnyElement) {
+                members.push({
+                    name: element.label,
+                    type: 'string'
+                });
+            } else if (element instanceof StringElement) {
+                members.push({
+                    name: element.label,
+                    type: 'boolean'
+                });
+            } else {
+                const fieldCollector = new FieldCollector();
+                new Traverser(fieldCollector).visitCountableRuleElement(
+                    element.countableRuleElement
+                );
+                for (const member of fieldCollector.members)
+                    members.push(member);
+            }
         }
 
-        if (type == undefined) return undefined;
-
-        if (
-            element.count == Count.ZeroOrMore ||
-            element.count == Count.OneOrMore
-        ) {
-            type = new ArrayType(type);
-        } else if (
-            element.count == Count.Optional &&
-            !(type instanceof BooleanType || type instanceof OptionalType)
-        ) {
-            type = new OptionalType(type);
+        for (const field of members) {
+            switch (element.count) {
+                case Count.ZeroOrMore:
+                case Count.OneOrMore:
+                    if (field.type instanceof OptionType) {
+                        field.type = new SequenceType(field.type.type);
+                    } else if (field.type instanceof SequenceType) {
+                        // no change
+                    } else {
+                        field.type = new SequenceType(field.type);
+                    }
+                    break;
+                case Count.Optional:
+                    if (
+                        field.type == 'boolean' ||
+                        field.type instanceof OptionType ||
+                        field.type instanceof SequenceType
+                    ) {
+                        // no change
+                    } else {
+                        field.type = new OptionType(field.type);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
-        return new ProductTypeField(name ?? '_', type);
+        for (const member of members) this.members.push(member);
+
+        return element;
+    }
+
+    visitAlternativeRules(
+        rules: AlternativeRules,
+        traverser: Traverser
+    ): AlternativeRules {
+        // make a sum type of all alternatives
+        // merge identical alternatives
+        // you may end up with a single field with the union as the type
+        return rules;
     }
 }

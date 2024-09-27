@@ -9,7 +9,7 @@ grammar model {
     Definition = name:Id '=' Type  ;
     Deletion = 'delete' name:Id  ;
     MemberModification = 'modify' name:Id ( | MemberDeletion | MemberAddition )+ ;
-    MemberDeletion = '-=' ( | name:Id | NamedTypeReference ) ; 
+    MemberDeletion = '-=' NamedTypeReference ; 
     MemberAddition = '+=' ( | Type | ProductMember ) ;
 
 
@@ -21,7 +21,7 @@ grammar model {
 
     VoidType = '()' ;
     PrimitiveType = type: (| 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64') ;
-    EnumType = '{' member:String ( '|' member:String )* ) '}' ;
+    EnumType = '{' member:String ( '|' member:String )* '}' ;
     String @noskip = '"' Id '"' ;
 
     TypeWithStructure = | SumType | ProductType | GenericType ;
@@ -57,7 +57,7 @@ grammar model {
 
     Trivia        @noskip = | LineComment | BlockComment | Whitespace ;
     Whitespace    @atomic = [\n\t ]+ ;
-    LineComment  @atomic = '//' [^\n]* '\n'? ;
-    BlockComment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
+    LineComment   @atomic = '//' [^\n]* '\n'? ;
+    BlockComment  @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
 
 }

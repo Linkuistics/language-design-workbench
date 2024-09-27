@@ -223,3 +223,43 @@ export class Visitor {
         return this.postVisitTypeWithStructure(type);
     }
 }
+
+declare module './model' {
+    interface Type {
+        asString(): string;
+    }
+}
+
+StringType.prototype.asString = function (this: StringType): string {
+    return 'string';
+};
+
+BooleanType.prototype.asString = function (this: BooleanType): string {
+    return 'boolean';
+};
+
+EnumType.prototype.asString = function (this: EnumType): string {
+    return 'enum';
+};
+
+ProductType.prototype.asString = function (this: ProductType): string {
+    return '{ }';
+};
+
+SumType.prototype.asString = function (this: SumType): string {
+    return 'A | B';
+};
+
+ArrayType.prototype.asString = function (this: ArrayType): string {
+    return 'seq<...>';
+};
+
+OptionalType.prototype.asString = function (this: OptionalType): string {
+    return 'option<...>';
+};
+
+NamedTypeReference.prototype.asString = function (
+    this: NamedTypeReference
+): string {
+    return this.target.name;
+};

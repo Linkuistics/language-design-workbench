@@ -1,0 +1,176 @@
+{
+    "addmod": {
+        "parameters": [
+            { "name": "x", "type": "uint256" },
+            { "name": "y", "type": "uint256" },
+            { "name": "k", "type": "uint256" }
+        ],
+        "returnType": "uint256",
+        "description": "Compute (x + y) % k where the addition is performed with arbitrary precision and does not wrap around at 2^256."
+    },
+    "mulmod": {
+        "parameters": [
+            { "name": "x", "type": "uint256" },
+            { "name": "y", "type": "uint256" },
+            { "name": "k", "type": "uint256" }
+        ],
+        "returnType": "uint256",
+        "description": "Compute (x * y) % k where the multiplication is performed with arbitrary precision and does not wrap around at 2^256."
+    },
+    "keccak256": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes32",
+        "description": "Compute the Keccak-256 hash of the input data."
+    },
+    "sha256": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes32",
+        "description": "Compute the SHA-256 hash of the input data."
+    },
+    "sha3": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes32",
+        "description": "Alias to keccak256."
+    },
+    "ripemd160": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes20",
+        "description": "Compute the RIPEMD-160 hash of the input data."
+    },
+    "ecrecover": {
+        "parameters": [
+            { "name": "hash", "type": "bytes32" },
+            { "name": "v", "type": "uint8" },
+            { "name": "r", "type": "bytes32" },
+            { "name": "s", "type": "bytes32" }
+        ],
+        "returnType": "address",
+        "description": "Recover the address associated with the public key from elliptic curve signature."
+    },
+    "selfdestruct": {
+        "parameters": [{ "name": "recipient", "type": "address" }],
+        "returnType": "void",
+        "description": "Destroy the current contract, sending its funds to the given address."
+    },
+    "suicide": {
+        "parameters": [{ "name": "recipient", "type": "address" }],
+        "returnType": "void",
+        "description": "Alias to selfdestruct."
+    },
+    "gasleft": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Returns the remaining gas."
+    },
+    "assert": {
+        "parameters": [{ "name": "condition", "type": "bool" }],
+        "returnType": "void",
+        "description": "Throws if the condition is false - to be used for internal errors."
+    },
+    "require": {
+        "parameters": [{ "name": "condition", "type": "bool" }],
+        "returnType": "void",
+        "description": "Throws if the condition is false - to be used for errors in inputs or external components."
+    },
+    "revert": {
+        "parameters": [],
+        "returnType": "void",
+        "description": "Abort execution and revert state changes."
+    },
+    "block.blockhash": {
+        "parameters": [{ "name": "blockNumber", "type": "uint256" }],
+        "returnType": "bytes32",
+        "description": "Hash of the given block - only works for 256 most recent blocks."
+    },
+    "block.coinbase": {
+        "parameters": [],
+        "returnType": "address",
+        "description": "Current block miner's address."
+    },
+    "block.difficulty": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Current block difficulty."
+    },
+    "block.gaslimit": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Current block gaslimit."
+    },
+    "block.number": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Current block number."
+    },
+    "block.timestamp": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Current block timestamp."
+    },
+    "msg.data": {
+        "parameters": [],
+        "returnType": "bytes",
+        "description": "Complete calldata."
+    },
+    "msg.gas": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Remaining gas."
+    },
+    "msg.sender": {
+        "parameters": [],
+        "returnType": "address",
+        "description": "Sender of the message (current call)."
+    },
+    "msg.sig": {
+        "parameters": [],
+        "returnType": "bytes4",
+        "description": "First four bytes of the calldata (function identifier)."
+    },
+    "msg.value": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Number of wei sent with the message."
+    },
+    "now": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Current block timestamp (alias for block.timestamp)."
+    },
+    "tx.gasprice": {
+        "parameters": [],
+        "returnType": "uint256",
+        "description": "Gas price of the transaction."
+    },
+    "tx.origin": {
+        "parameters": [],
+        "returnType": "address",
+        "description": "Sender of the transaction (full call chain)."
+    },
+    "abi.encode": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes",
+        "description": "ABI-encodes the given data."
+    },
+    "abi.encodePacked": {
+        "parameters": [{ "name": "data", "type": "bytes" }],
+        "returnType": "bytes",
+        "description": "Performs packed encoding of the given data."
+    },
+    "abi.encodeWithSelector": {
+        "parameters": [
+            { "name": "selector", "type": "bytes4" },
+            { "name": "data", "type": "bytes" }
+        ],
+        "returnType": "bytes",
+        "description": "ABI-encodes the given data and prepends the given four-byte selector."
+    },
+    "abi.encodeWithSignature": {
+        "parameters": [
+            { "name": "signature", "type": "string" },
+            { "name": "data", "type": "bytes" }
+        ],
+        "returnType": "bytes",
+        "description": "Equivalent to abi.encodeWithSelector(bytes4(keccak256(signature)), data)"
+    }
+}

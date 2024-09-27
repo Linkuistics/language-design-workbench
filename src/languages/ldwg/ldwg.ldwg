@@ -2,18 +2,17 @@ grammar grammar {
     
     // This is a meta-circular grammar, that is the definition its own format
 
-    grammar = 'grammar' name '{' rule:( | rule | pratt_rule | identifier_rule )* '}' ;
+    grammar = 'grammar' name '{' ( | rule | rule:pratt_rule | rule:identifier_rule )* '}' ;
 
     rule = name annotation:rule_annotation? version_annotation* '=' body:rule_body ';' ;
     rule_annotation = | no_skip:'@noskip' | atomic:'@atomic' ;
 
-    pratt_rule = 'pratt' name version_annotation* '{' operators:pratt_operator+ primary:pratt_primary '}' ;
+    pratt_rule = 'pratt' name version_annotation* '{' operator:pratt_operator+ primary:pratt_primary '}' ;
     pratt_operator = pratt_operator_type name version_annotation* '=' body:rule_body ';' ;
     pratt_primary = 'primary' name '=' body:rule_body ';' ;
     pratt_operator_type = | 'prefix' | 'postfix' | 'left' | 'right' ;
 
-    identifier_rule = 'identifier' name rule_annotation? version_annotation* '=' ( | identifier_with_exclusions | rule_body ) ; 
-    identifier_with_exclusions = '(' rule_body ')' 'excluding' '(' rule_body ')' ;
+    identifier_rule = 'identifier' name rule_annotation? version_annotation* '=' ( | '(' body:rule_body ')' 'excluding' '(' excluding:rule_body ')' | body:rule_body ) ; 
 
     version_annotation @noskip = version_annotation_type '(' version_number ')' ;
     version_annotation_type = | '@enabled' | '@disabled' ;
@@ -50,7 +49,7 @@ grammar grammar {
         | '"' ( | [^"\\\n]* | ( '\\' ["\\] ) )* '"'
         ;
 
-    char_set @noskip = '[' negated:'^'? range:(start_char:char_set_char ( '-' end_char:char_set_char )?)+ ']' ;
+    char_set @noskip = '[' negated:'^'? ( start_char:char_set_char ( '-' end_char:char_set_char )? )+ ']' ;
     char_set_char @atomic = | [^\\\-\]] | '\\' [\^\\\-\]nt] ;
     
     any = '.' ;
