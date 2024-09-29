@@ -1,15 +1,20 @@
 {
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
-  },
-  "include": ["src/**/*.ts", "src/triviaSkippingInputStream.ts"],
-  "exclude": ["node_modules"]
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "outDir": "./dist",
+        "rootDir": ".",
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": ["jest", "node"]
+    },
+    "include": [
+        "src/**/*.ts",
+        "tests/**/*.ts",
+        "src/triviaSkippingInputStream.ts"
+    ],
+    "exclude": ["node_modules"]
 }

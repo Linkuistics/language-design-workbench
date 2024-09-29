@@ -5,7 +5,10 @@ type ResultType<O, E> = O | { error: E }
 export class Model {
     constructor(
         public name:Id,
-        public parentName:Option<Id>
+        public parentName:Option<Id>,
+        public definition:Array<Definition>,
+        public deletion:Array<Deletion>,
+        public memberModification:Array<MemberModification>
     ) {}
 }
 
@@ -24,7 +27,9 @@ export class Deletion {
 
 export class MemberModification {
     constructor(
-        public name:Id
+        public name:Id,
+        public memberDeletion:Array<MemberDeletion>,
+        public memberAddition:Array<MemberAddition>
     ) {}
 }
 
@@ -35,9 +40,20 @@ export class MemberDeletion {
 }
 
 export class MemberAddition {
+    constructor(
+        public type:Type,
+        public productMember:ProductMember
+    ) {}
 }
 
 export class Type {
+    constructor(
+        public voidType:VoidType,
+        public primitiveType:PrimitiveType,
+        public enumType:EnumType,
+        public typeWithStructure:TypeWithStructure,
+        public namedTypeReference:NamedTypeReference
+    ) {}
 }
 
 export class VoidType {
@@ -60,6 +76,11 @@ export class String {
 }
 
 export class TypeWithStructure {
+    constructor(
+        public sumType:SumType,
+        public productType:ProductType,
+        public genericType:GenericType
+    ) {}
 }
 
 export class SumType {
@@ -84,6 +105,13 @@ export class ProductMember {
 }
 
 export class GenericType {
+    constructor(
+        public tupleType:TupleType,
+        public mapType:MapType,
+        public setType:SetType,
+        public optionType:OptionType,
+        public resultType:ResultType
+    ) {}
 }
 
 export class TupleType {
@@ -139,6 +167,11 @@ export class IdentifierChar {
 }
 
 export class Trivia {
+    constructor(
+        public lineComment:LineComment,
+        public blockComment:BlockComment,
+        public whitespace:Whitespace
+    ) {}
 }
 
 export class Whitespace {

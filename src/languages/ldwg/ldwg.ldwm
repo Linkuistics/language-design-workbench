@@ -4,7 +4,10 @@ type ResultType<O, E> = O | { error: E }
 
 export class Grammar {
     constructor(
-        public name:Name
+        public name:Name,
+        public rule:Array<Rule>,
+        public rule:Array<PrattRule>,
+        public rule:Array<IdentifierRule>
     ) {}
 }
 
@@ -52,7 +55,10 @@ export class IdentifierRule {
     constructor(
         public name:Name,
         public ruleAnnotation:Option<RuleAnnotation>,
-        public versionAnnotation:Array<VersionAnnotation>
+        public versionAnnotation:Array<VersionAnnotation>,
+        public body:RuleBody,
+        public excluding:RuleBody,
+        public body:RuleBody
     ) {}
 }
 
@@ -77,6 +83,10 @@ export class VersionSegment {
 }
 
 export class RuleBody {
+    constructor(
+        public sequenceRule:SequenceRule,
+        public alternativeRules:AlternativeRules
+    ) {}
 }
 
 export class SequenceRule {
@@ -100,6 +110,10 @@ export class Alternative {
 }
 
 export class RuleElement {
+    constructor(
+        public countedRuleElement:CountedRuleElement,
+        public negativeLookahead:NegativeLookahead
+    ) {}
 }
 
 export class CountedRuleElement {
@@ -112,6 +126,13 @@ export class CountedRuleElement {
 }
 
 export class CountableRuleElement {
+    constructor(
+        public ruleReference:RuleReference,
+        public string:String,
+        public charSet:CharSet,
+        public any:Any,
+        public ruleBody:RuleBody
+    ) {}
 }
 
 export class RuleReference {
@@ -147,9 +168,18 @@ export class Any {
 }
 
 export class NegativeLookahead {
+    constructor(
+        public charSet:CharSet,
+        public string:String
+    ) {}
 }
 
 export class Trivia {
+    constructor(
+        public lineComment:LineComment,
+        public blockComment:BlockComment,
+        public whitespace:Whitespace
+    ) {}
 }
 
 export class LineComment {

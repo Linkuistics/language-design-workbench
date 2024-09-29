@@ -2,10 +2,10 @@
     "name": "metaslang_ebnf",
     "version": "1.0.0",
     "description": "Metaslang BNF",
-    "main": "dist/cli/grammar.js",
+    "main": "src/cli/ldw.ts",
     "scripts": {
-        "build": "tsc",
-        "ldw": "node dist/cli/ldw.js"
+        "ldw": "ts-node src/cli/ldw.ts",
+        "test": "jest"
     },
     "keywords": [],
     "author": "",
@@ -16,9 +16,13 @@
         "pluralize": "^8.0.0"
     },
     "devDependencies": {
+        "@types/jest": "^29.5.13",
         "@types/node": "22.5.5",
         "@types/pluralize": "^0.0.33",
+        "jest": "^29.7.0",
         "prettier": "^3.3.3",
+        "ts-jest": "^29.2.5",
+        "ts-node": "^10.9.2",
         "typescript": "5.6.2"
     }
 }

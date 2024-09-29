@@ -19,26 +19,27 @@ implementation.
 
 ## Usage
 
-### Building the Project
+### Using the LDW CLI
 
-To compile the TypeScript files, run:
+The Language Design Workbench CLI is built with TypeScript and runs directly using ts-node, which allows for a smoother development experience and more accurate error messages.
 
-```
-npm run build
-```
-
-### Using the MSBNF CLI
-
-To parse MSBNF grammars, use the following command:
+To use the Language Design Workbench CLI, run:
 
 ```
-npm run msbnf parse -- [options]
+npm run ldw
 ```
 
-Options:
+For more information about available commands and options, run:
 
--   `-i, --input <file>`: Input file (default: stdin)
--   `-o, --output <file>`: Output file (default: stdout)
+```
+npm run ldw -- --help
+```
+
+Note: There's no need for a separate build step as the project uses ts-node to run TypeScript files directly.
+
+## Testing
+
+For information on how to perform iterative testing and debugging of the LDWM source generation and parsing process, please refer to the [Testing and Debugging Guide](Testing.md).
 
 ## Tutorial
 

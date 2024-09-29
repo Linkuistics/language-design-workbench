@@ -3,12 +3,28 @@ type ResultType<O, E> = O | { error: E }
 
 
 export class Datum {
+    constructor(
+        public boolean:Boolean,
+        public character:Character,
+        public number:Number,
+        public string:String,
+        public list:List,
+        public vector:Vector,
+        public byteVector:ByteVector,
+        public struct:Struct,
+        public symbol:Symbol
+    ) {}
 }
 
 export class Boolean {
 }
 
 export class Number {
+    constructor(
+        public num2:Num2,
+        public num10:Num10,
+        public num16:Num16
+    ) {}
 }
 
 export class Num2 {
@@ -81,6 +97,10 @@ export class Sign {
 }
 
 export class Character {
+    constructor(
+        public characterName:CharacterName,
+        public uinteger16:Uinteger16
+    ) {}
 }
 
 export class CharacterName {
@@ -93,6 +113,9 @@ export class String {
 }
 
 export class StringCharacter {
+    constructor(
+        public uinteger16:Uinteger16
+    ) {}
 }
 
 export class Symbol {
@@ -102,36 +125,88 @@ export class Symbol {
 }
 
 export class List {
+    constructor(
+        public datum:Array<Datum>,
+        public tail:Option<Datum>,
+        public datum:Array<Datum>,
+        public tail:Option<Datum>,
+        public datum:Array<Datum>,
+        public tail:Option<Datum>,
+        public abbreviation:Abbreviation
+    ) {}
 }
 
 export class Abbreviation {
+    constructor(
+        public quote:Datum,
+        public quasiquote:Datum,
+        public unquote:Datum,
+        public unquoteSplicing:Datum
+    ) {}
 }
 
 export class Vector {
+    constructor(
+        public datum:Array<Datum>,
+        public datum:Array<Datum>,
+        public datum:Array<Datum>
+    ) {}
 }
 
 export class ByteVector {
+    constructor(
+        public number:Array<Number>,
+        public number:Array<Number>,
+        public number:Array<Number>
+    ) {}
 }
 
 export class Struct {
+    constructor(
+        public name:Symbol,
+        public datum:Array<Datum>,
+        public name:Symbol,
+        public datum:Array<Datum>,
+        public name:Symbol,
+        public datum:Array<Datum>
+    ) {}
 }
 
 export class IdentStart {
+    constructor(
+        public uinteger16:Uinteger16
+    ) {}
 }
 
 export class IdentContinue {
+    constructor(
+        public identStart:IdentStart,
+        public digit10:Digit10
+    ) {}
 }
 
 export class Trivia {
+    constructor(
+        public whitespace:Whitespace,
+        public comment:Comment
+    ) {}
 }
 
 export class Comment {
+    constructor(
+        public lineComment:LineComment,
+        public blockComment:BlockComment,
+        public datumComment:DatumComment
+    ) {}
 }
 
 export class LineComment {
 }
 
 export class BlockComment {
+    constructor(
+        public blockComment:Array<BlockComment>
+    ) {}
 }
 
 export class DatumComment {

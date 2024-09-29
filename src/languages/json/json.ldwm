@@ -3,6 +3,14 @@ type ResultType<O, E> = O | { error: E }
 
 
 export class Value {
+    constructor(
+        public boolean:Boolean,
+        public number:Number,
+        public string:String,
+        public null:Null,
+        public list:List,
+        public map:Map
+    ) {}
 }
 
 export class Boolean {
@@ -40,6 +48,9 @@ export class String {
 }
 
 export class StringCharacter {
+    constructor(
+        public uinteger16:Uinteger16
+    ) {}
 }
 
 export class Null {
@@ -67,9 +78,17 @@ export class MapEntry {
 }
 
 export class Trivia {
+    constructor(
+        public whitespace:Whitespace,
+        public comment:Comment
+    ) {}
 }
 
 export class Comment {
+    constructor(
+        public lineComment:LineComment,
+        public blockComment:BlockComment
+    ) {}
 }
 
 export class LineComment {

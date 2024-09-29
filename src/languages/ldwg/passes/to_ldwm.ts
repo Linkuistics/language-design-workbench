@@ -126,13 +126,13 @@ class FieldCollector implements TraverseDelegate {
         return element;
     }
 
-    visitAlternativeRules(
-        rules: AlternativeRules,
-        traverser: Traverser
-    ): AlternativeRules {
-        // make a sum type of all alternatives
-        // merge identical alternatives
-        // you may end up with a single field with the union as the type
-        return rules;
-    }
+    // visitAlternativeRules(
+    //     rules: AlternativeRules,
+    //     traverser: Traverser
+    // ): AlternativeRules {
+    //     // make a sum type of all alternatives
+    //     // merge identical alternatives
+    //     // you may end up with a single field with the union as the type
+    //     return rules;
+    // }
 }

@@ -27,28 +27,45 @@ export class LDWMParser extends Parser {
         return this.withContext('model', () => {
             this.mustConsumeKeyword('model');
             const name = this.parseId();
+            console.log('Parsing model: ' + name);
+
+            let parentName: string | undefined;
+            if (this.consumeKeyword('modifies')) {
+                parentName = this.parseId();
+                console.log('Model modifies: ' + parentName);
+            }
+
             this.mustConsumeString('{');
-            const parentName = this.maybe(() => {
-                this.mustConsumeKeyword('modifies');
-                return this.parseId();
-            });
+
             const values: (
                 | Model.Definition
                 | Model.Deletion
                 | Model.MemberModification
             )[] = [];
-            this.zeroOrMore(() => {
-                values.push(
-                    this.firstAlternative(
-                        'model element',
-                        () => this.parseDefinition(),
-                        () => this.parseDeletion(),
-                        () => this.parseMemberModification()
-                    )
+
+            while (!this.isEOF() && this.peek() !== '}') {
+                this.consumeTrivia();
+                if (this.peek() === '}') break;
+
+                console.log('Current position:', this.getPosition());
+                console.log('Next character:', this.peek());
+
+                const element = this.firstAlternative(
+                    'model element',
+                    () => this.parseDefinition(),
+                    () => this.parseDeletion(),
+                    () => this.parseMemberModification()
                 );
-                this.mustConsumeString(';');
-            });
+                values.push(element);
+
+                this.consumeTrivia();
+                if (this.peek() === ';') {
+                    this.mustConsumeString(';');
+                }
+            }
+
             this.mustConsumeString('}');
+            console.log('Finished parsing model: ' + name);
             return new Model.Model(name, parentName, values);
         });
     }
@@ -71,8 +88,11 @@ export class LDWMParser extends Parser {
     parseMemberModification(): Model.MemberModification {
         this.mustConsumeKeyword('modify');
         const name = this.parseId();
+        this.mustConsumeString('{');
         const values: (Model.MemberDeletion | Model.MemberAddition)[] = [];
-        this.oneOrMore(() => {
+        while (!this.isEOF() && this.peek() !== '}') {
+            this.consumeTrivia();
+            if (this.peek() === '}') break;
             values.push(
                 this.firstAlternative(
                     'member modification element',
@@ -80,7 +100,9 @@ export class LDWMParser extends Parser {
                     () => this.parseMemberAddition()
                 )
             );
-        });
+            this.consumeTrivia();
+        }
+        this.mustConsumeString('}');
         return new Model.MemberModification(name, values);
     }
 
