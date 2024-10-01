@@ -1,101 +1,39 @@
-type OptionType<T> = T | undefined;
-type ResultType<O, E> = O | { error: E }
+model json {
 
-
-export class Value {
-    constructor(
-        public boolean:Boolean,
-        public number:Number,
-        public string:String,
-        public null:Null,
-        public list:List,
-        public map:Map
-    ) {}
-}
-
-export class Boolean {
-}
-
-export class Number {
-    constructor(
-        public sign:Option<Sign>,
-        public ureal:Ureal
-    ) {}
-}
-
-export class Ureal {
-    constructor(
-        public uinteger:Uinteger
-    ) {}
-}
-
-export class Uinteger {
-    constructor(
-        public digit:Array<Digit>
-    ) {}
-}
-
-export class Digit {
-}
-
-export class Sign {
-}
-
-export class String {
-    constructor(
-        public stringCharacter:Array<StringCharacter>
-    ) {}
-}
-
-export class StringCharacter {
-    constructor(
-        public uinteger16:Uinteger16
-    ) {}
-}
-
-export class Null {
-}
-
-export class List {
-    constructor(
-        public value:Option<Value>,
-        public value:Array<Value>
-    ) {}
-}
-
-export class Map {
-    constructor(
-        public mapEntry:Option<MapEntry>,
-        public mapEntry:Array<MapEntry>
-    ) {}
-}
-
-export class MapEntry {
-    constructor(
-        public key:String,
-        public value:Value
-    ) {}
-}
-
-export class Trivia {
-    constructor(
-        public whitespace:Whitespace,
-        public comment:Comment
-    ) {}
-}
-
-export class Comment {
-    constructor(
-        public lineComment:LineComment,
-        public blockComment:BlockComment
-    ) {}
-}
-
-export class LineComment {
-}
-
-export class BlockComment {
-}
-
-export class Whitespace {
+    Value = { boolean: Boolean, number: Number, string: String, null: Null, list: List, map: Map };
+    
+    Boolean = {  };
+    
+    Number = { sign: option<Sign>, ureal: Ureal };
+    
+    Ureal = { uinteger: Uinteger };
+    
+    Uinteger = { digit: seq<Digit> };
+    
+    Digit = {  };
+    
+    Sign = {  };
+    
+    String = { stringCharacter: seq<StringCharacter> };
+    
+    StringCharacter = { uinteger16: Uinteger16 };
+    
+    Null = {  };
+    
+    List = { value: option<Value>, value: seq<Value> };
+    
+    Map = { mapEntry: option<MapEntry>, mapEntry: seq<MapEntry> };
+    
+    MapEntry = { key: String, value: Value };
+    
+    Trivia = { whitespace: Whitespace, comment: Comment };
+    
+    Comment = { lineComment: LineComment, blockComment: BlockComment };
+    
+    LineComment = {  };
+    
+    BlockComment = {  };
+    
+    Whitespace = {  };
+    
 }

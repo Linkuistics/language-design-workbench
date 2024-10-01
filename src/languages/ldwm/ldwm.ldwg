@@ -3,14 +3,14 @@ grammar model {
     Model =
         'model' name:Id 
         ( 'modifies' parent_name:Id )? 
-        '{' ( ( | Definition | Deletion | MemberModification ) ';' )* '}'
+        '{' ( ( | Deletion | MemberModification | Definition ) ';' )* '}'
         ;
 
     Definition = name:Id '=' Type  ;
     Deletion = 'delete' name:Id  ;
     MemberModification = 'modify' name:Id ( | MemberDeletion | MemberAddition )+ ;
-    MemberDeletion = '-=' NamedTypeReference ; 
-    MemberAddition = '+=' ( | Type | ProductMember ) ;
+    MemberDeletion = '-=' name:Id ; 
+    MemberAddition = '+=' ( | ProductMember | Type ) ;
 
 
     /************************************

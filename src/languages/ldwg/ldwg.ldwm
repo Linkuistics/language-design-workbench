@@ -1,192 +1,65 @@
-type OptionType<T> = T | undefined;
-type ResultType<O, E> = O | { error: E }
+model grammar {
 
-
-export class Grammar {
-    constructor(
-        public name:Name,
-        public rule:Array<Rule>,
-        public rule:Array<PrattRule>,
-        public rule:Array<IdentifierRule>
-    ) {}
-}
-
-export class Rule {
-    constructor(
-        public name:Name,
-        public annotation:Option<RuleAnnotation>,
-        public versionAnnotation:Array<VersionAnnotation>,
-        public body:RuleBody
-    ) {}
-}
-
-export class RuleAnnotation {
-}
-
-export class PrattRule {
-    constructor(
-        public name:Name,
-        public versionAnnotation:Array<VersionAnnotation>,
-        public operator:Array<PrattOperator>,
-        public primary:PrattPrimary
-    ) {}
-}
-
-export class PrattOperator {
-    constructor(
-        public prattOperatorType:PrattOperatorType,
-        public name:Name,
-        public versionAnnotation:Array<VersionAnnotation>,
-        public body:RuleBody
-    ) {}
-}
-
-export class PrattPrimary {
-    constructor(
-        public name:Name,
-        public body:RuleBody
-    ) {}
-}
-
-export class PrattOperatorType {
-}
-
-export class IdentifierRule {
-    constructor(
-        public name:Name,
-        public ruleAnnotation:Option<RuleAnnotation>,
-        public versionAnnotation:Array<VersionAnnotation>,
-        public body:RuleBody,
-        public excluding:RuleBody,
-        public body:RuleBody
-    ) {}
-}
-
-export class VersionAnnotation {
-    constructor(
-        public versionAnnotationType:VersionAnnotationType,
-        public versionNumber:VersionNumber
-    ) {}
-}
-
-export class VersionAnnotationType {
-}
-
-export class VersionNumber {
-    constructor(
-        public segment:VersionSegment,
-        public segment:Array<VersionSegment>
-    ) {}
-}
-
-export class VersionSegment {
-}
-
-export class RuleBody {
-    constructor(
-        public sequenceRule:SequenceRule,
-        public alternativeRules:AlternativeRules
-    ) {}
-}
-
-export class SequenceRule {
-    constructor(
-        public ruleElement:Array<RuleElement>
-    ) {}
-}
-
-export class AlternativeRules {
-    constructor(
-        public alternative:Array<Alternative>
-    ) {}
-}
-
-export class Alternative {
-    constructor(
-        public label:Option<Label>,
-        public versionAnnotation:Array<VersionAnnotation>,
-        public sequenceRule:SequenceRule
-    ) {}
-}
-
-export class RuleElement {
-    constructor(
-        public countedRuleElement:CountedRuleElement,
-        public negativeLookahead:NegativeLookahead
-    ) {}
-}
-
-export class CountedRuleElement {
-    constructor(
-        public label:Option<Label>,
-        public countableRuleElement:CountableRuleElement,
-        public count:Option<Count>,
-        public versionAnnotation:Array<VersionAnnotation>
-    ) {}
-}
-
-export class CountableRuleElement {
-    constructor(
-        public ruleReference:RuleReference,
-        public string:String,
-        public charSet:CharSet,
-        public any:Any,
-        public ruleBody:RuleBody
-    ) {}
-}
-
-export class RuleReference {
-    constructor(
-        public name:Name,
-        public name:Array<Name>
-    ) {}
-}
-
-export class Count {
-}
-
-export class Label {
-    constructor(
-        public name:Name
-    ) {}
-}
-
-export class String {
-}
-
-export class CharSet {
-    constructor(
-        public startChar:Array<CharSetChar>,
-        public endChar:Array<CharSetChar>
-    ) {}
-}
-
-export class CharSetChar {
-}
-
-export class Any {
-}
-
-export class NegativeLookahead {
-    constructor(
-        public charSet:CharSet,
-        public string:String
-    ) {}
-}
-
-export class Trivia {
-    constructor(
-        public lineComment:LineComment,
-        public blockComment:BlockComment,
-        public whitespace:Whitespace
-    ) {}
-}
-
-export class LineComment {
-}
-
-export class BlockComment {
-}
-
-export class Whitespace {
+    Grammar = { name: Name, rule: seq<Rule>, rule: seq<PrattRule>, rule: seq<IdentifierRule> };
+    
+    Rule = { name: Name, annotation: option<RuleAnnotation>, versionAnnotation: seq<VersionAnnotation>, body: RuleBody };
+    
+    RuleAnnotation = {  };
+    
+    PrattRule = { name: Name, versionAnnotation: seq<VersionAnnotation>, operator: seq<PrattOperator>, primary: PrattPrimary };
+    
+    PrattOperator = { prattOperatorType: PrattOperatorType, name: Name, versionAnnotation: seq<VersionAnnotation>, body: RuleBody };
+    
+    PrattPrimary = { name: Name, body: RuleBody };
+    
+    PrattOperatorType = {  };
+    
+    IdentifierRule = { name: Name, ruleAnnotation: option<RuleAnnotation>, versionAnnotation: seq<VersionAnnotation>, body: RuleBody, excluding: RuleBody, body: RuleBody };
+    
+    VersionAnnotation = { versionAnnotationType: VersionAnnotationType, versionNumber: VersionNumber };
+    
+    VersionAnnotationType = {  };
+    
+    VersionNumber = { segment: VersionSegment, segment: seq<VersionSegment> };
+    
+    VersionSegment = {  };
+    
+    RuleBody = { sequenceRule: SequenceRule, alternativeRules: AlternativeRules };
+    
+    SequenceRule = { ruleElement: seq<RuleElement> };
+    
+    AlternativeRules = { alternative: seq<Alternative> };
+    
+    Alternative = { label: option<Label>, versionAnnotation: seq<VersionAnnotation>, sequenceRule: SequenceRule };
+    
+    RuleElement = { countedRuleElement: CountedRuleElement, negativeLookahead: NegativeLookahead };
+    
+    CountedRuleElement = { label: option<Label>, countableRuleElement: CountableRuleElement, count: option<Count>, versionAnnotation: seq<VersionAnnotation> };
+    
+    CountableRuleElement = { ruleReference: RuleReference, string: String, charSet: CharSet, any: Any, ruleBody: RuleBody };
+    
+    RuleReference = { name: Name, name: seq<Name> };
+    
+    Count = {  };
+    
+    Label = { name: Name };
+    
+    String = {  };
+    
+    CharSet = { startChar: seq<CharSetChar>, endChar: seq<CharSetChar> };
+    
+    CharSetChar = {  };
+    
+    Any = {  };
+    
+    NegativeLookahead = { charSet: CharSet, string: String };
+    
+    Trivia = { lineComment: LineComment, blockComment: BlockComment, whitespace: Whitespace };
+    
+    LineComment = {  };
+    
+    BlockComment = {  };
+    
+    Whitespace = {  };
+    
 }

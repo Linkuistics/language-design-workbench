@@ -9,6 +9,7 @@ import { composePasses } from '../nanopass/util';
 import { ParseError } from '../parser/parseError';
 import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
 import { TransformNamesCase } from '../languages/ldwg/passes/transform-names-case';
+import { ToLDWMSource } from '../languages/ldwm/new-passes/to_ldwm-source';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 
@@ -59,7 +60,7 @@ program
                 new AllocateLabels(),
                 new TransformNamesCase(),
                 new ToLDWM(),
-                new ToModelTypescriptSource(true)
+                new ToLDWMSource()
             ).transform(input);
 
             if (options.output) {

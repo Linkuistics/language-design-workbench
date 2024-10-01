@@ -2,18 +2,27 @@ export class IndentingOutputStream {
     private content: string = '';
     private indentLevel: number = 0;
     private indentString: string = '    ';
+    pendingIndent: any;
 
     constructor(indentString: string = '    ') {
         this.indentString = indentString;
     }
 
     write(text: string): void {
+        if (this.pendingIndent) {
+            this.content += this.indentString.repeat(this.indentLevel);
+            this.pendingIndent = false;
+        }
         this.content += text;
     }
 
     writeLine(text: string = ''): void {
-        this.content +=
-            this.indentString.repeat(this.indentLevel) + text + '\n';
+        if (this.pendingIndent) {
+            this.content += this.indentString.repeat(this.indentLevel);
+            this.pendingIndent = false;
+        }
+        this.content += text + '\n';
+        this.pendingIndent = true;
     }
 
     indent(): void {
@@ -32,7 +41,7 @@ export class IndentingOutputStream {
         this.dedent();
     }
 
-    writeJoined<T>(
+    join<T>(
         items: T[],
         separator: string,
         itemCallback: (item: T) => void

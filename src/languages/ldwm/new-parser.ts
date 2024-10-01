@@ -14,8 +14,9 @@ export class LDWMParser extends Parser {
     parse(): Model.Model {
         const model = this.parseModel();
         if (!this.isEOF()) {
+            const remainingContent = this.input.peek(20);
             throw new ParseError(
-                'Unexpected content after model',
+                `Unexpected content after model: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`,
                 this.getPosition(),
                 this
             );
@@ -27,7 +28,6 @@ export class LDWMParser extends Parser {
         return this.withContext('model', () => {
             this.mustConsumeKeyword('model');
             const name = this.parseId();
-            console.log('Parsing model: ' + name);
 
             let parentName: string | undefined;
             if (this.consumeKeyword('modifies')) {
@@ -44,17 +44,11 @@ export class LDWMParser extends Parser {
             )[] = [];
 
             while (!this.isEOF() && this.peek() !== '}') {
-                this.consumeTrivia();
-                if (this.peek() === '}') break;
-
-                console.log('Current position:', this.getPosition());
-                console.log('Next character:', this.peek());
-
                 const element = this.firstAlternative(
                     'model element',
-                    () => this.parseDefinition(),
                     () => this.parseDeletion(),
-                    () => this.parseMemberModification()
+                    () => this.parseMemberModification(),
+                    () => this.parseDefinition()
                 );
                 values.push(element);
 
@@ -65,7 +59,6 @@ export class LDWMParser extends Parser {
             }
 
             this.mustConsumeString('}');
-            console.log('Finished parsing model: ' + name);
             return new Model.Model(name, parentName, values);
         });
     }
@@ -91,8 +84,6 @@ export class LDWMParser extends Parser {
         this.mustConsumeString('{');
         const values: (Model.MemberDeletion | Model.MemberAddition)[] = [];
         while (!this.isEOF() && this.peek() !== '}') {
-            this.consumeTrivia();
-            if (this.peek() === '}') break;
             values.push(
                 this.firstAlternative(
                     'member modification element',
@@ -100,7 +91,6 @@ export class LDWMParser extends Parser {
                     () => this.parseMemberAddition()
                 )
             );
-            this.consumeTrivia();
         }
         this.mustConsumeString('}');
         return new Model.MemberModification(name, values);
@@ -108,11 +98,7 @@ export class LDWMParser extends Parser {
 
     parseMemberDeletion(): Model.MemberDeletion {
         this.mustConsumeString('-=');
-        const name = this.firstAlternative(
-            'member deletion element',
-            () => this.parseId(),
-            () => this.parseNamedTypeReference()
-        );
+        const name = this.parseId();
         return new Model.MemberDeletion(name);
     }
 
@@ -120,8 +106,8 @@ export class LDWMParser extends Parser {
         this.mustConsumeString('+=');
         const value = this.firstAlternative(
             'member addition element',
-            () => this.parseType(),
-            () => this.parseProductMember()
+            () => this.parseProductMember(),
+            () => this.parseType()
         );
         return new Model.MemberAddition(value);
     }
@@ -168,10 +154,9 @@ export class LDWMParser extends Parser {
             this.mustConsumeString('{');
             const members: Id[] = [];
             members.push(this.parseString());
-            this.zeroOrMore(() => {
-                this.mustConsumeString('|');
+            while (this.consumeString('|')) {
                 members.push(this.parseString());
-            });
+            }
             this.mustConsumeString('}');
             return new Model.EnumType(members);
         });
@@ -179,7 +164,7 @@ export class LDWMParser extends Parser {
 
     parseString(): string {
         this.mustConsumeString('"');
-        const value = this.mustConsumeRegex(/^[a-zA-Z0-9]+/, 'string');
+        const value = this.parseId();
         this.mustConsumeString('"');
         return value;
     }
@@ -200,10 +185,9 @@ export class LDWMParser extends Parser {
             this.mustConsumeString('{');
             const members: Model.Type[] = [];
             members.push(this.parseType());
-            this.zeroOrMore(() => {
-                this.mustConsumeString('|');
+            while (this.consumeString('|')) {
                 members.push(this.parseType());
-            });
+            }
             this.mustConsumeString('}');
             return new Model.SumType(members);
         });
@@ -215,10 +199,9 @@ export class LDWMParser extends Parser {
             const members: Model.ProductMember[] = [];
             this.maybe(() => {
                 members.push(this.parseProductMember());
-                this.zeroOrMore(() => {
-                    this.mustConsumeString(',');
+                while (this.consumeString(',')) {
                     members.push(this.parseProductMember());
-                });
+                }
             });
             this.mustConsumeString('}');
             return new Model.ProductType(members);
@@ -230,7 +213,7 @@ export class LDWMParser extends Parser {
             const name = this.parseId();
             this.mustConsumeString(':');
             const type = this.parseType();
-            return { name, type };
+            return new Model.ProductMember(name, type);
         });
     }
 
@@ -252,10 +235,9 @@ export class LDWMParser extends Parser {
         this.mustConsumeString('tuple<');
         const members: Model.Type[] = [];
         members.push(this.parseType());
-        this.zeroOrMore(() => {
-            this.mustConsumeString(',');
+        while (this.consumeString(',')) {
             members.push(this.parseType());
-        });
+        }
         this.mustConsumeString('>');
         return new Model.TupleType(members);
     }
@@ -303,16 +285,23 @@ export class LDWMParser extends Parser {
         return this.withContext('named type reference', () => {
             const names: Id[] = [];
             names.push(this.parseId());
-            this.zeroOrMore(() => {
-                this.mustConsumeString('::');
+            while (this.consumeString('::')) {
                 names.push(this.parseId());
-            });
+            }
             return new Model.NamedTypeReference(names);
         });
     }
 
     parseId(): Id {
         return this.mustConsumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/, 'id');
+    }
+
+    protected consumeTrivia(): string | undefined {
+        return this.parseTrivia();
+    }
+
+    protected consumeIdentifierForKeyword(): string | undefined {
+        return this.consumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
     }
 
     private parseTrivia(): TriviaKind | undefined {
@@ -341,13 +330,5 @@ export class LDWMParser extends Parser {
 
     private parseWhitespace(): boolean {
         return this.consumeRegex(/[\n\t ]+/) !== undefined;
-    }
-
-    protected consumeTrivia(): string | undefined {
-        return this.parseTrivia();
-    }
-
-    protected consumeIdentifierForKeyword(): string | undefined {
-        return this.consumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/);
     }
 }

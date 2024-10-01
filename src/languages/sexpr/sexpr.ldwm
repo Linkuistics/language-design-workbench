@@ -1,219 +1,71 @@
-type OptionType<T> = T | undefined;
-type ResultType<O, E> = O | { error: E }
+model sexpr {
 
-
-export class Datum {
-    constructor(
-        public boolean:Boolean,
-        public character:Character,
-        public number:Number,
-        public string:String,
-        public list:List,
-        public vector:Vector,
-        public byteVector:ByteVector,
-        public struct:Struct,
-        public symbol:Symbol
-    ) {}
-}
-
-export class Boolean {
-}
-
-export class Number {
-    constructor(
-        public num2:Num2,
-        public num10:Num10,
-        public num16:Num16
-    ) {}
-}
-
-export class Num2 {
-    constructor(
-        public sign:Option<Sign>,
-        public ureal2:Ureal2
-    ) {}
-}
-
-export class Ureal2 {
-    constructor(
-        public uinteger2:Uinteger2
-    ) {}
-}
-
-export class Uinteger2 {
-    constructor(
-        public digit2:Array<Digit2>
-    ) {}
-}
-
-export class Digit2 {
-}
-
-export class Num10 {
-    constructor(
-        public sign:Option<Sign>,
-        public ureal10:Ureal10
-    ) {}
-}
-
-export class Ureal10 {
-    constructor(
-        public uinteger10:Uinteger10
-    ) {}
-}
-
-export class Uinteger10 {
-    constructor(
-        public digit10:Array<Digit10>
-    ) {}
-}
-
-export class Digit10 {
-}
-
-export class Num16 {
-    constructor(
-        public sign:Option<Sign>,
-        public ureal16:Ureal16
-    ) {}
-}
-
-export class Ureal16 {
-    constructor(
-        public uinteger16:Uinteger16
-    ) {}
-}
-
-export class Uinteger16 {
-    constructor(
-        public digit16:Array<Digit16>
-    ) {}
-}
-
-export class Digit16 {
-}
-
-export class Sign {
-}
-
-export class Character {
-    constructor(
-        public characterName:CharacterName,
-        public uinteger16:Uinteger16
-    ) {}
-}
-
-export class CharacterName {
-}
-
-export class String {
-    constructor(
-        public stringCharacter:Array<StringCharacter>
-    ) {}
-}
-
-export class StringCharacter {
-    constructor(
-        public uinteger16:Uinteger16
-    ) {}
-}
-
-export class Symbol {
-    constructor(
-        public ident:Ident
-    ) {}
-}
-
-export class List {
-    constructor(
-        public datum:Array<Datum>,
-        public tail:Option<Datum>,
-        public datum:Array<Datum>,
-        public tail:Option<Datum>,
-        public datum:Array<Datum>,
-        public tail:Option<Datum>,
-        public abbreviation:Abbreviation
-    ) {}
-}
-
-export class Abbreviation {
-    constructor(
-        public quote:Datum,
-        public quasiquote:Datum,
-        public unquote:Datum,
-        public unquoteSplicing:Datum
-    ) {}
-}
-
-export class Vector {
-    constructor(
-        public datum:Array<Datum>,
-        public datum:Array<Datum>,
-        public datum:Array<Datum>
-    ) {}
-}
-
-export class ByteVector {
-    constructor(
-        public number:Array<Number>,
-        public number:Array<Number>,
-        public number:Array<Number>
-    ) {}
-}
-
-export class Struct {
-    constructor(
-        public name:Symbol,
-        public datum:Array<Datum>,
-        public name:Symbol,
-        public datum:Array<Datum>,
-        public name:Symbol,
-        public datum:Array<Datum>
-    ) {}
-}
-
-export class IdentStart {
-    constructor(
-        public uinteger16:Uinteger16
-    ) {}
-}
-
-export class IdentContinue {
-    constructor(
-        public identStart:IdentStart,
-        public digit10:Digit10
-    ) {}
-}
-
-export class Trivia {
-    constructor(
-        public whitespace:Whitespace,
-        public comment:Comment
-    ) {}
-}
-
-export class Comment {
-    constructor(
-        public lineComment:LineComment,
-        public blockComment:BlockComment,
-        public datumComment:DatumComment
-    ) {}
-}
-
-export class LineComment {
-}
-
-export class BlockComment {
-    constructor(
-        public blockComment:Array<BlockComment>
-    ) {}
-}
-
-export class DatumComment {
-    constructor(
-        public datum:Datum
-    ) {}
-}
-
-export class Whitespace {
+    Datum = { boolean: Boolean, character: Character, number: Number, string: String, list: List, vector: Vector, byteVector: ByteVector, struct: Struct, symbol: Symbol };
+    
+    Boolean = {  };
+    
+    Number = { num2: Num2, num10: Num10, num16: Num16 };
+    
+    Num2 = { sign: option<Sign>, ureal2: Ureal2 };
+    
+    Ureal2 = { uinteger2: Uinteger2 };
+    
+    Uinteger2 = { digit2: seq<Digit2> };
+    
+    Digit2 = {  };
+    
+    Num10 = { sign: option<Sign>, ureal10: Ureal10 };
+    
+    Ureal10 = { uinteger10: Uinteger10 };
+    
+    Uinteger10 = { digit10: seq<Digit10> };
+    
+    Digit10 = {  };
+    
+    Num16 = { sign: option<Sign>, ureal16: Ureal16 };
+    
+    Ureal16 = { uinteger16: Uinteger16 };
+    
+    Uinteger16 = { digit16: seq<Digit16> };
+    
+    Digit16 = {  };
+    
+    Sign = {  };
+    
+    Character = { characterName: CharacterName, uinteger16: Uinteger16 };
+    
+    CharacterName = {  };
+    
+    String = { stringCharacter: seq<StringCharacter> };
+    
+    StringCharacter = { uinteger16: Uinteger16 };
+    
+    Symbol = { ident: Ident };
+    
+    List = { datum: seq<Datum>, tail: option<Datum>, datum: seq<Datum>, tail: option<Datum>, datum: seq<Datum>, tail: option<Datum>, abbreviation: Abbreviation };
+    
+    Abbreviation = { quote: Datum, quasiquote: Datum, unquote: Datum, unquoteSplicing: Datum };
+    
+    Vector = { datum: seq<Datum>, datum: seq<Datum>, datum: seq<Datum> };
+    
+    ByteVector = { number: seq<Number>, number: seq<Number>, number: seq<Number> };
+    
+    Struct = { name: Symbol, datum: seq<Datum>, name: Symbol, datum: seq<Datum>, name: Symbol, datum: seq<Datum> };
+    
+    IdentStart = { uinteger16: Uinteger16 };
+    
+    IdentContinue = { identStart: IdentStart, digit10: Digit10 };
+    
+    Trivia = { whitespace: Whitespace, comment: Comment };
+    
+    Comment = { lineComment: LineComment, blockComment: BlockComment, datumComment: DatumComment };
+    
+    LineComment = {  };
+    
+    BlockComment = { blockComment: seq<BlockComment> };
+    
+    DatumComment = { datum: Datum };
+    
+    Whitespace = {  };
+    
 }

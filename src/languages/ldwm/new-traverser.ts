@@ -191,20 +191,7 @@ export class Traverser {
     visitMemberDeletion(memberDeletion: MemberDeletion): MemberDeletion {
         if (this.delegate.visitMemberDeletion)
             return this.delegate.visitMemberDeletion(memberDeletion, this);
-        memberDeletion.name = this.dispatchMemberDeletionName(
-            memberDeletion.name
-        );
         return memberDeletion;
-    }
-
-    dispatchMemberDeletionName(
-        name: string | NamedTypeReference
-    ): string | NamedTypeReference {
-        if (typeof name === 'string') {
-            return name;
-        } else {
-            return this.visitNamedTypeReference(name);
-        }
     }
 
     visitMemberAddition(memberAddition: MemberAddition): MemberAddition {

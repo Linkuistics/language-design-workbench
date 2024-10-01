@@ -1,184 +1,61 @@
-type OptionType<T> = T | undefined;
-type ResultType<O, E> = O | { error: E }
+model model {
 
-
-export class Model {
-    constructor(
-        public name:Id,
-        public parentName:Option<Id>,
-        public definition:Array<Definition>,
-        public deletion:Array<Deletion>,
-        public memberModification:Array<MemberModification>
-    ) {}
-}
-
-export class Definition {
-    constructor(
-        public name:Id,
-        public type:Type
-    ) {}
-}
-
-export class Deletion {
-    constructor(
-        public name:Id
-    ) {}
-}
-
-export class MemberModification {
-    constructor(
-        public name:Id,
-        public memberDeletion:Array<MemberDeletion>,
-        public memberAddition:Array<MemberAddition>
-    ) {}
-}
-
-export class MemberDeletion {
-    constructor(
-        public namedTypeReference:NamedTypeReference
-    ) {}
-}
-
-export class MemberAddition {
-    constructor(
-        public type:Type,
-        public productMember:ProductMember
-    ) {}
-}
-
-export class Type {
-    constructor(
-        public voidType:VoidType,
-        public primitiveType:PrimitiveType,
-        public enumType:EnumType,
-        public typeWithStructure:TypeWithStructure,
-        public namedTypeReference:NamedTypeReference
-    ) {}
-}
-
-export class VoidType {
-}
-
-export class PrimitiveType {
-}
-
-export class EnumType {
-    constructor(
-        public member:String,
-        public member:Array<String>
-    ) {}
-}
-
-export class String {
-    constructor(
-        public id:Id
-    ) {}
-}
-
-export class TypeWithStructure {
-    constructor(
-        public sumType:SumType,
-        public productType:ProductType,
-        public genericType:GenericType
-    ) {}
-}
-
-export class SumType {
-    constructor(
-        public member:Type,
-        public member:Array<Type>
-    ) {}
-}
-
-export class ProductType {
-    constructor(
-        public member:Option<ProductMember>,
-        public member:Array<ProductMember>
-    ) {}
-}
-
-export class ProductMember {
-    constructor(
-        public name:Id,
-        public type:Type
-    ) {}
-}
-
-export class GenericType {
-    constructor(
-        public tupleType:TupleType,
-        public mapType:MapType,
-        public setType:SetType,
-        public optionType:OptionType,
-        public resultType:ResultType
-    ) {}
-}
-
-export class TupleType {
-    constructor(
-        public member:Type,
-        public member:Array<Type>
-    ) {}
-}
-
-export class MapType {
-    constructor(
-        public keyType:Type,
-        public valueType:Type
-    ) {}
-}
-
-export class SetType {
-    constructor(
-        public keyType:Type
-    ) {}
-}
-
-export class SequenceType {
-    constructor(
-        public type:Type
-    ) {}
-}
-
-export class OptionType {
-    constructor(
-        public type:Type
-    ) {}
-}
-
-export class ResultType {
-    constructor(
-        public okType:Type,
-        public errType:Type
-    ) {}
-}
-
-export class NamedTypeReference {
-    constructor(
-        public name:Id,
-        public name:Array<Id>
-    ) {}
-}
-
-export class InitialIdentifierChar {
-}
-
-export class IdentifierChar {
-}
-
-export class Trivia {
-    constructor(
-        public lineComment:LineComment,
-        public blockComment:BlockComment,
-        public whitespace:Whitespace
-    ) {}
-}
-
-export class Whitespace {
-}
-
-export class LineComment {
-}
-
-export class BlockComment {
+    Model = { name: Id, parentName: option<Id>, deletion: seq<Deletion>, memberModification: seq<MemberModification>, definition: seq<Definition> };
+    
+    Definition = { name: Id, type: Type };
+    
+    Deletion = { name: Id };
+    
+    MemberModification = { name: Id, memberDeletion: seq<MemberDeletion>, memberAddition: seq<MemberAddition> };
+    
+    MemberDeletion = { name: Id };
+    
+    MemberAddition = { productMember: ProductMember, type: Type };
+    
+    Type = { voidType: VoidType, primitiveType: PrimitiveType, enumType: EnumType, typeWithStructure: TypeWithStructure, namedTypeReference: NamedTypeReference };
+    
+    VoidType = {  };
+    
+    PrimitiveType = {  };
+    
+    EnumType = { member: String, member: seq<String> };
+    
+    String = { id: Id };
+    
+    TypeWithStructure = { sumType: SumType, productType: ProductType, genericType: GenericType };
+    
+    SumType = { member: Type, member: seq<Type> };
+    
+    ProductType = { member: option<ProductMember>, member: seq<ProductMember> };
+    
+    ProductMember = { name: Id, type: Type };
+    
+    GenericType = { tupleType: TupleType, mapType: MapType, setType: SetType, optionType: OptionType, resultType: ResultType };
+    
+    TupleType = { member: Type, member: seq<Type> };
+    
+    MapType = { keyType: Type, valueType: Type };
+    
+    SetType = { keyType: Type };
+    
+    SequenceType = { type: Type };
+    
+    OptionType = { type: Type };
+    
+    ResultType = { okType: Type, errType: Type };
+    
+    NamedTypeReference = { name: Id, name: seq<Id> };
+    
+    InitialIdentifierChar = {  };
+    
+    IdentifierChar = {  };
+    
+    Trivia = { lineComment: LineComment, blockComment: BlockComment, whitespace: Whitespace };
+    
+    Whitespace = {  };
+    
+    LineComment = {  };
+    
+    BlockComment = {  };
+    
 }

@@ -1,28 +1,25 @@
-import { camelCase, pascalCase } from 'literal-case';
+import { IndentingOutputStream } from '../../../output/indenting_output_stream';
 import {
-    Model,
     Definition,
     Deletion,
-    MemberModification,
-    Type,
-    VoidType,
-    PrimitiveType,
     EnumType,
-    SumType,
-    ProductType,
-    TupleType,
     MapType,
-    SetType,
-    SequenceType,
-    OptionType,
-    ResultType,
-    NamedTypeReference,
     MemberDeletion,
-    MemberAddition,
-    ProductMember
+    MemberModification,
+    Model,
+    NamedTypeReference,
+    OptionType,
+    PrimitiveType,
+    ProductMember,
+    ProductType,
+    ResultType,
+    SequenceType,
+    SetType,
+    SumType,
+    TupleType,
+    VoidType
 } from '../new-model';
 import { TraverseDelegate, Traverser } from '../new-traverser';
-import { IndentingOutputStream } from '../../../output/indenting_output_stream';
 
 export class ToLDWMSource implements TraverseDelegate {
     private output: IndentingOutputStream;
@@ -46,11 +43,12 @@ export class ToLDWMSource implements TraverseDelegate {
 
         this.output.writeLine('}');
 
-        return this.output.toString();
+        const result = this.output.toString();
+        return result;
     }
 
     visitModel(model: Model, traverser: Traverser): Model {
-        model.values.forEach((value) => {
+        model.values.forEach((value, index) => {
             if (value instanceof Definition) {
                 this.visitDefinition(value, traverser);
             } else if (value instanceof Deletion) {
@@ -83,16 +81,16 @@ export class ToLDWMSource implements TraverseDelegate {
         this.output.writeLine(`modify ${memberModification.name} {`);
         this.output.indentDuring(() => {
             memberModification.values.forEach((value) => {
-                if (this.isMemberDeletion(value)) {
+                if (value instanceof MemberDeletion) {
                     this.output.write('-= ');
                     this.output.writeLine(
                         Array.isArray(value.name)
                             ? value.name.join('::')
                             : value.name.toString()
                     );
-                } else if (this.isMemberAddition(value)) {
+                } else {
                     this.output.write('+= ');
-                    if (this.isProductMember(value.value)) {
+                    if (value.value instanceof ProductMember) {
                         this.output.write(`${value.value.name}: `);
                         traverser.visitType(value.value.type);
                     } else {
@@ -102,7 +100,7 @@ export class ToLDWMSource implements TraverseDelegate {
                 }
             });
         });
-        this.output.writeLine('}');
+        this.output.writeLine('};');
         this.output.writeLine();
         return memberModification;
     }
@@ -119,7 +117,7 @@ export class ToLDWMSource implements TraverseDelegate {
 
     visitEnumType(enumType: EnumType): EnumType {
         this.output.write('{ ');
-        this.output.writeJoined(enumType.members, ' | ', (member) =>
+        this.output.join(enumType.members, ' | ', (member) =>
             this.output.write(`"${member}"`)
         );
         this.output.write(' }');
@@ -128,7 +126,7 @@ export class ToLDWMSource implements TraverseDelegate {
 
     visitSumType(sumType: SumType, traverser: Traverser): SumType {
         this.output.write('{ ');
-        this.output.writeJoined(sumType.members, ' | ', (member) =>
+        this.output.join(sumType.members, ' | ', (member) =>
             traverser.visitType(member)
         );
         this.output.write(' }');
@@ -140,7 +138,7 @@ export class ToLDWMSource implements TraverseDelegate {
         traverser: Traverser
     ): ProductType {
         this.output.write('{ ');
-        this.output.writeJoined(productType.members, ', ', (member) => {
+        this.output.join(productType.members, ', ', (member) => {
             this.output.write(`${member.name}: `);
             traverser.visitType(member.type);
         });
@@ -150,7 +148,7 @@ export class ToLDWMSource implements TraverseDelegate {
 
     visitTupleType(tupleType: TupleType, traverser: Traverser): TupleType {
         this.output.write('tuple<');
-        this.output.writeJoined(tupleType.members, ', ', (member) =>
+        this.output.join(tupleType.members, ', ', (member) =>
             traverser.visitType(member)
         );
         this.output.write('>');
@@ -204,23 +202,5 @@ export class ToLDWMSource implements TraverseDelegate {
     ): NamedTypeReference {
         this.output.write(namedTypeReference.names.join('::'));
         return namedTypeReference;
-    }
-
-    private isMemberDeletion(
-        value: MemberDeletion | MemberAddition
-    ): value is MemberDeletion {
-        return 'name' in value;
-    }
-
-    private isMemberAddition(
-        value: MemberDeletion | MemberAddition
-    ): value is MemberAddition {
-        return 'value' in value;
-    }
-
-    private isProductMember(
-        value: Type | ProductMember
-    ): value is ProductMember {
-        return typeof value === 'object' && 'name' in value && 'type' in value;
     }
 }

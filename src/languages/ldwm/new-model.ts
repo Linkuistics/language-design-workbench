@@ -25,7 +25,7 @@ export class MemberModification {
 }
 
 export class MemberDeletion {
-    constructor(public name: Id | NamedTypeReference) {}
+    constructor(public name: Id) {}
 }
 
 export class MemberAddition {
@@ -70,9 +70,11 @@ export class ProductType {
     constructor(public members: ProductMember[]) {}
 }
 
-export interface ProductMember {
-    name: Id;
-    type: Type;
+export class ProductMember {
+    constructor(
+        public name: Id,
+        public type: Type
+    ) {}
 }
 
 export type GenericType =
