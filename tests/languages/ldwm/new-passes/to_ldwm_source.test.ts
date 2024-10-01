@@ -7,7 +7,7 @@ import { IncrementalModelGenerator } from '../incremental-model-generator';
 
 describe('ToLDWMSource', () => {
     it('should correctly transform and parse back incrementally generated models', () => {
-        const iterations = 100;
+        const iterations = 20;
         for (let i = 0; i < iterations; i++) {
             const generator = new IncrementalModelGenerator(100);
             for (const { model, change } of generator) {

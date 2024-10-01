@@ -119,7 +119,7 @@ export class NamedTypeReference {
     constructor(public names: Id[]) {}
 }
 
-type Id = string;
+export type Id = string;
 
 export type Trivia = LineComment | BlockComment | Whitespace;
 
