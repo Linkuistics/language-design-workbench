@@ -1,21 +1,21 @@
 import { program } from 'commander';
 import * as fs from 'fs';
-import { AllocateLabels } from '../languages/ldwg/passes/allocate-labels';
-import { FromLDWGSoruce as FromLDWGSource } from '../languages/ldwg/passes/from_ldwg-source';
-import { ToParserTypescriptSource } from '../languages/ldwg/passes/to_parser-typescript-source';
-import { FromLDWMSource } from '../languages/ldwm/new-passes/from_ldwm-source';
-import { ToModelTypescriptSource } from '../languages/ldwm/new-passes/to_model-typescript-source';
-import { composePasses } from '../nanopass/util';
+import { AllocateLabels } from '../models/grammar/passes/allocate-labels';
+import { FromGrammarSoruce as FromLDWGSource } from '../models/grammar/passes/from_grammar-source';
+import { ToParserTypescriptSource } from '../models/grammar/passes/to_parser-typescript-source';
+import { FromModelSource } from '../models/model/passes/from_model-source';
+import { ToModelTypescriptSource } from '../models/model/passes/to_model-typescript-source';
+import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parser/parseError';
-import { ToLDWM } from '../languages/ldwg/passes/to_ldwm';
-import { TransformNamesCase } from '../languages/ldwg/passes/transform-names-case';
-import { ToLDWMSource } from '../languages/ldwm/new-passes/to_ldwm-source';
+import { ToModel } from '../models/grammar/passes/to_model';
+import { TransformNamesCase } from '../models/grammar/passes/transform-names-case';
+import { ToModelSource } from '../models/model/passes/to_model-source';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 
 program
-    .command('ldwg-parse')
-    .description('Parse .ldwg source to JSON')
+    .command('grammar-parse')
+    .description('Parse .grammar source to JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -45,8 +45,8 @@ program
     });
 
 program
-    .command('ldwg-to-ldwm')
-    .description('Produce .ldwm source from .ldwg source')
+    .command('grammar-to-model')
+    .description('Produce .model source from .grammar source')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -59,8 +59,8 @@ program
                 new FromLDWGSource(),
                 new AllocateLabels(),
                 new TransformNamesCase(),
-                new ToLDWM(),
-                new ToLDWMSource()
+                new ToModel(),
+                new ToModelSource()
             ).transform(input);
 
             if (options.output) {
@@ -80,8 +80,8 @@ program
     });
 
 program
-    .command('ldwg-to-parser')
-    .description('Produce a parser from .ldwg source')
+    .command('grammar-to-parser')
+    .description('Produce a parser from .grammar source')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .option(
@@ -130,8 +130,8 @@ program
     });
 
 program
-    .command('ldwm-parse')
-    .description('Parse .ldwm source to JSON')
+    .command('model-parse')
+    .description('Parse .model source to JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -140,7 +140,7 @@ program
                 ? fs.readFileSync(options.input, 'utf-8')
                 : await readStdin();
 
-            const parser = new FromLDWMSource();
+            const parser = new FromModelSource();
             const model = parser.transform(input);
             const output = JSON.stringify(model, null, 2);
 
@@ -161,8 +161,8 @@ program
     });
 
 program
-    .command('ldwm-to-types')
-    .description('Produce type definitions from .ldwm source')
+    .command('model-to-types')
+    .description('Produce type definitions from .model source')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .option('-g, --generics', 'Use generics for typescript', false)
@@ -182,7 +182,7 @@ program
             const roots = options.roots ? options.roots.split(',') : undefined;
 
             const output = composePasses(
-                new FromLDWMSource(),
+                new FromModelSource(),
                 // new MergeIdenticalSumTypeMembers(),
                 // for typescript we only need to flatten anonymous fields in product types
                 // whereas for rust we need to flatten all product types

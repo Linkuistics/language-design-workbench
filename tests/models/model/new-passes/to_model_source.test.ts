@@ -1,7 +1,7 @@
-import { Model } from '../../../../src/languages/ldwm/new-model';
-import { FromLDWMSource } from '../../../../src/languages/ldwm/new-passes/from_ldwm-source';
-import { ToLDWMSource } from '../../../../src/languages/ldwm/new-passes/to_ldwm-source';
-import { modelsAreEqual } from '../../../../src/languages/ldwm/new-util';
+import { Model } from '../../../../src/models/model/model';
+import { FromModelSource } from '../../../../src/models/model/passes/from_model-source';
+import { ToModelSource } from '../../../../src/models/model/passes/to_model-source';
+import { modelsAreEqual } from '../../../../src/models/model/util';
 import { ParseError } from '../../../../src/parser/parseError';
 import { IncrementalModelGenerator } from '../incremental-model-generator';
 
@@ -18,8 +18,8 @@ describe('ToLDWMSource', () => {
 });
 
 function testModelTransformation(model: Model, changeDescription: string) {
-    const toLDWMSource = new ToLDWMSource();
-    const fromLDWMSource = new FromLDWMSource();
+    const toLDWMSource = new ToModelSource();
+    const fromLDWMSource = new FromModelSource();
 
     let ldwmSource: string;
     let parsedModel: Model;

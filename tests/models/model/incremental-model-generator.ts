@@ -19,7 +19,7 @@ import {
     Type,
     VoidType,
     ProductMember
-} from '../../../src/languages/ldwm/new-model';
+} from '../../../src/models/model/model';
 
 function generateRandomString(length: number = 5): string {
     const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

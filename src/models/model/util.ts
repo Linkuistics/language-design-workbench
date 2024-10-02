@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import {
     Definition,
     Deletion,
@@ -19,7 +18,7 @@ import {
     TupleType,
     Type,
     VoidType
-} from './new-model';
+} from './model';
 
 export function findFieldName(field: ProductMember): string {
     if (field.name) {

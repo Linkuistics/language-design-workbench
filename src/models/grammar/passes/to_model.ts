@@ -6,7 +6,7 @@ import {
     ProductMember,
     ProductType,
     SequenceType
-} from '../../ldwm/new-model';
+} from '../../model/model';
 import {
     AlternativeRule,
     AlternativeRules,
@@ -21,7 +21,7 @@ import {
 } from '../model';
 import { TraverseDelegate, Traverser } from '../traverser';
 
-export class ToLDWM implements TraverseDelegate {
+export class ToModel implements TraverseDelegate {
     private definitions: Definition[] = [];
 
     transform(input: GrammarLanguage): Model {

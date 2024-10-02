@@ -25,7 +25,7 @@ import {
     BlockComment,
     LineComment,
     Whitespace
-} from './new-model';
+} from './model';
 
 export interface TraverseDelegate {
     visitModel?(model: Model, traverser: Traverser): Model;

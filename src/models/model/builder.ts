@@ -20,7 +20,7 @@ import {
     ResultType,
     NamedTypeReference,
     Id
-} from './new-model';
+} from './model';
 import assert from 'assert';
 
 type Instruction = {
@@ -48,7 +48,7 @@ enum SimulatedType {
     NamedReference = 'NamedReference'
 }
 
-export class NewLDWMBuilder {
+export class ModelBuilder {
     private instructions: Instruction[] = [];
     private simulatedTypeStack: SimulatedType[] = [];
 

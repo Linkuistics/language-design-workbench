@@ -14,10 +14,10 @@ import {
     SumType,
     TupleType,
     VoidType
-} from '../new-model';
-import { TraverseDelegate, Traverser } from '../new-traverser';
+} from '../model';
+import { TraverseDelegate, Traverser } from '../traverser';
 
-export class ToModelTypescriptSource implements TraverseDelegate {
+export class ToModelRustSource implements TraverseDelegate {
     private definitionsSource =
         'type OptionType<T> = T | undefined;\n' +
         'type ResultType<O, E> = O | { error: E }\n' +

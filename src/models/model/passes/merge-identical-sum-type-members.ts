@@ -1,11 +1,5 @@
-import {
-    Model,
-    Definition,
-    SumType,
-    Type,
-    NamedTypeReference
-} from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
+import { Model, Definition, SumType, Type, NamedTypeReference } from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
 
 export class MergeIdenticalSumTypeMembers implements TraverseDelegate {
     transform(input: Model): Model {

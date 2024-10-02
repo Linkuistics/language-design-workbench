@@ -1,5 +1,5 @@
-import { Model, NamedTypeReference, Definition } from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
+import { Model, NamedTypeReference, Definition } from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
 
 export class RemoveUnreferencedTypes implements TraverseDelegate {
     private referencedTypes: Set<string> = new Set();

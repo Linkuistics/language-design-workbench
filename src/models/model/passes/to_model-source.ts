@@ -18,10 +18,10 @@ import {
     SumType,
     TupleType,
     VoidType
-} from '../new-model';
-import { TraverseDelegate, Traverser } from '../new-traverser';
+} from '../model';
+import { TraverseDelegate, Traverser } from '../traverser';
 
-export class ToLDWMSource implements TraverseDelegate {
+export class ToModelSource implements TraverseDelegate {
     private output: IndentingOutputStream;
 
     constructor() {

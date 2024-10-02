@@ -5,9 +5,9 @@ import {
     OptionType,
     Type,
     ProductMember
-} from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
-import { findFieldName } from '../new-util';
+} from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
+import { findFieldName } from '../util';
 
 export class FlattenNestedProductTypes implements TraverseDelegate {
     constructor(public onlyAnonymousFields: boolean) {}

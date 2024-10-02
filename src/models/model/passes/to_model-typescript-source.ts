@@ -14,8 +14,8 @@ import {
     SumType,
     TupleType,
     VoidType
-} from '../new-model';
-import { TraverseDelegate, Traverser } from '../new-traverser';
+} from '../model';
+import { TraverseDelegate, Traverser } from '../traverser';
 
 export class ToModelTypescriptSource implements TraverseDelegate {
     private definitionsSource =

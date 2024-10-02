@@ -1,9 +1,5 @@
-import { Language } from '../language';
-
-export class GrammarLanguage extends Language {
-    constructor(public grammar: Grammar) {
-        super();
-    }
+export class GrammarLanguage {
+    constructor(public grammar: Grammar) {}
 }
 
 export class Grammar {

@@ -4,8 +4,8 @@ import {
     ProductType,
     NamedTypeReference,
     Type
-} from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
+} from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
 
 export class DenestWrappers implements TraverseDelegate {
     transform(input: Model): Model {

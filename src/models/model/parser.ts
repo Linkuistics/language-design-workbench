@@ -1,12 +1,12 @@
 import { InputStream } from '../../parser/inputStream';
-import * as Model from './new-model';
+import * as Model from './model';
 import { Parser } from '../../parser/parser';
 import { ParseError } from '../../parser/parseError';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
 type Id = string;
 
-export class LDWMParser extends Parser {
+export class ModelParser extends Parser {
     constructor(input: InputStream) {
         super(input);
     }

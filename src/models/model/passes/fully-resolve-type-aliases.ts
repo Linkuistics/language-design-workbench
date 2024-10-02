@@ -1,5 +1,5 @@
-import { Model, Definition, NamedTypeReference, Type } from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
+import { Model, Definition, NamedTypeReference, Type } from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
 
 export class FullyResolveTypeAliases implements TraverseDelegate {
     private resolvedTypes: Map<string, Type> = new Map();

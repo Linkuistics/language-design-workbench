@@ -1,6 +1,6 @@
-import { Model, ProductType, ProductMember } from '../new-model';
-import { Traverser, TraverseDelegate } from '../new-traverser';
-import { findFieldName } from '../new-util';
+import { Model, ProductType, ProductMember } from '../model';
+import { Traverser, TraverseDelegate } from '../traverser';
+import { findFieldName } from '../util';
 
 export class AssignNameToAnonymousFields implements TraverseDelegate {
     transform(input: Model): Model {

@@ -1,11 +1,11 @@
 import { StringInputStream } from '../../../parser/stringInputStream';
-import { Model } from '../new-model';
-import { LDWMParser } from '../new-parser';
+import { Model } from '../model';
+import { ModelParser } from '../parser';
 
-export class FromLDWMSource {
+export class FromModelSource {
     transform(input: string): Model {
         const inputStream = new StringInputStream(input);
-        const parser = new LDWMParser(inputStream);
+        const parser = new ModelParser(inputStream);
         return parser.parse();
     }
 }

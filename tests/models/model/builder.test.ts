@@ -1,4 +1,4 @@
-import { NewLDWMBuilder } from '../../../src/languages/ldwm/new-builder';
+import { ModelBuilder } from '../../../src/models/model/builder';
 import {
     Definition,
     EnumType,
@@ -7,7 +7,7 @@ import {
     ProductType,
     SequenceType,
     SumType
-} from '../../../src/languages/ldwm/new-model';
+} from '../../../src/models/model/model';
 
 let passedTests = 0;
 let failedTests = 0;
@@ -24,7 +24,7 @@ function assertDeepEqual(actual: any, expected: any, message: string) {
 
 describe('NewLDWMBuilder', () => {
     test('creates a model with a primitive type definition', () => {
-        const builder = new NewLDWMBuilder();
+        const builder = new ModelBuilder();
         builder.setModelName('TestModel');
         builder.startDefinition('TestString');
         builder.createPrimitiveType('string');
@@ -41,7 +41,7 @@ describe('NewLDWMBuilder', () => {
     });
 
     test('creates a model with an enum type', () => {
-        const builder = new NewLDWMBuilder();
+        const builder = new ModelBuilder();
         builder.setModelName('TestModel');
         builder.startDefinition('TestEnum');
         builder.startEnumType();
@@ -61,7 +61,7 @@ describe('NewLDWMBuilder', () => {
     });
 
     test('creates a model with a product type', () => {
-        const builder = new NewLDWMBuilder();
+        const builder = new ModelBuilder();
         builder.setModelName('TestModel');
         builder.startDefinition('TestProduct');
         builder.startProductType();
@@ -89,7 +89,7 @@ describe('NewLDWMBuilder', () => {
     });
 
     test('creates a model with a sum type', () => {
-        const builder = new NewLDWMBuilder();
+        const builder = new ModelBuilder();
         builder.setModelName('TestModel');
         builder.startDefinition('TestSum');
         builder.startSumType();
@@ -111,7 +111,7 @@ describe('NewLDWMBuilder', () => {
     });
 
     test('creates a model with nested types', () => {
-        const builder = new NewLDWMBuilder();
+        const builder = new ModelBuilder();
         builder.setModelName('TestModel');
         builder.startDefinition('TestNested');
         builder.startProductType();
