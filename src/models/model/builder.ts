@@ -68,9 +68,15 @@ export class ModelBuilder {
         return this.simulatedTypeStack.length;
     }
 
-    setModelName(name: Id, parentName?: Id): void {
-        this.addInstruction('setModelName', name, parentName);
+    startModel(name: Id): void {
+        this.addInstruction('startModel');
     }
+
+    setModelParentName(parentName: Id): void {
+        this.addInstruction('setModelParentName', parentName);
+    }
+
+    endModel(): void {}
 
     startDefinition(name: Id): void {
         this.addInstruction('startDefinition', name);
@@ -238,39 +244,44 @@ export class ModelBuilder {
     }
 
     build(): Model {
-        const values: (Definition | Deletion | MemberModification)[] = [];
         const typeStack: Type[] = [];
         let currentDefinitionName: Id | null = null;
-        let modelName: Id | null = null;
-        let modelParentName: Id | null = null;
+        let model = new Model('', undefined, []);
 
         let ip = 0;
         while (ip < this.instructions.length) {
             const instruction = this.instructions[ip];
             switch (instruction.type) {
-                case 'setModelName':
-                    modelName = instruction.params[0];
-                    modelParentName = instruction.params[1];
+                case 'startModel':
+                    model.name = instruction.params[0];
+                    break;
+                case 'setModelParentName':
+                    model.parentName = instruction.params[0];
+                    break;
+                case 'endModel':
                     break;
                 case 'startDefinition':
                     currentDefinitionName = instruction.params[0];
                     break;
                 case 'endDefinition':
                     const type = typeStack.pop()!;
-                    values.push(new Definition(currentDefinitionName!, type));
+                    model.values.push(
+                        new Definition(currentDefinitionName!, type)
+                    );
                     currentDefinitionName = null;
                     break;
                 case 'addDeletion':
-                    values.push(new Deletion(instruction.params[0]));
+                    model.values.push(new Deletion(instruction.params[0]));
                     break;
                 case 'startMemberModification':
-                    values.push(
+                    model.values.push(
                         new MemberModification(instruction.params[0], [])
                     );
                     break;
                 case 'addMemberDeletion':
                     {
-                        const memberModification = values[values.length - 1];
+                        const memberModification =
+                            model.values[model.values.length - 1];
                         assert(
                             memberModification instanceof MemberModification
                         );
@@ -282,7 +293,8 @@ export class ModelBuilder {
                 case 'addMemberAddition':
                     {
                         const type = typeStack.pop()!;
-                        const memberModification = values[values.length - 1];
+                        const memberModification =
+                            model.values[model.values.length - 1];
                         assert(
                             memberModification instanceof MemberModification
                         );
@@ -383,6 +395,6 @@ export class ModelBuilder {
             ip++;
         }
 
-        return new Model(modelName!, modelParentName!, values);
+        return model;
     }
 }
