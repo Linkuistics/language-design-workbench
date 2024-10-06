@@ -69,7 +69,7 @@ export class ModelBuilder {
     }
 
     startModel(name: Id): void {
-        this.addInstruction('startModel');
+        this.addInstruction('startModel', name);
     }
 
     setModelParentName(parentName: Id): void {

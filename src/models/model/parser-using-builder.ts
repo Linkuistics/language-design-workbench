@@ -49,10 +49,7 @@ export class ModelParserUsingBuilder extends Parser {
                     () => this.parseDefinition()
                 );
 
-                this.consumeTrivia();
-                if (this.peek() === ';') {
-                    this.mustConsumeString(';');
-                }
+                this.mustConsumeString(';');
             }
 
             this.mustConsumeString('}');
@@ -197,9 +194,9 @@ export class ModelParserUsingBuilder extends Parser {
             this.mustConsumeString('{');
             this.builder.startProductType();
             this.maybe(() => {
-                const name = this.parseProductMember();
+                this.parseProductMember();
                 while (this.consumeString(',')) {
-                    const name = this.parseProductMember();
+                    this.parseProductMember();
                 }
             });
             this.mustConsumeString('}');

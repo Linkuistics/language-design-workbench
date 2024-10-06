@@ -1,7 +1,6 @@
 import { InputStream } from '../../parser/inputStream';
 import * as Model from './model';
 import { Parser } from '../../parser/parser';
-import { ParseError } from '../../parser/parseError';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
 type Id = string;
@@ -11,79 +10,68 @@ export class ModelParser extends Parser {
         super(input);
     }
 
-    parse(): Model.Model {
-        const model = this.parseModel();
-        if (!this.isEOF()) {
-            const remainingContent = this.input.peek(20);
-            throw new ParseError(
-                `Unexpected content after model: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`,
-                this.getPosition(),
-                this
-            );
-        }
-        return model;
-    }
-
-    private parseModel(): Model.Model {
+    parseModel(): Model.Model {
         return this.withContext('model', () => {
-            this.mustConsumeKeyword('model');
-            const name = this.parseId();
+            let name;
+            let parentName;
+            const values = [];
 
-            let parentName: string | undefined;
+            this.mustConsumeKeyword('model');
+            name = this.parseId();
+
             if (this.consumeKeyword('modifies')) {
                 parentName = this.parseId();
-                console.log('Model modifies: ' + parentName);
             }
 
             this.mustConsumeString('{');
 
-            const values: (
-                | Model.Definition
-                | Model.Deletion
-                | Model.MemberModification
-            )[] = [];
-
-            while (!this.isEOF() && this.peek() !== '}') {
-                const element = this.firstAlternative(
-                    'model element',
-                    () => this.parseDeletion(),
-                    () => this.parseMemberModification(),
-                    () => this.parseDefinition()
+            while (!this.consumeString('}')) {
+                values.push(
+                    this.firstAlternative(
+                        'model element',
+                        () => this.parseDeletion(),
+                        () => this.parseMemberModification(),
+                        () => this.parseDefinition()
+                    )
                 );
-                values.push(element);
 
-                this.consumeTrivia();
-                if (this.peek() === ';') {
-                    this.mustConsumeString(';');
-                }
+                this.mustConsumeString(';');
             }
 
-            this.mustConsumeString('}');
             return new Model.Model(name, parentName, values);
         });
     }
 
     parseDefinition(): Model.Definition {
         return this.withContext('definition', () => {
-            const name = this.parseId();
+            let name;
+            let type;
+
+            name = this.parseId();
             this.mustConsumeString('=');
-            const type = this.parseType();
+            type = this.parseType();
+
             return new Model.Definition(name, type);
         });
     }
 
     parseDeletion(): Model.Deletion {
+        let name;
+
         this.mustConsumeKeyword('delete');
-        const name = this.parseId();
+        name = this.parseId();
+
         return new Model.Deletion(name);
     }
 
     parseMemberModification(): Model.MemberModification {
+        let name;
+        const values = [];
+
         this.mustConsumeKeyword('modify');
-        const name = this.parseId();
+        name = this.parseId();
         this.mustConsumeString('{');
-        const values: (Model.MemberDeletion | Model.MemberAddition)[] = [];
-        while (!this.isEOF() && this.peek() !== '}') {
+        do {
             values.push(
                 this.firstAlternative(
                     'member modification element',
@@ -91,24 +79,30 @@ export class ModelParser extends Parser {
                     () => this.parseMemberAddition()
                 )
             );
-        }
-        this.mustConsumeString('}');
+        } while (!this.consumeString('}'));
+
         return new Model.MemberModification(name, values);
     }
 
     parseMemberDeletion(): Model.MemberDeletion {
+        let name;
+
         this.mustConsumeString('-=');
-        const name = this.parseId();
+        name = this.parseId();
+
         return new Model.MemberDeletion(name);
     }
 
     parseMemberAddition(): Model.MemberAddition {
+        let value;
+
         this.mustConsumeString('+=');
-        const value = this.firstAlternative(
+        value = this.firstAlternative(
             'member addition element',
             () => this.parseProductMember(),
             () => this.parseType()
         );
+
         return new Model.MemberAddition(value);
     }
 
@@ -127,6 +121,7 @@ export class ModelParser extends Parser {
 
     parseVoidType(): Model.VoidType {
         this.mustConsumeString('()');
+
         return new Model.VoidType();
     }
 
@@ -151,21 +146,26 @@ export class ModelParser extends Parser {
 
     parseEnumType(): Model.EnumType {
         return this.withContext('enum type', () => {
+            const members = [];
+
             this.mustConsumeString('{');
-            const members: Id[] = [];
             members.push(this.parseString());
             while (this.consumeString('|')) {
                 members.push(this.parseString());
             }
             this.mustConsumeString('}');
+
             return new Model.EnumType(members);
         });
     }
 
     parseString(): string {
+        let value;
+
         this.mustConsumeString('"');
-        const value = this.parseId();
+        value = this.parseId();
         this.mustConsumeString('"');
+
         return value;
     }
 
@@ -182,21 +182,24 @@ export class ModelParser extends Parser {
 
     parseSumType(): Model.SumType {
         return this.withContext('sum type', () => {
+            const members = [];
+
             this.mustConsumeString('{');
-            const members: Model.Type[] = [];
             members.push(this.parseType());
             while (this.consumeString('|')) {
                 members.push(this.parseType());
             }
             this.mustConsumeString('}');
+
             return new Model.SumType(members);
         });
     }
 
     parseProductType(): Model.ProductType {
         return this.withContext('product type', () => {
-            this.mustConsumeString('{');
             const members: Model.ProductMember[] = [];
+
+            this.mustConsumeString('{');
             this.maybe(() => {
                 members.push(this.parseProductMember());
                 while (this.consumeString(',')) {
@@ -204,15 +207,20 @@ export class ModelParser extends Parser {
                 }
             });
             this.mustConsumeString('}');
+
             return new Model.ProductType(members);
         });
     }
 
     parseProductMember(): Model.ProductMember {
         return this.withContext('product member', () => {
-            const name = this.parseId();
+            let name;
+            let type;
+
+            name = this.parseId();
             this.mustConsumeString(':');
-            const type = this.parseType();
+            type = this.parseType();
+
             return new Model.ProductMember(name, type);
         });
     }
@@ -232,62 +240,83 @@ export class ModelParser extends Parser {
     }
 
     parseTupleType(): Model.TupleType {
-        this.mustConsumeString('tuple<');
         const members: Model.Type[] = [];
+
+        this.mustConsumeString('tuple<');
         members.push(this.parseType());
         while (this.consumeString(',')) {
             members.push(this.parseType());
         }
         this.mustConsumeString('>');
+
         return new Model.TupleType(members);
     }
 
     parseMapType(): Model.MapType {
+        let keyType;
+        let valueType;
+
         this.mustConsumeString('map<');
-        const keyType = this.parseType();
+        keyType = this.parseType();
         this.mustConsumeString(',');
-        const valueType = this.parseType();
+        valueType = this.parseType();
         this.mustConsumeString('>');
+
         return new Model.MapType(keyType, valueType);
     }
 
     parseSetType(): Model.SetType {
+        let keyType;
+
         this.mustConsumeString('set<');
-        const keyType = this.parseType();
+        keyType = this.parseType();
         this.mustConsumeString('>');
+
         return new Model.SetType(keyType);
     }
 
     parseSequenceType(): Model.SequenceType {
+        let elementType;
+
         this.mustConsumeString('seq<');
-        const elementType = this.parseType();
+        elementType = this.parseType();
         this.mustConsumeString('>');
+
         return new Model.SequenceType(elementType);
     }
 
     parseOptionType(): Model.OptionType {
+        let type;
+
         this.mustConsumeString('option<');
-        const type = this.parseType();
+        type = this.parseType();
         this.mustConsumeString('>');
+
         return new Model.OptionType(type);
     }
 
     parseResultType(): Model.ResultType {
+        let okType;
+        let errType;
+
         this.mustConsumeString('result<');
-        const okType = this.parseType();
+        okType = this.parseType();
         this.mustConsumeString(',');
-        const errType = this.parseType();
+        errType = this.parseType();
         this.mustConsumeString('>');
+
         return new Model.ResultType(okType, errType);
     }
 
     parseNamedTypeReference(): Model.NamedTypeReference {
         return this.withContext('named type reference', () => {
             const names: Id[] = [];
+
             names.push(this.parseId());
             while (this.consumeString('::')) {
                 names.push(this.parseId());
             }
+
             return new Model.NamedTypeReference(names);
         });
     }

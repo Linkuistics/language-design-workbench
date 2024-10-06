@@ -84,29 +84,11 @@ program
     .description('Produce a parser from .grammar source')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
-    .option(
-        '-l, --language <lang>',
-        'Output language (typescript or rust)',
-        'typescript'
-    )
-    .option('-r, --roots <roots>', 'Comma-separated list of root types')
     .action(async (options) => {
         try {
             const input = options.input
                 ? fs.readFileSync(options.input, 'utf-8')
                 : await readStdin();
-
-            if (
-                options.language !== 'typescript' &&
-                options.language !== 'rust'
-            ) {
-                throw new Error(
-                    'Invalid language option. Use either "typescript" or "rust".'
-                );
-            }
-
-            const isTypescript = options.language === 'typescript';
-            const roots = options.roots ? options.roots.split(',') : undefined;
 
             const output = composePasses(
                 new FromLDWGSource(),

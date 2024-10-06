@@ -11,6 +11,12 @@
 import { InputStream, LineAndColumn } from './inputStream';
 import { ParseError } from './parseError';
 
+export type ParseFailure = {
+    message: string;
+    position: number;
+};
+export type ParseResult = 'success' | ParseFailure;
+
 /**
  * Represents a piece of skipped trivia in the input stream.
  * Trivia typically includes whitespace, comments, or other ignored content.
@@ -132,6 +138,17 @@ export abstract class Parser implements InputStream {
     peek(): string | undefined {
         this.skipTriviaIfEnabled();
         return this.input.peek();
+    }
+
+    mustBeEOF(): void {
+        if (!this.isEOF()) {
+            const remainingContent = this.input.peek();
+            throw new ParseError(
+                `Unexpected content parsing: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`,
+                this.getPosition(),
+                this
+            );
+        }
     }
 
     /**

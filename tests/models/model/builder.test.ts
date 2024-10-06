@@ -25,10 +25,11 @@ function assertDeepEqual(actual: any, expected: any, message: string) {
 describe('NewLDWMBuilder', () => {
     test('creates a model with a primitive type definition', () => {
         const builder = new ModelBuilder();
-        builder.setModelName('TestModel');
+        builder.startModel('TestModel');
         builder.startDefinition('TestString');
         builder.createPrimitiveType('string');
         builder.endDefinition();
+        builder.endModel();
 
         const model = builder.build();
         assertDeepEqual(
@@ -42,13 +43,14 @@ describe('NewLDWMBuilder', () => {
 
     test('creates a model with an enum type', () => {
         const builder = new ModelBuilder();
-        builder.setModelName('TestModel');
+        builder.startModel('TestModel');
         builder.startDefinition('TestEnum');
         builder.startEnumType();
         builder.addEnumMember('A');
         builder.addEnumMember('B');
         builder.addEnumMember('C');
         builder.endDefinition();
+        builder.endModel();
 
         const model = builder.build();
         assertDeepEqual(
@@ -62,7 +64,7 @@ describe('NewLDWMBuilder', () => {
 
     test('creates a model with a product type', () => {
         const builder = new ModelBuilder();
-        builder.setModelName('TestModel');
+        builder.startModel('TestModel');
         builder.startDefinition('TestProduct');
         builder.startProductType();
         builder.createPrimitiveType('string');
@@ -71,6 +73,7 @@ describe('NewLDWMBuilder', () => {
         builder.addProductTypeMember('age');
         builder.endProductType();
         builder.endDefinition();
+        builder.endModel();
 
         const model = builder.build();
         assertDeepEqual(
@@ -90,7 +93,7 @@ describe('NewLDWMBuilder', () => {
 
     test('creates a model with a sum type', () => {
         const builder = new ModelBuilder();
-        builder.setModelName('TestModel');
+        builder.startModel('TestModel');
         builder.startDefinition('TestSum');
         builder.startSumType();
         builder.createPrimitiveType('string');
@@ -99,6 +102,7 @@ describe('NewLDWMBuilder', () => {
         builder.addSumTypeMember();
         builder.endSumType();
         builder.endDefinition();
+        builder.endModel();
 
         const model = builder.build();
         assertDeepEqual(
@@ -112,7 +116,7 @@ describe('NewLDWMBuilder', () => {
 
     test('creates a model with nested types', () => {
         const builder = new ModelBuilder();
-        builder.setModelName('TestModel');
+        builder.startModel('TestModel');
         builder.startDefinition('TestNested');
         builder.startProductType();
         builder.createPrimitiveType('string');
@@ -122,6 +126,7 @@ describe('NewLDWMBuilder', () => {
         builder.endProductType();
         builder.createSequenceType();
         builder.endDefinition();
+        builder.endModel();
 
         const model = builder.build();
         assertDeepEqual(
@@ -141,8 +146,3 @@ describe('NewLDWMBuilder', () => {
         );
     });
 });
-
-console.log(`\nTest Results: ${passedTests} passed, ${failedTests} failed`);
-if (failedTests > 0) {
-    process.exit(1);
-}
