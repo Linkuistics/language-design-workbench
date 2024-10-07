@@ -17,7 +17,6 @@ import {
     SetType,
     SequenceType,
     OptionType,
-    ResultType,
     NamedTypeReference,
     Id
 } from './model';
@@ -213,16 +212,6 @@ export class ModelBuilder {
         this.simulatedTypeStack.push(SimulatedType.Option);
     }
 
-    createResultType(): void {
-        this.addInstruction('createResultType');
-        if (this.simulatedTypeStack.length < 2) {
-            throw new Error('createResultType: not enough types on stack');
-        }
-        this.simulatedTypeStack.pop();
-        this.simulatedTypeStack.pop();
-        this.simulatedTypeStack.push(SimulatedType.Result);
-    }
-
     createNamedTypeReference(names: Id[]): void {
         this.addInstruction('createNamedTypeReference', names);
         this.simulatedTypeStack.push(SimulatedType.NamedReference);
@@ -377,13 +366,6 @@ export class ModelBuilder {
                     {
                         const type = typeStack.pop()!;
                         typeStack.push(new OptionType(type));
-                    }
-                    break;
-                case 'createResultType':
-                    {
-                        const errType = typeStack.pop()!;
-                        const okType = typeStack.pop()!;
-                        typeStack.push(new ResultType(okType, errType));
                     }
                     break;
                 case 'createNamedTypeReference':
