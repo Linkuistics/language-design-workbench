@@ -7,8 +7,8 @@ export class FromModelSource {
     transform(input: string): Model {
         const inputStream = new StringInputStream(input);
         const parser = new ModelParser(inputStream);
-        let model = parser.parseModel();
-        parser.mustBeEOF();
+        let model = parser.unwrap(parser.parseModel());
+        parser.unwrap(parser.mustBeEOF());
         return model;
     }
 }

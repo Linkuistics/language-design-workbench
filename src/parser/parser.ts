@@ -9,13 +9,15 @@
  */
 
 import { InputStream, LineAndColumn } from './inputStream';
-import { ParseError } from './parseError';
 
 export type ParseFailure = {
     message: string;
     position: number;
+    children?: ParseFailure[];
 };
-export type ParseResult = 'success' | ParseFailure;
+export type ParseResult<T> =
+    | { success: true; value: T }
+    | { success: false; failure: ParseFailure };
 
 /**
  * Represents a piece of skipped trivia in the input stream.
@@ -112,7 +114,7 @@ export abstract class Parser implements InputStream {
      * @param consumer - The consumer function to execute without trivia skipping.
      * @returns The result of the executed consumer function.
      */
-    ignoreTriviaDuring<T>(consumer: () => T): T {
+    ignoreTriviaDuring<T>(consumer: () => ParseResult<T>): ParseResult<T> {
         this.skipTriviaIfEnabled();
         const originalSkipTrivia = this.skipTriviaEnabled;
         this.skipTriviaEnabled = false;
@@ -172,33 +174,28 @@ export abstract class Parser implements InputStream {
         return peeked;
     }
 
-    mustBeEOF(): void {
+    mustBeEOF(): ParseResult<void> {
         if (!this.isEOF()) {
             const remainingContent = this.input.peek();
-            throw new ParseError(
-                `Unexpected content parsing: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`,
-                this.getPosition(),
-                this
+            return this.failure(
+                `Unexpected content parsing: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`
             );
         }
+        return this.success(undefined);
     }
 
     /**
      * Peeks at the next character in the input stream and ensures it's not EOF.
      *
      * @param expected - A description of the expected character or token, used in the error message.
-     * @returns The next character in the input stream.
-     * @throws {ParseError} if the next character is EOF.
+     * @returns A ParseResult containing the next character in the input stream or a failure.
      */
-    mustPeek(expected: string): string {
+    mustPeek(expected: string): ParseResult<string> {
         const c = this.peek();
-        if (!c)
-            throw new ParseError(
-                `Expected ${expected}, but found EOF"`,
-                this.getPosition(),
-                this
-            );
-        return c;
+        if (!c) {
+            return this.failure(`Expected ${expected}, but found EOF`);
+        }
+        return this.success(c);
     }
 
     /**
@@ -261,14 +258,19 @@ export abstract class Parser implements InputStream {
     }
 
     /**
-     * Attempts to consume a specific string and throws an error if unsuccessful.
+     * Attempts to consume a specific string and returns a ParseResult.
      *
      * @param str - The string to consume.
-     * @returns The consumed string.
-     * @throws {ParseError} if the expected string cannot be consumed.
+     * @returns A ParseResult containing the consumed string or a failure.
      */
-    protected mustConsumeString(str: string): string {
-        return this.must(this.consumeString(str), str);
+    protected mustConsumeString(str: string): ParseResult<string> {
+        const consumed = this.consumeString(str);
+        if (consumed === undefined) {
+            return this.failure(
+                `Expected "${str}", but found "${this.peek() ?? 'EOF'}"`
+            );
+        }
+        return this.success(consumed);
     }
 
     protected consumeKeyword(keyword: string): string | undefined {
@@ -282,15 +284,21 @@ export abstract class Parser implements InputStream {
         this.debugLog(`Consumed keyword: "${keyword}"`);
         return keyword;
     }
+
     /**
-     * Attempts to consume a keyword and throws an error if unsuccessful.
+     * Attempts to consume a keyword and returns a ParseResult.
      *
      * @param keyword - The keyword to consume.
-     * @returns The consumed keyword.
-     * @throws {ParseError} if the expected keyword cannot be consumed.
+     * @returns A ParseResult containing the consumed keyword or a failure.
      */
-    protected mustConsumeKeyword(keyword: string): string {
-        return this.must(this.consumeKeyword(keyword), keyword);
+    protected mustConsumeKeyword(keyword: string): ParseResult<string> {
+        const consumed = this.consumeKeyword(keyword);
+        if (consumed === undefined) {
+            return this.failure(
+                `Expected keyword "${keyword}", but found "${this.peek() ?? 'EOF'}"`
+            );
+        }
+        return this.success(consumed);
     }
 
     /**
@@ -310,8 +318,14 @@ export abstract class Parser implements InputStream {
     mustConsumeWhile(
         predicate: (char: string) => boolean,
         expected: string
-    ): string {
-        return this.must(this.consumeWhile(predicate), expected);
+    ): ParseResult<string> {
+        const consumed = this.consumeWhile(predicate);
+        if (consumed === undefined) {
+            return this.failure(
+                `Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`
+            );
+        }
+        return this.success(consumed);
     }
 
     /**
@@ -328,71 +342,68 @@ export abstract class Parser implements InputStream {
         return consumed;
     }
 
-    mustConsumeRegex(regex: RegExp, expected: string): string {
-        return this.must(this.consumeRegex(regex), expected);
+    mustConsumeRegex(regex: RegExp, expected: string): ParseResult<string> {
+        const consumed = this.consumeRegex(regex);
+        if (consumed === undefined) {
+            return this.failure(
+                `Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`
+            );
+        }
+        return this.success(consumed);
     }
 
     /**
      * Attempts to parse using multiple alternative parsers.
      *
      * @param alternatives - An array of parser functions to try.
-     * @returns The result of the first successful parser.
-     * @throws {ParseError} if all alternatives fail.
+     * @returns A ParseResult containing the result of the first successful parser or a failure.
      */
     protected firstAlternative<T extends any[]>(
         expected: string,
-        ...alternatives: { [K in keyof T]: () => T[K] }
-    ): T[number] {
+        ...alternatives: { [K in keyof T]: () => ParseResult<T[K]> }
+    ): ParseResult<T[number]> {
         const pos = this.getPosition();
-        const errors: ParseError[] = [];
+        const errors: ParseFailure[] = [];
         for (const alternative of alternatives) {
-            try {
-                const result = alternative();
-                if (result !== undefined) {
-                    this.debugLog(`First alternative succeeded: ${expected}`);
-                    return result;
-                }
-            } catch (error) {
-                if (error instanceof ParseError) {
-                    errors.push(error);
-                } else throw error;
+            const result = alternative();
+            if (result.success) {
+                this.debugLog(`First alternative succeeded: ${expected}`);
+                return result;
             }
+            errors.push(result.failure);
             this.restorePosition(pos);
         }
         const found = this.peek() ?? 'EOF';
-        const error = new ParseError(
-            `Expected "${expected}", but found "${found}"`,
-            pos,
-            this
-        );
-        error.children = errors;
         this.debugLog(`First alternative failed: ${expected}`);
-        throw error;
+        return {
+            success: false,
+            failure: {
+                message: `Expected "${expected}", but found "${found}"`,
+                position: pos,
+                children: errors
+            }
+        };
     }
 
     /**
      * Parses zero or more occurrences of a pattern.
      *
      * @param parser - A function that parses a single occurrence of the pattern.
-     * @returns An array of parsed elements.
+     * @returns A ParseResult containing an array of parsed elements.
      */
-    protected zeroOrMore<T>(parser: () => T): T[] {
+    protected zeroOrMore<T>(parser: () => ParseResult<T>): ParseResult<T[]> {
         const elements: T[] = [];
-
         while (true) {
-            let pos = this.getPosition();
-            try {
-                elements.push(parser());
-                pos = this.getPosition();
-            } catch (error) {
+            const pos = this.getPosition();
+            const result = parser();
+            if (result.success) {
+                elements.push(result.value);
+            } else {
                 this.restorePosition(pos);
-                if (error instanceof ParseError) {
-                    this.debugLog(
-                        `Zero or more ended with ${elements.length} elements`
-                    );
-                    return elements;
-                }
-                throw error;
+                this.debugLog(
+                    `Zero or more ended with ${elements.length} elements`
+                );
+                return this.success(elements);
             }
         }
     }
@@ -401,28 +412,24 @@ export abstract class Parser implements InputStream {
      * Parses one or more occurrences of a pattern.
      *
      * @param parser - A function that parses a single occurrence of the pattern.
-     * @returns An array of parsed elements.
-     * @throws {ParseError} if no occurrences are found.
+     * @returns A ParseResult containing an array of parsed elements or a failure.
      */
-    protected oneOrMore<T>(parser: () => T): T[] {
+    protected oneOrMore<T>(parser: () => ParseResult<T>): ParseResult<T[]> {
         const elements: T[] = [];
-
         while (true) {
-            let pos = this.getPosition();
-            try {
-                elements.push(parser());
-                pos = this.getPosition();
-            } catch (error) {
+            const pos = this.getPosition();
+            const result = parser();
+            if (result.success) {
+                elements.push(result.value);
+            } else {
                 this.restorePosition(pos);
-                if (error instanceof ParseError) {
-                    if (elements.length > 0) {
-                        this.debugLog(
-                            `One or more ended with ${elements.length} elements`
-                        );
-                        return elements;
-                    }
+                if (elements.length > 0) {
+                    this.debugLog(
+                        `One or more ended with ${elements.length} elements`
+                    );
+                    return this.success(elements);
                 }
-                throw error;
+                return result;
             }
         }
     }
@@ -431,46 +438,40 @@ export abstract class Parser implements InputStream {
      * Helper method to assert that a value is defined.
      *
      * @param value - The value to check.
-     * @param errorMessage - The error message to use if the value is undefined.
-     * @returns The value if it is defined.
-     * @throws {ParseError} if the value is undefined.
+     * @param expected - The expected value description.
+     * @returns A ParseResult containing the value if it is defined, or a failure.
      */
-    protected must<T>(value: T | undefined, expected: string): T {
+    protected must<T>(value: T | undefined, expected: string): ParseResult<T> {
         if (value === undefined) {
             const found = this.peek() ?? 'EOF';
             this.debugLog(
                 `Must failed: Expected "${expected}", but found "${found}"`
             );
-            throw new ParseError(
-                `Expected "${expected}", but found "${found}"`,
-                this.getPosition(),
-                this
-            );
+            return this.failure(`Expected "${expected}", but found "${found}"`);
         }
         this.debugLog(`Must succeeded: "${expected}"`);
-        return value;
+        return this.success(value);
     }
 
     /**
-     * Helper method to attempt a parsing operation, returning undefined if it fails.
+     * Helper method to attempt a parsing operation, returning a success result with undefined value if it fails.
      * Useful for implementing optional grammar rules.
      *
      * @param parser - A function that performs a parsing operation.
-     * @returns The result of the parsing operation, or undefined if it fails.
+     * @returns A ParseResult containing the result of the parsing operation, or a success result with undefined value if it fails.
      */
-    protected maybe<T>(parser: () => T): T | undefined {
+    protected maybe<T>(
+        parser: () => ParseResult<T>
+    ): ParseResult<T | undefined> {
         const pos = this.getPosition();
-        try {
-            const result = parser();
+        const result = parser();
+        if (result.success) {
             this.debugLog(`Maybe succeeded`);
             return result;
-        } catch (error) {
+        } else {
             this.restorePosition(pos);
-            if (error instanceof ParseError) {
-                this.debugLog(`Maybe failed`);
-                return undefined;
-            }
-            throw error;
+            this.debugLog(`Maybe failed`);
+            return this.success(undefined);
         }
     }
 
@@ -479,30 +480,59 @@ export abstract class Parser implements InputStream {
      *
      * @param context - A string describing the context of the parsing operation.
      * @param parser - A function that performs a parsing operation.
-     * @returns The result of the parsing operation.
-     * @throws {ParseError} with added context information if the parsing operation fails.
+     * @returns A ParseResult containing the result of the parsing operation or a failure with added context information.
      */
     private indent = 0;
-    protected withContext<T>(context: string, parser: () => T): T {
+    protected withContext<T>(
+        context: string,
+        parser: () => ParseResult<T>
+    ): ParseResult<T> {
         const pos = this.getPosition();
-        try {
-            this.debugLog(
-                `+ ${context} "${this.peek()}" ${this.getPosition()}`
-            );
-            this.indent++;
-            const result = parser();
-            this.indent--;
+        this.debugLog(`+ ${context} "${this.peek()}" ${this.getPosition()}`);
+        this.indent++;
+        const result = parser();
+        this.indent--;
+        if (result.success) {
             this.debugLog(`- ${context}`);
             return result;
-        } catch (error) {
-            this.indent--;
-            if (error instanceof ParseError) {
-                this.debugLog(`x ${context}`);
-                const newError = new ParseError(`«${context}»`, pos, this);
-                newError.children = [error];
-                throw newError;
+        } else {
+            this.debugLog(`x ${context}`);
+            return {
+                success: false,
+                failure: {
+                    message: `«${context}»`,
+                    position: pos,
+                    children: [result.failure]
+                }
+            };
+        }
+    }
+
+    /**
+     * Creates a success ParseResult with the given value.
+     *
+     * @param value - The value to wrap in a success result.
+     * @returns A ParseResult indicating success with the given value.
+     */
+    protected success<T>(value: T): ParseResult<T> {
+        return { success: true, value };
+    }
+
+    protected failure<T>(message: string): ParseResult<T> {
+        return {
+            success: false,
+            failure: {
+                message,
+                position: this.getPosition()
             }
-            throw error;
+        };
+    }
+
+    unwrap<T>(arg0: ParseResult<T>): T {
+        if (arg0.success) {
+            return arg0.value;
+        } else {
+            throw new Error(arg0.failure.message);
         }
     }
 }

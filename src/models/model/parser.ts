@@ -1,6 +1,6 @@
 import { InputStream } from '../../parser/inputStream';
 import * as Model from './model';
-import { Parser } from '../../parser/parser';
+import { Parser, ParseResult } from '../../parser/parser';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
 type Id = string;
@@ -10,103 +10,149 @@ export class ModelParser extends Parser {
         super(input);
     }
 
-    parseModel(): Model.Model {
+    parseModel(): ParseResult<Model.Model> {
         return this.withContext('model', () => {
-            let name;
-            let parentName;
-            const values = [];
+            let name: Id;
+            let parentName: Id | undefined;
+            const values: (
+                | Model.Definition
+                | Model.Deletion
+                | Model.MemberModification
+            )[] = [];
 
-            this.mustConsumeKeyword('model');
-            name = this.parseId();
+            const modelKeyword = this.mustConsumeKeyword('model');
+            if (!modelKeyword.success) return modelKeyword;
+
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
 
             if (this.consumeKeyword('modifies')) {
-                parentName = this.parseId();
+                const parentNameResult = this.parseId();
+                if (!parentNameResult.success) return parentNameResult;
+                parentName = parentNameResult.value;
             }
 
-            this.mustConsumeString('{');
+            const openBrace = this.mustConsumeString('{');
+            if (!openBrace.success) return openBrace;
 
             while (!this.consumeString('}')) {
-                values.push(
-                    this.firstAlternative(
-                        'model element',
-                        () => this.parseDeletion(),
-                        () => this.parseMemberModification(),
-                        () => this.parseDefinition()
-                    )
+                const element = this.firstAlternative(
+                    'model element',
+                    () => this.parseDeletion(),
+                    () => this.parseMemberModification(),
+                    () => this.parseDefinition()
                 );
+                if (!element.success) return element;
+                values.push(element.value);
 
-                this.mustConsumeString(';');
+                const semicolon = this.mustConsumeString(';');
+                if (!semicolon.success) return semicolon;
             }
 
-            return new Model.Model(name, parentName, values);
+            return this.success(new Model.Model(name, parentName, values));
         });
     }
 
-    parseDefinition(): Model.Definition {
+    parseDefinition(): ParseResult<Model.Definition> {
         return this.withContext('definition', () => {
-            let name;
-            let type;
+            let name: Id;
+            let type: Model.Type;
 
-            name = this.parseId();
-            this.mustConsumeString('=');
-            type = this.parseType();
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
 
-            return new Model.Definition(name, type);
+            const equals = this.mustConsumeString('=');
+            if (!equals.success) return equals;
+
+            const typeResult = this.parseType();
+            if (!typeResult.success) return typeResult;
+            type = typeResult.value;
+
+            return this.success(new Model.Definition(name, type));
         });
     }
 
-    parseDeletion(): Model.Deletion {
-        let name;
+    parseDeletion(): ParseResult<Model.Deletion> {
+        return this.withContext('deletion', () => {
+            let name: Id;
 
-        this.mustConsumeKeyword('delete');
-        name = this.parseId();
+            const deleteKeyword = this.mustConsumeKeyword('delete');
+            if (!deleteKeyword.success) return deleteKeyword;
 
-        return new Model.Deletion(name);
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
+
+            return this.success(new Model.Deletion(name));
+        });
     }
 
-    parseMemberModification(): Model.MemberModification {
-        let name;
-        const values = [];
+    parseMemberModification(): ParseResult<Model.MemberModification> {
+        return this.withContext('member modification', () => {
+            let name: Id;
+            const values: (Model.MemberDeletion | Model.MemberAddition)[] = [];
 
-        this.mustConsumeKeyword('modify');
-        name = this.parseId();
-        this.mustConsumeString('{');
-        do {
-            values.push(
-                this.firstAlternative(
+            const modifyKeyword = this.mustConsumeKeyword('modify');
+            if (!modifyKeyword.success) return modifyKeyword;
+
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
+
+            const openBrace = this.mustConsumeString('{');
+            if (!openBrace.success) return openBrace;
+
+            do {
+                const element = this.firstAlternative(
                     'member modification element',
                     () => this.parseMemberDeletion(),
                     () => this.parseMemberAddition()
-                )
+                );
+                if (!element.success) return element;
+                values.push(element.value);
+            } while (!this.consumeString('}'));
+
+            return this.success(new Model.MemberModification(name, values));
+        });
+    }
+
+    parseMemberDeletion(): ParseResult<Model.MemberDeletion> {
+        return this.withContext('member deletion', () => {
+            let name: Id;
+
+            const minusEquals = this.mustConsumeString('-=');
+            if (!minusEquals.success) return minusEquals;
+
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
+
+            return this.success(new Model.MemberDeletion(name));
+        });
+    }
+
+    parseMemberAddition(): ParseResult<Model.MemberAddition> {
+        return this.withContext('member addition', () => {
+            let value: Model.Type | Model.ProductMember;
+
+            const plusEquals = this.mustConsumeString('+=');
+            if (!plusEquals.success) return plusEquals;
+
+            const valueResult = this.firstAlternative(
+                'member addition element',
+                () => this.parseProductMember(),
+                () => this.parseType()
             );
-        } while (!this.consumeString('}'));
+            if (!valueResult.success) return valueResult;
+            value = valueResult.value;
 
-        return new Model.MemberModification(name, values);
+            return this.success(new Model.MemberAddition(value));
+        });
     }
 
-    parseMemberDeletion(): Model.MemberDeletion {
-        let name;
-
-        this.mustConsumeString('-=');
-        name = this.parseId();
-
-        return new Model.MemberDeletion(name);
-    }
-
-    parseMemberAddition(): Model.MemberAddition {
-        let value;
-
-        this.mustConsumeString('+=');
-        value = this.firstAlternative(
-            'member addition element',
-            () => this.parseProductMember(),
-            () => this.parseType()
-        );
-
-        return new Model.MemberAddition(value);
-    }
-
-    parseType(): Model.Type {
+    parseType(): ParseResult<Model.Type> {
         return this.withContext('type', () => {
             return this.firstAlternative(
                 'type',
@@ -119,13 +165,13 @@ export class ModelParser extends Parser {
         });
     }
 
-    parseVoidType(): Model.VoidType {
-        this.mustConsumeString('()');
-
-        return new Model.VoidType();
+    parseVoidType(): ParseResult<Model.VoidType> {
+        const voidType = this.mustConsumeString('()');
+        if (!voidType.success) return voidType;
+        return this.success(new Model.VoidType());
     }
 
-    parsePrimitiveType(): Model.PrimitiveType {
+    parsePrimitiveType(): ParseResult<Model.PrimitiveType> {
         return this.firstAlternative(
             'primitive type',
             () => this.mustConsumeKeyword('boolean'),
@@ -141,35 +187,50 @@ export class ModelParser extends Parser {
             () => this.mustConsumeKeyword('u64'),
             () => this.mustConsumeKeyword('f32'),
             () => this.mustConsumeKeyword('f64')
-        ) as Model.PrimitiveType;
+        ) as ParseResult<Model.PrimitiveType>;
     }
 
-    parseEnumType(): Model.EnumType {
+    parseEnumType(): ParseResult<Model.EnumType> {
         return this.withContext('enum type', () => {
-            const members = [];
+            const members: string[] = [];
 
-            this.mustConsumeString('{');
-            members.push(this.parseString());
+            const openBrace = this.mustConsumeString('{');
+            if (!openBrace.success) return openBrace;
+
+            const firstMemberResult = this.parseString();
+            if (!firstMemberResult.success) return firstMemberResult;
+            members.push(firstMemberResult.value);
+
             while (this.consumeString('|')) {
-                members.push(this.parseString());
+                const memberResult = this.parseString();
+                if (!memberResult.success) return memberResult;
+                members.push(memberResult.value);
             }
-            this.mustConsumeString('}');
 
-            return new Model.EnumType(members);
+            const closeBrace = this.mustConsumeString('}');
+            if (!closeBrace.success) return closeBrace;
+
+            return this.success(new Model.EnumType(members));
         });
     }
 
-    parseString(): string {
-        let value;
+    parseString(): ParseResult<string> {
+        let value: Id;
 
-        this.mustConsumeString('"');
-        value = this.parseId();
-        this.mustConsumeString('"');
+        const openQuote = this.mustConsumeString('"');
+        if (!openQuote.success) return openQuote;
 
-        return value;
+        const valueResult = this.parseId();
+        if (!valueResult.success) return valueResult;
+        value = valueResult.value;
+
+        const closeQuote = this.mustConsumeString('"');
+        if (!closeQuote.success) return closeQuote;
+
+        return this.success(value);
     }
 
-    parseTypeWithStructure(): Model.TypeWithStructure {
+    parseTypeWithStructure(): ParseResult<Model.TypeWithStructure> {
         return this.withContext('type with structure', () => {
             return this.firstAlternative(
                 'type with structure',
@@ -180,52 +241,77 @@ export class ModelParser extends Parser {
         });
     }
 
-    parseSumType(): Model.SumType {
+    parseSumType(): ParseResult<Model.SumType> {
         return this.withContext('sum type', () => {
-            const members = [];
+            const members: Model.Type[] = [];
 
-            this.mustConsumeString('{');
-            members.push(this.parseType());
+            const openBrace = this.mustConsumeString('{');
+            if (!openBrace.success) return openBrace;
+
+            const firstMemberResult = this.parseType();
+            if (!firstMemberResult.success) return firstMemberResult;
+            members.push(firstMemberResult.value);
+
             while (this.consumeString('|')) {
-                members.push(this.parseType());
+                const memberResult = this.parseType();
+                if (!memberResult.success) return memberResult;
+                members.push(memberResult.value);
             }
-            this.mustConsumeString('}');
 
-            return new Model.SumType(members);
+            const closeBrace = this.mustConsumeString('}');
+            if (!closeBrace.success) return closeBrace;
+
+            return this.success(new Model.SumType(members));
         });
     }
 
-    parseProductType(): Model.ProductType {
+    parseProductType(): ParseResult<Model.ProductType> {
         return this.withContext('product type', () => {
             const members: Model.ProductMember[] = [];
 
-            this.mustConsumeString('{');
-            this.maybe(() => {
-                members.push(this.parseProductMember());
-                while (this.consumeString(',')) {
-                    members.push(this.parseProductMember());
-                }
-            });
-            this.mustConsumeString('}');
+            const openBrace = this.mustConsumeString('{');
+            if (!openBrace.success) return openBrace;
 
-            return new Model.ProductType(members);
+            const firstMemberResult = this.maybe(() =>
+                this.parseProductMember()
+            );
+            if (!firstMemberResult.success) return firstMemberResult;
+            if (firstMemberResult.value) members.push(firstMemberResult.value);
+
+            while (this.consumeString(',')) {
+                const memberResult = this.parseProductMember();
+                if (!memberResult.success) return memberResult;
+                members.push(memberResult.value);
+            }
+
+            const closeBrace = this.mustConsumeString('}');
+            if (!closeBrace.success) return closeBrace;
+
+            return this.success(new Model.ProductType(members));
         });
     }
 
-    parseProductMember(): Model.ProductMember {
+    parseProductMember(): ParseResult<Model.ProductMember> {
         return this.withContext('product member', () => {
-            let name;
-            let type;
+            let name: Id;
+            let type: Model.Type;
 
-            name = this.parseId();
-            this.mustConsumeString(':');
-            type = this.parseType();
+            const nameResult = this.parseId();
+            if (!nameResult.success) return nameResult;
+            name = nameResult.value;
 
-            return new Model.ProductMember(name, type);
+            const colon = this.mustConsumeString(':');
+            if (!colon.success) return colon;
+
+            const typeResult = this.parseType();
+            if (!typeResult.success) return typeResult;
+            type = typeResult.value;
+
+            return this.success(new Model.ProductMember(name, type));
         });
     }
 
-    parseGenericType(): Model.GenericType {
+    parseGenericType(): ParseResult<Model.GenericType> {
         return this.withContext('generic type', () => {
             return this.firstAlternative(
                 'generic type',
@@ -238,76 +324,129 @@ export class ModelParser extends Parser {
         });
     }
 
-    parseTupleType(): Model.TupleType {
-        const members: Model.Type[] = [];
+    parseTupleType(): ParseResult<Model.TupleType> {
+        return this.withContext('tuple type', () => {
+            const members: Model.Type[] = [];
 
-        this.mustConsumeString('tuple<');
-        members.push(this.parseType());
-        while (this.consumeString(',')) {
-            members.push(this.parseType());
-        }
-        this.mustConsumeString('>');
+            const openAngle = this.mustConsumeString('tuple<');
+            if (!openAngle.success) return openAngle;
 
-        return new Model.TupleType(members);
-    }
+            const firstMemberResult = this.parseType();
+            if (!firstMemberResult.success) return firstMemberResult;
+            members.push(firstMemberResult.value);
 
-    parseMapType(): Model.MapType {
-        let keyType;
-        let valueType;
-
-        this.mustConsumeString('map<');
-        keyType = this.parseType();
-        this.mustConsumeString(',');
-        valueType = this.parseType();
-        this.mustConsumeString('>');
-
-        return new Model.MapType(keyType, valueType);
-    }
-
-    parseSetType(): Model.SetType {
-        let keyType;
-
-        this.mustConsumeString('set<');
-        keyType = this.parseType();
-        this.mustConsumeString('>');
-
-        return new Model.SetType(keyType);
-    }
-
-    parseSequenceType(): Model.SequenceType {
-        let elementType;
-
-        this.mustConsumeString('seq<');
-        elementType = this.parseType();
-        this.mustConsumeString('>');
-
-        return new Model.SequenceType(elementType);
-    }
-
-    parseOptionType(): Model.OptionType {
-        let type;
-
-        this.mustConsumeString('option<');
-        type = this.parseType();
-        this.mustConsumeString('>');
-
-        return new Model.OptionType(type);
-    }
-
-    parseNamedTypeReference(): Model.NamedTypeReference {
-        return this.withContext('named type reference', () => {
-            const names: Id[] = [];
-
-            names.push(this.parseId());
-            while (this.consumeString('::')) {
-                names.push(this.parseId());
+            while (this.consumeString(',')) {
+                const memberResult = this.parseType();
+                if (!memberResult.success) return memberResult;
+                members.push(memberResult.value);
             }
 
-            return new Model.NamedTypeReference(names);
+            const closeAngle = this.mustConsumeString('>');
+            if (!closeAngle.success) return closeAngle;
+
+            return this.success(new Model.TupleType(members));
         });
     }
 
-    parseId(): Id {
+    parseMapType(): ParseResult<Model.MapType> {
+        return this.withContext('map type', () => {
+            let keyType: Model.Type;
+            let valueType: Model.Type;
+
+            const openAngle = this.mustConsumeString('map<');
+            if (!openAngle.success) return openAngle;
+
+            const keyTypeResult = this.parseType();
+            if (!keyTypeResult.success) return keyTypeResult;
+            keyType = keyTypeResult.value;
+
+            const comma = this.mustConsumeString(',');
+            if (!comma.success) return comma;
+
+            const valueTypeResult = this.parseType();
+            if (!valueTypeResult.success) return valueTypeResult;
+            valueType = valueTypeResult.value;
+
+            const closeAngle = this.mustConsumeString('>');
+            if (!closeAngle.success) return closeAngle;
+
+            return this.success(new Model.MapType(keyType, valueType));
+        });
+    }
+
+    parseSetType(): ParseResult<Model.SetType> {
+        return this.withContext('set type', () => {
+            let keyType: Model.Type;
+
+            const openAngle = this.mustConsumeString('set<');
+            if (!openAngle.success) return openAngle;
+
+            const keyTypeResult = this.parseType();
+            if (!keyTypeResult.success) return keyTypeResult;
+            keyType = keyTypeResult.value;
+
+            const closeAngle = this.mustConsumeString('>');
+            if (!closeAngle.success) return closeAngle;
+
+            return this.success(new Model.SetType(keyType));
+        });
+    }
+
+    parseSequenceType(): ParseResult<Model.SequenceType> {
+        return this.withContext('sequence type', () => {
+            let elementType: Model.Type;
+
+            const openAngle = this.mustConsumeString('seq<');
+            if (!openAngle.success) return openAngle;
+
+            const elementTypeResult = this.parseType();
+            if (!elementTypeResult.success) return elementTypeResult;
+            elementType = elementTypeResult.value;
+
+            const closeAngle = this.mustConsumeString('>');
+            if (!closeAngle.success) return closeAngle;
+
+            return this.success(new Model.SequenceType(elementType));
+        });
+    }
+
+    parseOptionType(): ParseResult<Model.OptionType> {
+        return this.withContext('option type', () => {
+            let type: Model.Type;
+
+            const openAngle = this.mustConsumeString('option<');
+            if (!openAngle.success) return openAngle;
+
+            const typeResult = this.parseType();
+            if (!typeResult.success) return typeResult;
+            type = typeResult.value;
+
+            const closeAngle = this.mustConsumeString('>');
+            if (!closeAngle.success) return closeAngle;
+
+            return this.success(new Model.OptionType(type));
+        });
+    }
+
+    parseNamedTypeReference(): ParseResult<Model.NamedTypeReference> {
+        return this.withContext('named type reference', () => {
+            const names: Id[] = [];
+
+            const firstNameResult = this.parseId();
+            if (!firstNameResult.success) return firstNameResult;
+            names.push(firstNameResult.value);
+
+            while (this.consumeString('::')) {
+                const nameResult = this.parseId();
+                if (!nameResult.success) return nameResult;
+                names.push(nameResult.value);
+            }
+
+            return this.success(new Model.NamedTypeReference(names));
+        });
+    }
+
+    parseId(): ParseResult<Id> {
         return this.mustConsumeRegex(/^[a-zA-Z_][a-zA-Z0-9_]*/, 'id');
     }
 

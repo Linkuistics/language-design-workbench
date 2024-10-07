@@ -50,8 +50,7 @@ export class StringCharacter {
     ) {}
 }
 
-export class Null {
-}
+export enum Null {    Null,}
 
 export class List {
     constructor(

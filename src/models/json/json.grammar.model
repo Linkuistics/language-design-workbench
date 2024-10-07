@@ -18,7 +18,7 @@ model json {
     
     string_character = { value: string };
     
-    null = {  };
+    null = { "null" };
     
     list = { value: option<value>, value: seq<value> };
     
