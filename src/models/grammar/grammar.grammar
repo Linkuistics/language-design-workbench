@@ -2,61 +2,72 @@ grammar grammar {
     
     // This is a meta-circular grammar, that is the definition its own format
 
-    grammar = 'grammar' name '{' ( | rule | rule:pratt_rule | rule:identifier_rule )* '}' ;
+    grammar = 'grammar' name '{' rule:( rule | pratt_rule )* '}' ;
 
-    rule = name annotation:rule_annotation? version_annotation* '=' body:rule_body ';' ;
-    rule_annotation = | no_skip:'@noskip' | atomic:'@atomic' ;
+    /**************************************************************************
 
-    pratt_rule = 'pratt' name version_annotation* '{' operator:pratt_operator+ primary:pratt_primary '}' ;
-    pratt_operator = pratt_operator_type name version_annotation* '=' body:rule_body ';' ;
+        There are a number of rules with special names:
+
+        1. `trivia` - this should be an list of alternatives of all the trivia rules
+        2. `identifier` - this should be a rule that matches any identifier, that is
+           also used to avoid conflicts with keywords
+        3. `reserved_identifier` - this should be a list of identifiers that either
+           are or were reserved for use by the language.
+
+    **************************************************************************/
+
+    rule = name annotation:rule_annotation? version_annotations? '=' body:rule_body ';' ;
+    rule_annotation = no_skip:'@noskip' | atomic:'@atomic' ;
+
+    pratt_rule = 'pratt' name version_annotations? '{' operator:pratt_operator+ primary:pratt_primary '}' ;
+    pratt_operator = pratt_operator_type name version_annotations? '=' body:rule_body ';' ;
     pratt_primary = 'primary' name '=' body:rule_body ';' ;
-    pratt_operator_type = | 'prefix' | 'postfix' | 'left' | 'right' ;
+    pratt_operator_type = 'prefix' | 'postfix' | 'left' | 'right' ;
 
-    identifier_rule = 'identifier' name rule_annotation? version_annotation* '=' ( | '(' body:rule_body ')' 'excluding' '(' excluding:rule_body ')' | body:rule_body ) ; 
-
+    version_annotations = version_annotation+ ;
     version_annotation @noskip = version_annotation_type '(' version_number ')' ;
-    version_annotation_type = | '@enabled' | '@disabled' ;
+    version_annotation_type = '@enabled' | '@disabled' ;
     version_number = segment:version_segment ( '.' segment:version_segment )* ;
     version_segment @atomic = [0-9]+ ;
 
-    rule_body = | sequence_rule | alternative_rules ;
+    rule_body = sequence_rule | alternative_rules ;
     
     sequence_rule = rule_element+ ;
+    alternative_rules = countable_rule_element ( '|' countable_rule_element )+ ;
     
-    alternative_rules = alternative+ ;
-    alternative = label? '|' version_annotation* sequence_rule ;
-    
-    rule_element = | counted_rule_element | negative_lookahead ;
+    rule_element = counted_rule_element | negative_lookahead ;
     counted_rule_element = label? countable_rule_element count? version_annotation* ;
     countable_rule_element =
-        | rule_reference
+          rule_reference
         | string
         | char_set
         | any
-        | '(' rule_body ')'
+        | ( '(' rule_body ')' )
         ;
 
     rule_reference @noskip = name ( '::' name )* ;
 
-    count = | one_or_more:'+' | zero_or_more:'*' | optional:'?' ;
+    count = one_or_more:'+' | zero_or_more:'*' | optional:'?' ;
 
-    identifier name @atomic = [a-zA-Z_] [a-zA-Z0-9_]* ;
+    name = identifier ;
     
     label @noskip = name ':' ;
 
     string @atomic =
-        | "'" ( | [^'\\\n]* | ( "\\" ['\\] ) )* "'"
+          "'" ( | [^'\\\n]* | ( "\\" ['\\] ) )* "'"
         | '"' ( | [^"\\\n]* | ( '\\' ["\\] ) )* '"'
         ;
 
     char_set @noskip = '[' negated:'^'? ( start_char:char_set_char ( '-' end_char:char_set_char )? )+ ']' ;
-    char_set_char @atomic = | [^\\\-\]] | '\\' [\^\\\-\]nt] ;
+    char_set_char @atomic = [^\\\-\]] | ( '\\' [\^\\\-\]nt] ) ;
     
     any = '.' ;
 
     negative_lookahead @noskip = '!' ( | char_set | string ) ;
 
-    trivia        @noskip = | line_comment | block_comment | whitespace ;
+    identifier    @atomic = [a-zA-Z_] [a-zA-Z0-9_]* ;
+
+    trivia        @noskip = line_comment | block_comment | whitespace ;
     line_comment  @atomic = '//' [^\n]* '\n'? ;
     block_comment @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
     whitespace    @atomic = [\n\t ]+ ;

@@ -1,11 +1,7 @@
-export class GrammarLanguage {
-    constructor(public grammar: Grammar) {}
-}
-
 export class Grammar {
     constructor(
         public name: Name,
-        public rules: (Rule | PrattRule | IdentifierRule)[]
+        public rules: (Rule | PrattRule)[]
     ) {}
 }
 
@@ -40,15 +36,6 @@ export class PrattPrimary {
     constructor(
         public name: Name,
         public body: RuleBody
-    ) {}
-}
-
-export class IdentifierRule {
-    constructor(
-        public name: Name,
-        public ruleBodies: RuleBody[],
-        public ruleAnnotation: RuleAnnotation | undefined,
-        public versionAnnotations: VersionAnnotation[]
     ) {}
 }
 

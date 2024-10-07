@@ -34,7 +34,7 @@ grammar sexpr {
     // TODO: multiline strings from the spec
     string_character @atomic = | [^"\\] | '\\' [\\"abfnrtv] | '\\x' uinteger16 ;
 
-    symbol = ident ;
+    symbol = identifier ;
 
     list =
         | '(' ( datum+ ( '.' tail:datum )? )? ')'
@@ -69,9 +69,9 @@ grammar sexpr {
         ;
     
     // TODO: Unicode character classes from the spec (requires Unicode classes in msbnf)
-    identifier ident          @atomic = | '+' | '-' | '...' | ident_start ident_continue* ;
-               ident_start    @atomic = | [a-zA-Z!$%&*/:<=>?~_^] | '\\x' uinteger16 ;
-               ident_continue @atomic = | ident_start | digit10 | [.+-@] ;
+    identifier     @atomic = | '+' | '-' | '...' | ident_start ident_continue* ;
+    ident_start    @atomic = | [a-zA-Z!$%&*/:<=>?~_^] | '\\x' uinteger16 ;
+    ident_continue @atomic = | ident_start | digit10 | [.+-@] ;
 
     trivia  @noskip = | whitespace | comment ;
     comment @noskip = | line_comment | block_comment | datum_comment ;

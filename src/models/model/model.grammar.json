@@ -1,0 +1,1516 @@
+{
+  "name": "model",
+  "rules": [
+    {
+      "name": "Model",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "model"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "modifies"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "Id"
+                    ]
+                  },
+                  "label": "parent_name",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "{"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "alternatives": [
+                      {
+                        "sequenceRule": {
+                          "elements": [
+                            {
+                              "countableRuleElement": {
+                                "names": [
+                                  "Deletion"
+                                ]
+                              },
+                              "versionAnnotations": []
+                            }
+                          ]
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "sequenceRule": {
+                          "elements": [
+                            {
+                              "countableRuleElement": {
+                                "names": [
+                                  "MemberModification"
+                                ]
+                              },
+                              "versionAnnotations": []
+                            }
+                          ]
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "sequenceRule": {
+                          "elements": [
+                            {
+                              "countableRuleElement": {
+                                "names": [
+                                  "Definition"
+                                ]
+                              },
+                              "versionAnnotations": []
+                            }
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "value": ";"
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "}"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "Definition",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "="
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "Deletion",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "delete"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "MemberModification",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "modify"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "alternatives": [
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "MemberDeletion"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "MemberAddition"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "+",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "MemberDeletion",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "-="
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "MemberAddition",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "+="
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "alternatives": [
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "ProductMember"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "Type"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "Type",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "VoidType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "PrimitiveType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "EnumType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "TypeWithStructure"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "NamedTypeReference"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "VoidType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "()"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "PrimitiveType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "alternatives": [
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "boolean"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "char"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "string"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "i8"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "i16"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "i32"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "i64"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "u8"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "u16"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "u32"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "u64"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "f32"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "f64"
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "label": "type",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "EnumType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "{"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "String"
+              ]
+            },
+            "label": "member",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "|"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "String"
+                    ]
+                  },
+                  "label": "member",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "}"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "String",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "\""
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "\""
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@noskip",
+      "versionAnnotations": []
+    },
+    {
+      "name": "TypeWithStructure",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "SumType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "ProductType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "GenericType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "SumType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "{"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "member",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "|"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "Type"
+                    ]
+                  },
+                  "label": "member",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "+",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "}"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "ProductType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "{"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "ProductMember"
+                    ]
+                  },
+                  "label": "member",
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": ","
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "ProductMember"
+                          ]
+                        },
+                        "label": "member",
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "count": "*",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "}"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "ProductMember",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ":"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "GenericType",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "TupleType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "MapType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "SetType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "OptionType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "ResultType"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "TupleType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "tuple<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "member",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": ","
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "Type"
+                    ]
+                  },
+                  "label": "member",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "MapType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "map<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "key_type",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ","
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "value_type",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "SetType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "set<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "key_type",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "SequenceType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "seq<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "OptionType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "option<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "ResultType",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "result<"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "ok_type",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ","
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "Type"
+              ]
+            },
+            "label": "err_type",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ">"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "NamedTypeReference",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "Id"
+              ]
+            },
+            "label": "name",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "::"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "Id"
+                    ]
+                  },
+                  "label": "name",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@noskip",
+      "versionAnnotations": []
+    },
+    {
+      "name": "Id",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "Identifier"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "Identifier",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "InitialIdentifierChar"
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "IdentifierChar"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "InitialIdentifierChar",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "a",
+                  "endChar": "z"
+                },
+                {
+                  "startChar": "A",
+                  "endChar": "Z"
+                },
+                {
+                  "startChar": "_"
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "IdentifierChar",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "a",
+                  "endChar": "z"
+                },
+                {
+                  "startChar": "A",
+                  "endChar": "Z"
+                },
+                {
+                  "startChar": "_"
+                },
+                {
+                  "startChar": "0",
+                  "endChar": "9"
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "Trivia",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "LineComment"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "BlockComment"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "Whitespace"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@noskip",
+      "versionAnnotations": []
+    },
+    {
+      "name": "Whitespace",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "\\n"
+                },
+                {
+                  "startChar": "\\t"
+                },
+                {
+                  "startChar": " "
+                }
+              ]
+            },
+            "count": "+",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "LineComment",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "//"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "negated": true,
+              "ranges": [
+                {
+                  "startChar": "\\n"
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "\\n"
+            },
+            "count": "?",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "BlockComment",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "/*"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "alternatives": [
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "negated": true,
+                          "ranges": [
+                            {
+                              "startChar": "*"
+                            }
+                          ]
+                        },
+                        "count": "+",
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "*"
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "content": {
+                          "value": "/"
+                        }
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "/"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    }
+  ]
+}

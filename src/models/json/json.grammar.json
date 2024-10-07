@@ -1,0 +1,738 @@
+{
+  "name": "json",
+  "rules": [
+    {
+      "name": "value",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "boolean"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "number"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "string"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "null"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "list"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "map"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "boolean",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "true"
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "false"
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "number",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "sign"
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "ureal"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "ureal",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "uinteger"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "uinteger",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "digit"
+              ]
+            },
+            "count": "+",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "digit",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "0",
+                  "endChar": "9"
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "sign",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "+"
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "string",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "\""
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "string_character"
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "\""
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "string_character",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "negated": true,
+                    "ranges": [
+                      {
+                        "startChar": "\""
+                      },
+                      {
+                        "startChar": "\\\\"
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "\\\\"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "negated": false,
+                    "ranges": [
+                      {
+                        "startChar": "\\\\"
+                      },
+                      {
+                        "startChar": "\""
+                      },
+                      {
+                        "startChar": "a"
+                      },
+                      {
+                        "startChar": "b"
+                      },
+                      {
+                        "startChar": "f"
+                      },
+                      {
+                        "startChar": "n"
+                      },
+                      {
+                        "startChar": "r"
+                      },
+                      {
+                        "startChar": "t"
+                      },
+                      {
+                        "startChar": "v"
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "value": "\\\\x"
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "uinteger16"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "null",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "null"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "list",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "["
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "value"
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": ","
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "value"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "count": "*",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "]"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "map",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "{"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "map_entry"
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "countableRuleElement": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": ","
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "countableRuleElement": {
+                          "names": [
+                            "map_entry"
+                          ]
+                        },
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "count": "*",
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "}"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "map_entry",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "names": [
+                "string"
+              ]
+            },
+            "label": "key",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": ":"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "names": [
+                "value"
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "versionAnnotations": []
+    },
+    {
+      "name": "trivia",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "whitespace"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "comment"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@noskip",
+      "versionAnnotations": []
+    },
+    {
+      "name": "comment",
+      "body": {
+        "alternatives": [
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "line_comment"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          },
+          {
+            "sequenceRule": {
+              "elements": [
+                {
+                  "countableRuleElement": {
+                    "names": [
+                      "block_comment"
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@noskip",
+      "versionAnnotations": []
+    },
+    {
+      "name": "line_comment",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "//"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "negated": true,
+              "ranges": [
+                {
+                  "startChar": "\\n"
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "\\n"
+                }
+              ]
+            },
+            "count": "?",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "block_comment",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "value": "/*"
+            },
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "alternatives": [
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "negated": true,
+                          "ranges": [
+                            {
+                              "startChar": "*"
+                            }
+                          ]
+                        },
+                        "count": "+",
+                        "versionAnnotations": []
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                },
+                {
+                  "sequenceRule": {
+                    "elements": [
+                      {
+                        "countableRuleElement": {
+                          "value": "*"
+                        },
+                        "versionAnnotations": []
+                      },
+                      {
+                        "content": {
+                          "value": "/"
+                        }
+                      }
+                    ]
+                  },
+                  "versionAnnotations": []
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          },
+          {
+            "countableRuleElement": {
+              "value": "/"
+            },
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    },
+    {
+      "name": "whitespace",
+      "body": {
+        "elements": [
+          {
+            "countableRuleElement": {
+              "negated": false,
+              "ranges": [
+                {
+                  "startChar": "\\n"
+                },
+                {
+                  "startChar": "\\t"
+                },
+                {
+                  "startChar": " "
+                }
+              ]
+            },
+            "count": "*",
+            "versionAnnotations": []
+          }
+        ]
+      },
+      "annotation": "@atomic",
+      "versionAnnotations": []
+    }
+  ]
+}

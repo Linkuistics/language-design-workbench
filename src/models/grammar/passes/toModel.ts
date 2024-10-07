@@ -8,13 +8,11 @@ import {
     SequenceType
 } from '../../model/model';
 import {
-    AlternativeRule,
-    AlternativeRules,
     AnyElement,
     CharSet,
     Count,
     CountedRuleElement,
-    GrammarLanguage,
+    Grammar,
     Rule,
     RuleReference,
     StringElement
@@ -24,13 +22,9 @@ import { TraverseDelegate, Traverser } from '../traverser';
 export class ToModel implements TraverseDelegate {
     private definitions: Definition[] = [];
 
-    transform(input: GrammarLanguage): Model {
-        new Traverser(this).visitGrammar(input.grammar);
-        const output = new Model(
-            input.grammar.name,
-            undefined,
-            this.definitions
-        );
+    transform(input: Grammar): Model {
+        new Traverser(this).visitGrammar(input);
+        const output = new Model(input.name, undefined, this.definitions);
         return output;
     }
 

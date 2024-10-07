@@ -1,0 +1,2 @@
+model grammarWithTypes modifies grammar {
+}

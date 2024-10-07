@@ -7,6 +7,7 @@ import {
     CountableRuleElement,
     CountedRuleElement,
     Grammar,
+    IdentifierRule,
     NegativeLookahead,
     PrattOperator,
     PrattPrimary,
@@ -39,6 +40,11 @@ export interface TraverseDelegate {
         primary: PrattPrimary,
         traverser: Traverser
     ): PrattPrimary;
+
+    visitIdentifierRule?(
+        rule: IdentifierRule,
+        traverser: Traverser
+    ): IdentifierRule;
 
     visitSequenceRule?(
         sequenceRule: SequenceRule,
@@ -121,12 +127,14 @@ export class Traverser {
         }
     }
 
-    dispatchGrammarRule(rule: Rule | PrattRule) {
+    dispatchGrammarRule(rule: Rule | PrattRule | IdentifierRule) {
         if (rule instanceof Rule) {
             return this.visitRule(rule);
-        } else {
-            // if (rule instanceof PrattRule) {
+        } else if (rule instanceof PrattRule) {
             return this.visitPrattRule(rule);
+        } else {
+            // if (rule instanceof IdentifierRule) {
+            return this.visitIdentifierRule(rule);
         }
     }
 
@@ -138,9 +146,6 @@ export class Traverser {
 
     visitRuleChildren(rule: Rule) {
         rule.body = this.visitRuleBody(rule.body);
-        if (rule.annotation) {
-            // Assuming annotation doesn't need to be visited
-        }
         for (let i = 0; i < rule.versionAnnotations.length; i++) {
             rule.versionAnnotations[i] = this.visitVersionAnnotation(
                 rule.versionAnnotations[i]
@@ -206,6 +211,24 @@ export class Traverser {
 
     visitPrattPrimaryChildren(primary: PrattPrimary) {
         primary.body = this.visitRuleBody(primary.body);
+    }
+
+    visitIdentifierRule(rule: IdentifierRule): IdentifierRule {
+        if (this.delegate.visitIdentifierRule)
+            return this.delegate.visitIdentifierRule(rule, this);
+        this.visitIdentifierRuleChildren(rule);
+        return rule;
+    }
+
+    visitIdentifierRuleChildren(rule: IdentifierRule) {
+        for (let i = 0; i < rule.ruleBodies.length; i++) {
+            rule.ruleBodies[i] = this.visitRuleBody(rule.ruleBodies[i]);
+        }
+        for (let i = 0; i < rule.versionAnnotations.length; i++) {
+            rule.versionAnnotations[i] = this.visitVersionAnnotation(
+                rule.versionAnnotations[i]
+            );
+        }
     }
 
     visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {

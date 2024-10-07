@@ -1,4 +1,4 @@
-import { IndentingOutputStream } from '../../../output/indenting_output_stream';
+import { IndentingOutputStream } from '../../../output/indentingOutputStream';
 import {
     Definition,
     Deletion,

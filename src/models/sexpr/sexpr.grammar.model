@@ -1,0 +1,73 @@
+model sexpr {
+
+    datum = { boolean: boolean, character: character, number: number, string: string, list: list, vector: vector, byte_vector: byte_vector, struct: struct, symbol: symbol };
+    
+    boolean = { "true" | "false" };
+    
+    number = { num2: num2, num10: num10, num16: num16 };
+    
+    num2 = { value: string, sign: option<sign>, ureal2: ureal2 };
+    
+    ureal2 = { value: string, uinteger2: uinteger2 };
+    
+    uinteger2 = { value: string, digit2: seq<digit2> };
+    
+    digit2 = { value: string };
+    
+    num10 = { value: string, sign: option<sign>, ureal10: ureal10 };
+    
+    ureal10 = { value: string, uinteger10: uinteger10 };
+    
+    uinteger10 = { value: string, digit10: seq<digit10> };
+    
+    digit10 = { value: string };
+    
+    num16 = { value: string, sign: option<sign>, ureal16: ureal16 };
+    
+    ureal16 = { value: string, uinteger16: uinteger16 };
+    
+    uinteger16 = { value: string, digit16: seq<digit16> };
+    
+    digit16 = { value: string };
+    
+    sign = {  };
+    
+    character = { character_name: character_name, uinteger16: uinteger16 };
+    
+    character_name = { "alarm" | "backspace" | "delete" | "esc" | "linefeed" | "newline" | "page" | "return" | "space" | "tab" | "vtab" };
+    
+    string = { value: string, string_character: seq<string_character> };
+    
+    string_character = { value: string, uinteger16: uinteger16 };
+    
+    symbol = { identifier: identifier };
+    
+    list = { datum: option<seq<datum>>, tail: option<option<datum>>, datum: option<seq<datum>>, tail: option<option<datum>>, datum: option<seq<datum>>, tail: option<option<datum>>, abbreviation: abbreviation };
+    
+    abbreviation = { quote: datum, quasiquote: datum, unquote: datum, unquote_splicing: datum };
+    
+    vector = { datum: seq<datum>, datum: seq<datum>, datum: seq<datum> };
+    
+    byte_vector = { number: seq<number>, number: seq<number>, number: seq<number> };
+    
+    struct = { name: symbol, datum: seq<datum>, name: symbol, datum: seq<datum>, name: symbol, datum: seq<datum> };
+    
+    identifier = { value: string, ident_start: ident_start, ident_continue: seq<ident_continue> };
+    
+    ident_start = { value: string, uinteger16: uinteger16 };
+    
+    ident_continue = { value: string, ident_start: ident_start, digit10: digit10 };
+    
+    trivia = { whitespace: whitespace, comment: comment };
+    
+    comment = { line_comment: line_comment, block_comment: block_comment, datum_comment: datum_comment };
+    
+    line_comment = { value: string };
+    
+    block_comment = { value: string, block_comment: seq<block_comment> };
+    
+    datum_comment = { datum: datum };
+    
+    whitespace = { value: string };
+    
+}

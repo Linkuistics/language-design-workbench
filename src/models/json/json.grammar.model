@@ -1,0 +1,39 @@
+model json {
+
+    value = { boolean: boolean, number: number, string: string, null: null, list: list, map: map };
+    
+    boolean = { "true" | "false" };
+    
+    number = { value: string, sign: option<sign>, ureal: ureal };
+    
+    ureal = { value: string, uinteger: uinteger };
+    
+    uinteger = { value: string, digit: seq<digit> };
+    
+    digit = {  };
+    
+    sign = {  };
+    
+    string = { value: string, string_character: seq<string_character> };
+    
+    string_character = { value: string, uinteger16: uinteger16 };
+    
+    null = {  };
+    
+    list = { value: option<value>, value: option<seq<value>> };
+    
+    map = { map_entry: option<map_entry>, map_entry: option<seq<map_entry>> };
+    
+    map_entry = { key: string, value: value };
+    
+    trivia = { whitespace: whitespace, comment: comment };
+    
+    comment = { line_comment: line_comment, block_comment: block_comment };
+    
+    line_comment = { value: string };
+    
+    block_comment = { value: string };
+    
+    whitespace = { value: string };
+    
+}

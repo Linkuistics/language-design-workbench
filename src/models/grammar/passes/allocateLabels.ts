@@ -1,13 +1,10 @@
-import { CountedRuleElement, GrammarLanguage, RuleReference } from '../model';
+import { CountedRuleElement, Grammar, RuleReference } from '../model';
 import { TraverseDelegate, Traverser } from '../traverser';
 import { Counter } from '../utils';
 
 export class AllocateLabels {
-    transform(input: GrammarLanguage): GrammarLanguage {
-        input.grammar = new Traverser(new LabelAllocator()).visitGrammar(
-            input.grammar
-        );
-        return input;
+    transform(input: Grammar): Grammar {
+        return new Traverser(new LabelAllocator()).visitGrammar(input);
     }
 }
 

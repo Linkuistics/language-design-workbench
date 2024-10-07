@@ -1,0 +1,67 @@
+model grammar {
+
+    grammar = { name: name, rule: seq<rule>, rule: seq<pratt_rule> };
+    
+    rule = { name: name, annotation: option<rule_annotation>, version_annotation: seq<version_annotation>, body: rule_body };
+    
+    rule_annotation = { "no_skip" | "atomic" };
+    
+    pratt_rule = { name: name, version_annotation: seq<version_annotation>, operator: seq<pratt_operator>, primary: pratt_primary };
+    
+    pratt_operator = { pratt_operator_type: pratt_operator_type, name: name, version_annotation: seq<version_annotation>, body: rule_body };
+    
+    pratt_primary = { name: name, body: rule_body };
+    
+    pratt_operator_type = { "prefix" | "postfix" | "left" | "right" };
+    
+    version_annotation = { version_annotation_type: version_annotation_type, version_number: version_number };
+    
+    version_annotation_type = { "enabled" | "disabled" };
+    
+    version_number = { segment: version_segment, segment: seq<version_segment> };
+    
+    version_segment = { value: string };
+    
+    rule_body = { sequence_rule: sequence_rule, alternative_rules: alternative_rules };
+    
+    sequence_rule = { rule_element: seq<rule_element> };
+    
+    alternative_rules = { alternative: seq<alternative> };
+    
+    alternative = { label: option<label>, version_annotation: seq<version_annotation>, sequence_rule: sequence_rule };
+    
+    rule_element = { counted_rule_element: counted_rule_element, negative_lookahead: negative_lookahead };
+    
+    counted_rule_element = { label: option<label>, countable_rule_element: countable_rule_element, count: option<count>, version_annotation: seq<version_annotation> };
+    
+    countable_rule_element = { rule_reference: rule_reference, string: string, char_set: char_set, any: any, rule_body: rule_body };
+    
+    rule_reference = { name: name, name: seq<name> };
+    
+    count = { "one_or_more" | "zero_or_more" | "optional" };
+    
+    name = { identifier: identifier };
+    
+    label = { name: name };
+    
+    string = { value: string };
+    
+    char_set = { start_char: seq<char_set_char>, end_char: seq<option<char_set_char>> };
+    
+    char_set_char = { value: string };
+    
+    any = {  };
+    
+    negative_lookahead = { char_set: char_set, string: string };
+    
+    identifier = { value: string };
+    
+    trivia = { line_comment: line_comment, block_comment: block_comment, whitespace: whitespace };
+    
+    line_comment = { value: string };
+    
+    block_comment = { value: string };
+    
+    whitespace = { value: string };
+    
+}

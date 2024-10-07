@@ -2,17 +2,16 @@ import { camelCase, pascalCase } from 'literal-case';
 import {
     AlternativeRules,
     CountedRuleElement,
-    GrammarLanguage,
+    Grammar,
     IdentifierRule,
     Rule,
     RuleReference
 } from '../model';
 import { TraverseDelegate, Traverser } from '../traverser';
 
-export class TransformNamesCase implements TraverseDelegate {
-    transform(input: GrammarLanguage): GrammarLanguage {
-        input.grammar = new Traverser(this).visitGrammar(input.grammar);
-        return input;
+export class TransformCaseOfNames implements TraverseDelegate {
+    transform(input: Grammar): Grammar {
+        return new Traverser(this).visitGrammar(input);
     }
 
     visitRule(rule: Rule, traverser: Traverser): Rule {

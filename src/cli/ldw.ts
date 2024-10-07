@@ -1,20 +1,19 @@
 import { program } from 'commander';
 import * as fs from 'fs';
-import { AllocateLabels } from '../models/grammar/passes/allocate-labels';
-import { FromGrammarSoruce as FromLDWGSource } from '../models/grammar/passes/from_grammar-source';
-import { ToParserTypescriptSource } from '../models/grammar/passes/to_parser-typescript-source';
+import { FromGrammarSource } from '../models/grammar/passes/fromGrammarSource';
+import { ToGrammarWithTypes } from '../models/grammar/passes/toGrammarWithTypes';
+import { ToParserTypescriptSource } from '../models/grammar/passes/toParserTypescriptSource';
+import { ToModel } from '../models/grammarWithTypes/passes/toModel';
 import { FromModelSource } from '../models/model/passes/from_model-source';
+import { ToModelSource } from '../models/model/passes/to_model-source';
 import { ToModelTypescriptSource } from '../models/model/passes/to_model-typescript-source';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parser/parseError';
-import { ToModel } from '../models/grammar/passes/to_model';
-import { TransformNamesCase } from '../models/grammar/passes/transform-names-case';
-import { ToModelSource } from '../models/model/passes/to_model-source';
 
 program.version('1.0.0').description('MSBNF Grammar CLI');
 
 program
-    .command('grammar-parse')
+    .command('grammar-to-json')
     .description('Parse .grammar source to JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
@@ -24,7 +23,7 @@ program
                 ? fs.readFileSync(options.input, 'utf-8')
                 : await readStdin();
 
-            const parser = new FromLDWGSource();
+            const parser = new FromGrammarSource();
             const grammar = parser.transform(input);
             const output = JSON.stringify(grammar, null, 2);
 
@@ -56,11 +55,11 @@ program
                 : await readStdin();
 
             const output = composePasses(
-                new FromLDWGSource(),
-                new AllocateLabels(),
-                new TransformNamesCase(),
+                new FromGrammarSource(),
+                new ToGrammarWithTypes(),
                 new ToModel(),
                 new ToModelSource()
+                // new ToModelTypescriptSource(true)
             ).transform(input);
 
             if (options.output) {
@@ -91,7 +90,7 @@ program
                 : await readStdin();
 
             const output = composePasses(
-                new FromLDWGSource(),
+                new FromGrammarSource(),
                 new ToParserTypescriptSource()
             ).transform(input);
 
@@ -112,7 +111,7 @@ program
     });
 
 program
-    .command('model-parse')
+    .command('model-to-json')
     .description('Parse .model source to JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')

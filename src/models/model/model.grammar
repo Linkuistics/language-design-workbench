@@ -45,8 +45,10 @@ grammar model {
     /************************************
      * Identifiers
      ************************************/
+    
+    Id = Identifier ;
 
-    identifier Id         @atomic = InitialIdentifierChar ( IdentifierChar )* ;
+    Identifier            @atomic = InitialIdentifierChar ( IdentifierChar )* ;
     InitialIdentifierChar @atomic = [a-zA-Z_] ;
     IdentifierChar        @atomic = [a-zA-Z_0-9] ;
 

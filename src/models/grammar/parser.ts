@@ -1,8 +1,7 @@
 import { InputStream } from '../../parser/inputStream';
-import * as Model from './model';
-import { Parser } from '../../parser/parser';
 import { ParseError } from '../../parser/parseError';
-import { pascalCase } from 'literal-case';
+import { Parser } from '../../parser/parser';
+import * as Model from './model';
 
 type TriviaKind = 'LineComment' | 'BlockComment' | 'Whitespace';
 
@@ -11,19 +10,7 @@ export class GrammarParser extends Parser {
         super(input);
     }
 
-    parse(): Model.GrammarLanguage {
-        const grammar = this.parseGrammar();
-        if (!this.isEOF()) {
-            throw new ParseError(
-                'Unexpected content after grammar',
-                this.getPosition(),
-                this
-            );
-        }
-        return new Model.GrammarLanguage(grammar);
-    }
-
-    private parseGrammar(): Model.Grammar {
+    parseGrammar(): Model.Grammar {
         return this.withContext('grammar', () => {
             this.mustConsumeKeyword('grammar');
             const name = this.parseName();
@@ -32,7 +19,6 @@ export class GrammarParser extends Parser {
                 this.firstAlternative(
                     'grammar element',
                     () => this.parsePrattRule(),
-                    () => this.parseIdentifierRule(),
                     () => this.parseRule()
                 )
             );
@@ -110,48 +96,6 @@ export class GrammarParser extends Parser {
             this.getPosition(),
             this
         );
-    }
-
-    private parseIdentifierRule(): Model.IdentifierRule {
-        return this.withContext('identifier_rule', () => {
-            this.mustConsumeKeyword('identifier');
-            const name = this.parseName();
-            const ruleAnnotation = this.parseOptionalRuleAnnotation();
-            const versionAnnotations = this.zeroOrMore(() =>
-                this.parseVersionAnnotation()
-            );
-            this.mustConsumeString('=');
-            return this.firstAlternative(
-                'identifier rule body',
-                () => {
-                    this.mustConsumeString('(');
-                    let ruleBodies = [];
-                    ruleBodies.push(this.parseRuleBody());
-                    this.mustConsumeString(')');
-                    this.mustConsumeKeyword('excluding');
-                    this.mustConsumeString('(');
-                    ruleBodies.push(this.parseRuleBody());
-                    this.mustConsumeString(')');
-                    this.mustConsumeString(';');
-                    return new Model.IdentifierRule(
-                        name,
-                        ruleBodies,
-                        ruleAnnotation,
-                        versionAnnotations
-                    );
-                },
-                () => {
-                    const ruleBodies = [this.parseRuleBody()];
-                    this.mustConsumeString(';');
-                    return new Model.IdentifierRule(
-                        name,
-                        ruleBodies,
-                        ruleAnnotation,
-                        versionAnnotations
-                    );
-                }
-            );
-        });
     }
 
     private parseVersionAnnotation(): Model.VersionAnnotation {

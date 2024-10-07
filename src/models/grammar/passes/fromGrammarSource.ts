@@ -1,11 +1,13 @@
 import { StringInputStream } from '../../../parser/stringInputStream';
-import { GrammarLanguage } from '../model';
+import { Grammar } from '../model';
 import { GrammarParser } from '../parser';
 
-export class FromGrammarSoruce {
-    transform(input: string): GrammarLanguage {
+export class FromGrammarSource {
+    transform(input: string): Grammar {
         const inputStream = new StringInputStream(input);
         const parser = new GrammarParser(inputStream);
-        return parser.parse();
+        const grammar = parser.parseGrammar();
+        parser.mustBeEOF();
+        return grammar;
     }
 }
