@@ -12,7 +12,6 @@ import {
     PrimitiveType,
     ProductMember,
     ProductType,
-    ResultType,
     SequenceType,
     SetType,
     SumType,
@@ -186,15 +185,6 @@ export class ToModelSource implements TraverseDelegate {
         traverser.visitType(optionType.type);
         this.output.write('>');
         return optionType;
-    }
-
-    visitResultType(resultType: ResultType, traverser: Traverser): ResultType {
-        this.output.write('result<');
-        traverser.visitType(resultType.okType);
-        this.output.write(', ');
-        traverser.visitType(resultType.errType);
-        this.output.write('>');
-        return resultType;
     }
 
     visitNamedTypeReference(

@@ -1,13 +1,11 @@
 import {
-    AlternativeRule,
-    AlternativeRules,
+    ChoiceRule,
     AnyElement,
     CharSet,
     CharSetChar,
     CountableRuleElement,
     CountedRuleElement,
     Grammar,
-    IdentifierRule,
     NegativeLookahead,
     PrattOperator,
     PrattPrimary,
@@ -41,10 +39,7 @@ export interface TraverseDelegate {
         traverser: Traverser
     ): PrattPrimary;
 
-    visitIdentifierRule?(
-        rule: IdentifierRule,
-        traverser: Traverser
-    ): IdentifierRule;
+    visitChoiceRule?(rules: ChoiceRule, traverser: Traverser): ChoiceRule;
 
     visitSequenceRule?(
         sequenceRule: SequenceRule,
@@ -55,16 +50,6 @@ export interface TraverseDelegate {
         ruleElement: RuleElement,
         traverser: Traverser
     ): RuleElement;
-
-    visitAlternativeRules?(
-        rules: AlternativeRules,
-        traverser: Traverser
-    ): AlternativeRules;
-
-    visitAlternativeRule?(
-        rule: AlternativeRule,
-        traverser: Traverser
-    ): AlternativeRule;
 
     visitCountableRuleElement?(
         cre: CountableRuleElement,
@@ -123,18 +108,10 @@ export class Traverser {
 
     visitGrammarChildren(grammar: Grammar) {
         for (let i = 0; i < grammar.rules.length; i++) {
-            grammar.rules[i] = this.dispatchGrammarRule(grammar.rules[i]);
+            grammar.rules[i] = this.visitRule(grammar.rules[i]);
         }
-    }
-
-    dispatchGrammarRule(rule: Rule | PrattRule | IdentifierRule) {
-        if (rule instanceof Rule) {
-            return this.visitRule(rule);
-        } else if (rule instanceof PrattRule) {
-            return this.visitPrattRule(rule);
-        } else {
-            // if (rule instanceof IdentifierRule) {
-            return this.visitIdentifierRule(rule);
+        for (let i = 0; i < grammar.prattRules.length; i++) {
+            grammar.prattRules[i] = this.visitPrattRule(grammar.prattRules[i]);
         }
     }
 
@@ -163,8 +140,8 @@ export class Traverser {
         if (ruleBody instanceof SequenceRule) {
             return this.visitSequenceRule(ruleBody);
         } else {
-            // if (ruleBody instanceof AlternativeRules) {
-            return this.visitAlternativeRules(ruleBody);
+            // if (ruleBody instanceof ChoiceRule) {
+            return this.visitChoiceRule(ruleBody);
         }
     }
 
@@ -211,24 +188,6 @@ export class Traverser {
 
     visitPrattPrimaryChildren(primary: PrattPrimary) {
         primary.body = this.visitRuleBody(primary.body);
-    }
-
-    visitIdentifierRule(rule: IdentifierRule): IdentifierRule {
-        if (this.delegate.visitIdentifierRule)
-            return this.delegate.visitIdentifierRule(rule, this);
-        this.visitIdentifierRuleChildren(rule);
-        return rule;
-    }
-
-    visitIdentifierRuleChildren(rule: IdentifierRule) {
-        for (let i = 0; i < rule.ruleBodies.length; i++) {
-            rule.ruleBodies[i] = this.visitRuleBody(rule.ruleBodies[i]);
-        }
-        for (let i = 0; i < rule.versionAnnotations.length; i++) {
-            rule.versionAnnotations[i] = this.visitVersionAnnotation(
-                rule.versionAnnotations[i]
-            );
-        }
     }
 
     visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
@@ -310,36 +269,16 @@ export class Traverser {
         }
     }
 
-    visitAlternativeRules(rules: AlternativeRules): AlternativeRules {
-        if (this.delegate.visitAlternativeRules)
-            return this.delegate.visitAlternativeRules(rules, this);
-        this.visitAlternativeRulesChildren(rules);
+    visitChoiceRule(rules: ChoiceRule): ChoiceRule {
+        if (this.delegate.visitChoiceRule)
+            return this.delegate.visitChoiceRule(rules, this);
+        this.visitChoiceRuleChildren(rules);
         return rules;
     }
 
-    visitAlternativeRulesChildren(rules: AlternativeRules) {
-        for (let i = 0; i < rules.alternatives.length; i++) {
-            rules.alternatives[i] = this.visitAlternativeRule(
-                rules.alternatives[i]
-            );
-        }
-    }
-
-    visitAlternativeRule(alternative: AlternativeRule): AlternativeRule {
-        if (this.delegate.visitAlternativeRule)
-            return this.delegate.visitAlternativeRule(alternative, this);
-        this.visitAlternativeRuleChildren(alternative);
-        return alternative;
-    }
-
-    visitAlternativeRuleChildren(alternative: AlternativeRule) {
-        alternative.sequenceRule = this.visitSequenceRule(
-            alternative.sequenceRule
-        );
-        for (let i = 0; i < alternative.versionAnnotations.length; i++) {
-            alternative.versionAnnotations[i] = this.visitVersionAnnotation(
-                alternative.versionAnnotations[i]
-            );
+    visitChoiceRuleChildren(rules: ChoiceRule) {
+        for (let i = 0; i < rules.choices.length; i++) {
+            rules.choices[i] = this.visitSequenceRule(rules.choices[i]);
         }
     }
 

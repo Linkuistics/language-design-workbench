@@ -3,41 +3,44 @@ grammar model {
     Model =
         'model' name:Id 
         ( 'modifies' parent_name:Id )? 
-        '{' ( ( | Deletion | MemberModification | Definition ) ';' )* '}'
+        '{' ( value:( Deletion | MemberModification | Definition ) ';' )* '}'
         ;
 
     Definition = name:Id '=' Type  ;
-    Deletion = 'delete' name:Id  ;
-    MemberModification = 'modify' name:Id ( | MemberDeletion | MemberAddition )+ ;
-    MemberDeletion = '-=' name:Id ; 
-    MemberAddition = '+=' ( | ProductMember | Type ) ;
+
+    Deletion           = 'delete' name:Id  ;
+    MemberModification = 'modify' name:Id value:( MemberDeletion | MemberAddition )+ ;
+    MemberDeletion     = '-=' name:Id ; 
+    MemberAddition     = '+=' value:( ProductMember | Type ) ;
 
 
     /************************************
      * Types
      ************************************/
 
-    Type = | VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference ;
+    Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference ;
 
     VoidType = '()' ;
-    PrimitiveType = type: (| 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64') ;
-    EnumType = '{' member:String ( '|' member:String )* '}' ;
+
+    PrimitiveType = 'boolean' | 'char' | 'string' | 'i8' | 'i16' | 'i32' | 'i64' | 'u8' | 'u16' | 'u32' | 'u64' | 'f32' | 'f64' ;
+
+    EnumType       = '{' member:String ( '|' member:String )* '}' ;
     String @noskip = '"' Id '"' ;
 
-    TypeWithStructure = | SumType | ProductType | GenericType ;
+    TypeWithStructure = SumType | ProductType | GenericType ;
     
     SumType = '{' member:Type ( '|' member:Type )+ '}' ;
 
-    ProductType = '{' ( member:ProductMember ( ',' member:ProductMember )* )? '}' ;
+    ProductType   = '{' ( member:ProductMember ( ',' member:ProductMember )* )? '}' ;
     ProductMember = name:Id ':' Type ;
 
-    GenericType = | TupleType | MapType | SetType | OptionType | ResultType ;
-    TupleType = 'tuple<' member:Type ( ',' member:Type )* '>' ;
-    MapType = 'map<' key_type:Type ',' value_type:Type '>' ;
-    SetType = 'set<' key_type:Type '>' ;
-    SequenceType = 'seq<' Type '>' ;
-    OptionType = 'option<' Type '>' ;
-    ResultType = 'result<' ok_type:Type ',' err_type:Type '>' ;
+    GenericType = TupleType | MapType | SetType | SequenceType | OptionType ;
+
+    TupleType    = 'tuple<' member:Type ( ',' member:Type )* '>' ;
+    MapType      = 'map<' key_type:Type ',' value_type:Type '>' ;
+    SetType      = 'set<' key_type:Type '>' ;
+    SequenceType = 'seq<' elementType:Type '>' ;
+    OptionType   = 'option<' Type '>' ;
 
     NamedTypeReference @noskip = name:Id ( '::' name:Id )* ;
 
@@ -57,9 +60,9 @@ grammar model {
      * Trivia
      ************************************/
 
-    Trivia        @noskip = | LineComment | BlockComment | Whitespace ;
+    Trivia        @noskip = LineComment | BlockComment | Whitespace ;
     Whitespace    @atomic = [\n\t ]+ ;
     LineComment   @atomic = '//' [^\n]* '\n'? ;
-    BlockComment  @atomic = '/*' ( | [^*]+ | '*' !'/' )* '/' ;
+    BlockComment  @atomic = '/*' ( [^*]+ | '*' !'/' )* '/' ;
 
 }

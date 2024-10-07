@@ -11,7 +11,6 @@ import {
     OptionType,
     ProductMember,
     ProductType,
-    ResultType,
     SequenceType,
     SetType,
     SumType,
@@ -122,16 +121,6 @@ export function typesAreEqual(type1: Type, type2: Type): boolean {
             console.log(`Option type mismatch`);
         }
         return equal;
-    } else if (type1 instanceof ResultType && type2 instanceof ResultType) {
-        const okEqual = typesAreEqual(type1.okType, type2.okType);
-        const errEqual = typesAreEqual(type1.errType, type2.errType);
-        if (!okEqual) {
-            console.log(`Result ok type mismatch`);
-        }
-        if (!errEqual) {
-            console.log(`Result err type mismatch`);
-        }
-        return okEqual && errEqual;
     } else if (
         type1 instanceof NamedTypeReference &&
         type2 instanceof NamedTypeReference

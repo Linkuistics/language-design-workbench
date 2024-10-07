@@ -1,28 +1,25 @@
 import {
-    AlternativeRules,
+    ChoiceRule,
     CountedRuleElement,
     SequenceRule,
     StringElement
 } from './model';
 
 export function alternativeRulesAsEnum(
-    alternativeRules: AlternativeRules
+    alternativeRules: ChoiceRule
 ): string[] | undefined {
-    const enumMembers = alternativeRules.alternatives.map((alt) =>
-        toEnumMember(alt.sequenceRule)
-    );
+    const enumMembers = alternativeRules.choices.map(toEnumMember);
     if (enumMembers.every((name) => name !== undefined)) {
         return Array.from(new Set(enumMembers));
     }
     return undefined;
 }
 
-export function toEnumMember(sequenceRule: SequenceRule): string | undefined {
-    if (sequenceRule.elements.length !== 1) return undefined;
-    const element = sequenceRule.elements[0];
+export function toEnumMember(rule: SequenceRule): string | undefined {
+    if (rule.elements.length !== 1) return undefined;
+    let element = rule.elements[0];
     if (!(element instanceof CountedRuleElement)) return undefined;
-    if (element.count) return undefined;
-    const cre = element.countableRuleElement;
+    let cre = element.countableRuleElement;
     if (!(cre instanceof StringElement)) return undefined;
     if (element.label) return element.label;
     const name = cre.value.replace(/[^a-zA-Z0-9]/g, '');

@@ -20,7 +20,6 @@ import {
     SetType,
     SequenceType,
     OptionType,
-    ResultType,
     Trivia,
     BlockComment,
     LineComment,
@@ -99,8 +98,6 @@ export interface TraverseDelegate {
     ): SequenceType;
 
     visitOptionType?(optionType: OptionType, traverser: Traverser): OptionType;
-
-    visitResultType?(resultType: ResultType, traverser: Traverser): ResultType;
 
     visitTrivia?(trivia: Trivia, traverser: Traverser): Trivia;
 
@@ -334,10 +331,9 @@ export class Traverser {
             return this.visitSetType(genericType);
         } else if (genericType instanceof SequenceType) {
             return this.visitSequenceType(genericType);
-        } else if (genericType instanceof OptionType) {
-            return this.visitOptionType(genericType);
         } else {
-            return this.visitResultType(genericType);
+            // if (genericType instanceof OptionType) {
+            return this.visitOptionType(genericType);
         }
     }
 
@@ -399,18 +395,6 @@ export class Traverser {
         optionType.type = this.visitType(optionType.type);
     }
 
-    visitResultType(resultType: ResultType): ResultType {
-        if (this.delegate.visitResultType)
-            return this.delegate.visitResultType(resultType, this);
-        this.visitResultTypeChildren(resultType);
-        return resultType;
-    }
-
-    visitResultTypeChildren(resultType: ResultType) {
-        resultType.okType = this.visitType(resultType.okType);
-        resultType.errType = this.visitType(resultType.errType);
-    }
-
     visitTrivia(trivia: Trivia): Trivia {
         if (this.delegate.visitTrivia)
             return this.delegate.visitTrivia(trivia, this);
@@ -469,8 +453,7 @@ export class Traverser {
             value instanceof MapType ||
             value instanceof SetType ||
             value instanceof SequenceType ||
-            value instanceof OptionType ||
-            value instanceof ResultType
+            value instanceof OptionType
         );
     }
 }

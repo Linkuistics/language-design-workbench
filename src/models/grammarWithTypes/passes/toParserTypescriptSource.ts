@@ -1,5 +1,5 @@
 import {
-    AlternativeRules,
+    ChoiceRule,
     AnyElement,
     CharSet,
     Count,
@@ -126,12 +126,12 @@ function generateParseMethod(
 }
 
 function generateRuleBody(
-    ruleBody: SequenceRule | AlternativeRules,
+    ruleBody: SequenceRule | ChoiceRule,
     debug: boolean
 ): string {
     if (ruleBody instanceof SequenceRule) {
         return generateSequenceRuleBody(ruleBody, debug);
-    } else if (ruleBody instanceof AlternativeRules) {
+    } else if (ruleBody instanceof ChoiceRule) {
         return generateAlternativeRulesBody(ruleBody, debug);
     }
     throw new Error('Unsupported rule body type');
@@ -162,19 +162,19 @@ function generateSequenceRuleBody(
 }
 
 function generateAlternativeRulesBody(
-    alternativeRules: AlternativeRules,
+    alternativeRules: ChoiceRule,
     debug: boolean
 ): string {
-    const alternatives = alternativeRules.alternatives
+    const alternatives = alternativeRules.choices
         .map(
-            (alt, index) => `() => {
-            ${generateSequenceRuleBody(alt.sequenceRule, debug)}
+            (cre) => `() => {
+            ${generateElementParsing(cre, debug)}
             return result;
         }`
         )
         .join(',');
 
-    return `const result = this.firstAlternative('${alternativeRules.alternatives[0].sequenceRule.elements[0].constructor.name.toLowerCase()}', ${alternatives});`;
+    return `const result = this.firstAlternative('${alternativeRules.choices[0].constructor.name.toLowerCase()}', ${alternatives});`;
 }
 
 function generateElementParsing(
@@ -207,7 +207,7 @@ function generateElementParsing(
         };
     } else if (element instanceof SequenceRule) {
         return generateSequenceRuleElementParsing(element, debug);
-    } else if (element instanceof AlternativeRules) {
+    } else if (element instanceof ChoiceRule) {
         return generateAlternativeRulesElementParsing(element, debug);
     } else {
         // if (element instanceof NegativeLookahead) {
@@ -232,7 +232,7 @@ function generateSequenceRuleElementParsing(
 }
 
 function generateAlternativeRulesElementParsing(
-    alternativeRules: AlternativeRules,
+    alternativeRules: ChoiceRule,
     debug: boolean
 ): { declaration: string; parsing: string; argName?: string } {
     const parsing = generateAlternativeRulesBody(alternativeRules, debug);

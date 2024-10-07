@@ -2,7 +2,7 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import { FromGrammarSource } from '../models/grammar/passes/fromGrammarSource';
 import { ToGrammarWithTypes } from '../models/grammar/passes/toGrammarWithTypes';
-import { ToParserTypescriptSource } from '../models/grammar/passes/toParserTypescriptSource';
+import { ToParserTypescriptSource } from '../models/grammarWithTypes/passes/toParserTypescriptSource';
 import { ToModel } from '../models/grammarWithTypes/passes/toModel';
 import { FromModelSource } from '../models/model/passes/from_model-source';
 import { ToModelSource } from '../models/model/passes/to_model-source';
@@ -10,11 +10,11 @@ import { ToModelTypescriptSource } from '../models/model/passes/to_model-typescr
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parser/parseError';
 
-program.version('1.0.0').description('MSBNF Grammar CLI');
+program.version('1.0.0').description('Language Design Workbench CLI');
 
 program
     .command('grammar-to-json')
-    .description('Parse .grammar source to JSON')
+    .description('Parse .grammar source and produce JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -45,7 +45,7 @@ program
 
 program
     .command('grammar-to-model')
-    .description('Produce .model source from .grammar source')
+    .description('Parse .grammar source and produce .model source')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -59,7 +59,6 @@ program
                 new ToGrammarWithTypes(),
                 new ToModel(),
                 new ToModelSource()
-                // new ToModelTypescriptSource(true)
             ).transform(input);
 
             if (options.output) {
@@ -80,7 +79,7 @@ program
 
 program
     .command('grammar-to-parser')
-    .description('Produce a parser from .grammar source')
+    .description('Parse .grammar source and produce a parser')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -91,6 +90,7 @@ program
 
             const output = composePasses(
                 new FromGrammarSource(),
+                new ToGrammarWithTypes(),
                 new ToParserTypescriptSource()
             ).transform(input);
 
@@ -112,7 +112,7 @@ program
 
 program
     .command('model-to-json')
-    .description('Parse .model source to JSON')
+    .description('Parse .model source and produce JSON')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .action(async (options) => {
@@ -143,48 +143,27 @@ program
 
 program
     .command('model-to-types')
-    .description('Produce type definitions from .model source')
+    .description('Parse .model source and produce type definitions')
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .option('-g, --generics', 'Use generics for typescript', false)
-    .option(
-        '-l, --language <lang>',
-        'Output language (typescript or rust)',
-        'typescript'
-    )
-    .option('-r, --roots <roots>', 'Comma-separated list of root types')
+    // .option(
+    //     '-l, --language <lang>',
+    //     'Output language (typescript or rust)',
+    //     'typescript'
+    // )
+    // .option('-r, --roots <roots>', 'Comma-separated list of root types')
     .action(async (options) => {
         try {
             const input = options.input
                 ? fs.readFileSync(options.input, 'utf-8')
                 : await readStdin();
 
-            const isTypescript = options.language === 'typescript';
-            const roots = options.roots ? options.roots.split(',') : undefined;
+            // const isTypescript = options.language === 'typescript';
+            // const roots = options.roots ? options.roots.split(',') : undefined;
 
             const output = composePasses(
                 new FromModelSource(),
-                // new MergeIdenticalSumTypeMembers(),
-                // for typescript we only need to flatten anonymous fields in product types
-                // whereas for rust we need to flatten all product types
-
-                // new FlattenNestedProductTypes(isTypescript),
-                // new AssignNamesToAnonymousFields(),
-                // new InlineDiscriminatedTypeWrappers(),
-                // new InlineUndiscriminatedTypeWrappers(),
-
-                // new InlineNamedTypeWrappers(),
-                // new DenestWrappers(),
-
-                // new UnwrapPrimitiveWrappers(),
-                // new MergeEquivalentProductTypeFields(),
-                // new FullyResolveTypeAliases(),
-                // optionalPass(
-                //     roots !== undefined,
-                //     new RemoveUnreferencedTypes(roots)
-                // ),
-                // new PluralizeArrayFields(),
-
                 new ToModelTypescriptSource(options.generics)
             ).transform(input);
 

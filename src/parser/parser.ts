@@ -39,12 +39,19 @@ interface Trivia {
 export abstract class Parser implements InputStream {
     /** Whether to skip trivia or not (true by default) */
     private skipTriviaEnabled: boolean = true;
+    private debugEnabled: boolean;
 
     /**
      * Creates a new Parser instance.
      * @param input - The InputStream to wrap.
+     * @param debug - Whether to enable debug logging (false by default).
      */
-    constructor(protected input: InputStream) {}
+    constructor(
+        protected input: InputStream,
+        debug: boolean = false
+    ) {
+        this.debugEnabled = debug;
+    }
 
     /**
      * Abstract method to skip trivia. Must be implemented by subclasses.
@@ -61,6 +68,21 @@ export abstract class Parser implements InputStream {
     protected abstract consumeIdentifierForKeyword(): string | undefined;
 
     /**
+     * Logs a debug message if debugging is enabled.
+     * @param message - The message to log.
+     * @private
+     */
+    private debugLog(message: string): void {
+        if (this.debugEnabled) {
+            const position = this.getPosition();
+            const { line, column } = this.positionToLineAndColumn(position);
+            console.log(
+                `[DEBUG] [${line}:${column < 10 ? '0' : ''}${column}] ${this.indent < 10 ? ' ' : ''}${this.indent} ${'  '.repeat(this.indent)}${message}`
+            );
+        }
+    }
+
+    /**
      * Skips trivia if enabled and records the skipped trivia.
      * This method is called automatically before most input operations.
      * @private
@@ -68,16 +90,19 @@ export abstract class Parser implements InputStream {
     private skipTriviaIfEnabled(): void {
         if (!this.skipTriviaEnabled) return;
 
+        const originalDebugEnabled = this.debugEnabled;
+        this.debugEnabled = false;
         while (true) {
             // This enables consumeTrivia to use its local InputStream
             this.skipTriviaEnabled = false;
             try {
                 const kind = this.consumeTrivia();
-                if (kind === undefined) return;
+                if (kind === undefined) break;
             } finally {
                 this.skipTriviaEnabled = true;
             }
         }
+        this.debugEnabled = originalDebugEnabled;
     }
 
     /**
@@ -115,6 +140,7 @@ export abstract class Parser implements InputStream {
         if (position > this.input.getPosition())
             throw new Error('Cannot restore to a future position');
         this.input.restorePosition(position);
+        this.debugLog(`Restored position to ${position}`);
     }
 
     /**
@@ -129,7 +155,9 @@ export abstract class Parser implements InputStream {
      */
     isEOF(): boolean {
         this.skipTriviaIfEnabled();
-        return this.input.isEOF();
+        const eof = this.input.isEOF();
+        this.debugLog(`Checked EOF: ${eof}`);
+        return eof;
     }
 
     /**
@@ -137,7 +165,11 @@ export abstract class Parser implements InputStream {
      */
     peek(): string | undefined {
         this.skipTriviaIfEnabled();
-        return this.input.peek();
+        const peeked = this.input.peek();
+        this.debugLog(
+            `Peeked: ${peeked === undefined ? 'EOF' : `"${peeked}"`}`
+        );
+        return peeked;
     }
 
     mustBeEOF(): void {
@@ -182,7 +214,9 @@ export abstract class Parser implements InputStream {
                 'notEOFAndCannotPeekChar only accepts single-character strings'
             );
         this.skipTriviaIfEnabled();
-        return this.isEOF() || this.input.peek() === str;
+        const result = this.isEOF() || this.input.peek() === str;
+        this.debugLog(`Checked EOF or peek char "${str}": ${result}`);
+        return result;
     }
 
     /**
@@ -193,7 +227,9 @@ export abstract class Parser implements InputStream {
      */
     isEOFOrPeekOneOf(str: string): boolean {
         this.skipTriviaIfEnabled();
-        return this.isEOF() || str.includes(this.input.peek()!);
+        const result = this.isEOF() || str.includes(this.input.peek()!);
+        this.debugLog(`Checked EOF or peek one of "${str}": ${result}`);
+        return result;
     }
 
     /**
@@ -201,7 +237,13 @@ export abstract class Parser implements InputStream {
      */
     consume(count: number = 1): string | undefined {
         this.skipTriviaIfEnabled();
-        return this.input.consume(count);
+        const consumed = this.input.consume(count);
+        if (consumed === undefined) {
+            this.debugLog(`Failed to consume ${count} character(s)`);
+        } else {
+            this.debugLog(`Consumed ${count} character(s): "${consumed}"`);
+        }
+        return consumed;
     }
 
     /**
@@ -209,7 +251,13 @@ export abstract class Parser implements InputStream {
      */
     consumeString(str: string): string | undefined {
         this.skipTriviaIfEnabled();
-        return this.input.consumeString(str);
+        const consumed = this.input.consumeString(str);
+        if (consumed === undefined) {
+            this.debugLog(`Failed to consume string: "${str}"`);
+        } else {
+            this.debugLog(`Consumed string: "${consumed}"`);
+        }
+        return consumed;
     }
 
     /**
@@ -228,8 +276,10 @@ export abstract class Parser implements InputStream {
         const consumed = this.consumeIdentifierForKeyword();
         if (consumed !== keyword) {
             this.restorePosition(pos);
+            this.debugLog(`Failed to consume keyword: "${keyword}"`);
             return undefined;
         }
+        this.debugLog(`Consumed keyword: "${keyword}"`);
         return keyword;
     }
     /**
@@ -248,7 +298,13 @@ export abstract class Parser implements InputStream {
      */
     consumeWhile(predicate: (char: string) => boolean): string | undefined {
         this.skipTriviaIfEnabled();
-        return this.input.consumeWhile(predicate);
+        const consumed = this.input.consumeWhile(predicate);
+        if (consumed === undefined) {
+            this.debugLog(`Failed to consume while predicate`);
+        } else {
+            this.debugLog(`Consumed while predicate: "${consumed}"`);
+        }
+        return consumed;
     }
 
     mustConsumeWhile(
@@ -263,7 +319,13 @@ export abstract class Parser implements InputStream {
      */
     consumeRegex(regex: RegExp): string | undefined {
         this.skipTriviaIfEnabled();
-        return this.input.consumeRegex(regex);
+        const consumed = this.input.consumeRegex(regex);
+        if (consumed === undefined) {
+            this.debugLog(`Failed to consume regex: ${regex}`);
+        } else {
+            this.debugLog(`Consumed regex ${regex}: "${consumed}"`);
+        }
+        return consumed;
     }
 
     mustConsumeRegex(regex: RegExp, expected: string): string {
@@ -286,7 +348,10 @@ export abstract class Parser implements InputStream {
         for (const alternative of alternatives) {
             try {
                 const result = alternative();
-                if (result !== undefined) return result;
+                if (result !== undefined) {
+                    this.debugLog(`First alternative succeeded: ${expected}`);
+                    return result;
+                }
             } catch (error) {
                 if (error instanceof ParseError) {
                     errors.push(error);
@@ -301,6 +366,7 @@ export abstract class Parser implements InputStream {
             this
         );
         error.children = errors;
+        this.debugLog(`First alternative failed: ${expected}`);
         throw error;
     }
 
@@ -321,6 +387,9 @@ export abstract class Parser implements InputStream {
             } catch (error) {
                 this.restorePosition(pos);
                 if (error instanceof ParseError) {
+                    this.debugLog(
+                        `Zero or more ended with ${elements.length} elements`
+                    );
                     return elements;
                 }
                 throw error;
@@ -347,6 +416,9 @@ export abstract class Parser implements InputStream {
                 this.restorePosition(pos);
                 if (error instanceof ParseError) {
                     if (elements.length > 0) {
+                        this.debugLog(
+                            `One or more ended with ${elements.length} elements`
+                        );
                         return elements;
                     }
                 }
@@ -366,12 +438,16 @@ export abstract class Parser implements InputStream {
     protected must<T>(value: T | undefined, expected: string): T {
         if (value === undefined) {
             const found = this.peek() ?? 'EOF';
+            this.debugLog(
+                `Must failed: Expected "${expected}", but found "${found}"`
+            );
             throw new ParseError(
                 `Expected "${expected}", but found "${found}"`,
                 this.getPosition(),
                 this
             );
         }
+        this.debugLog(`Must succeeded: "${expected}"`);
         return value;
     }
 
@@ -385,10 +461,13 @@ export abstract class Parser implements InputStream {
     protected maybe<T>(parser: () => T): T | undefined {
         const pos = this.getPosition();
         try {
-            return parser();
+            const result = parser();
+            this.debugLog(`Maybe succeeded`);
+            return result;
         } catch (error) {
             this.restorePosition(pos);
             if (error instanceof ParseError) {
+                this.debugLog(`Maybe failed`);
                 return undefined;
             }
             throw error;
@@ -407,22 +486,18 @@ export abstract class Parser implements InputStream {
     protected withContext<T>(context: string, parser: () => T): T {
         const pos = this.getPosition();
         try {
-            // console.log(
-            //     '  '.repeat(this.indent),
-            //     '+',
-            //     context,
-            //     `"${this.peek()}"`,
-            //     this.getPosition()
-            // );
+            this.debugLog(
+                `+ ${context} "${this.peek()}" ${this.getPosition()}`
+            );
             this.indent++;
             const result = parser();
             this.indent--;
-            // console.log('  '.repeat(this.indent), '-', context);
+            this.debugLog(`- ${context}`);
             return result;
         } catch (error) {
             this.indent--;
             if (error instanceof ParseError) {
-                // console.log('  '.repeat(this.indent), 'x', context);
+                this.debugLog(`x ${context}`);
                 const newError = new ParseError(`«${context}»`, pos, this);
                 newError.children = [error];
                 throw newError;

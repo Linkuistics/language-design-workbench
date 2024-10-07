@@ -1,7 +1,8 @@
 export class Grammar {
     constructor(
         public name: Name,
-        public rules: (Rule | PrattRule)[]
+        public rules: Rule[],
+        public prattRules: PrattRule[]
     ) {}
 }
 
@@ -50,16 +51,8 @@ export class VersionNumber {
     constructor(public segments: VersionSegment[]) {}
 }
 
-export class AlternativeRules {
-    constructor(public alternatives: AlternativeRule[]) {}
-}
-
-export class AlternativeRule {
-    constructor(
-        public sequenceRule: SequenceRule,
-        public label: Label | undefined,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+export class ChoiceRule {
+    constructor(public choices: SequenceRule[]) {}
 }
 
 export class SequenceRule {
@@ -123,7 +116,7 @@ export type Name = string;
 export type Label = string;
 export type CharSetChar = string;
 export type VersionSegment = string;
-export type RuleBody = SequenceRule | AlternativeRules;
+export type RuleBody = SequenceRule | ChoiceRule;
 export type CountableRuleElement =
     | RuleReference
     | StringElement

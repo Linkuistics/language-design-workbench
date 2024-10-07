@@ -3,12 +3,12 @@ grammar sexpr {
     // Derived largely from the syntax for scheme found at
     // https://www.scheme.com/tspl4/grammar.html#APPENDIXFORMALSYNTAX
 
-    datum = | boolean | character | number | string | list | vector | byte_vector | struct | symbol; 
+    datum = boolean | character | number | string | list | vector | byte_vector | struct | symbol; 
 
-    boolean = | true:'#t' | false:'#f' | true:'#T' | false:'#F' ;
+    boolean = true:'#t' | false:'#f' | true:'#T' | false:'#F' ;
 
     // TODO: the full number syntax from the spec
-    number = | num2 | num10 | num16 ;
+    number = num2 | num10 | num16 ;
 
     num2      @atomic = sign? ureal2 ;
     ureal2    @atomic = uinteger2 ;
@@ -27,59 +27,57 @@ grammar sexpr {
 
     sign = [+-]? ;
 
-    character @noskip = | '#\\' char:. | '#\\' character_name | '#\\x' uinteger16 ;
-    character_name = | 'alarm' | 'backspace' | 'delete' | 'esc' | 'linefeed' | 'newline' | 'page' | 'return' | 'space' | 'tab' | 'vtab' ;
+    character @noskip = '#\\' char:. | '#\\' character_name | '#\\x' uinteger16 ;
+    character_name = 'alarm' | 'backspace' | 'delete' | 'esc' | 'linefeed' | 'newline' | 'page' | 'return' | 'space' | 'tab' | 'vtab' ;
 
     string @atomic = '"' string_character* '"' ;
     // TODO: multiline strings from the spec
-    string_character @atomic = | [^"\\] | '\\' [\\"abfnrtv] | '\\x' uinteger16 ;
+    string_character @atomic = [^"\\] | '\\' [\\"abfnrtv] | '\\x' uinteger16 ;
 
     symbol = identifier ;
 
     list =
-        | '(' ( datum+ ( '.' tail:datum )? )? ')'
+          '(' ( datum+ ( '.' tail:datum )? )? ')'
         | '[' ( datum+ ( '.' tail:datum )? )? ']'
         | '{' ( datum+ ( '.' tail:datum )? )? '}'
         | abbreviation
         ;
     
     abbreviation =
-        | "'" quote:datum
+          "'" quote:datum
         | "`" quasiquote:datum
         | "," unquote:datum
         | ",@" unquote_splicing:datum
         ;
 
     vector =
-        | '#(' datum* ')'
+          '#(' datum* ')'
         | '#[' datum* ']'
         | '#{' datum* '}'
         ;
     
     byte_vector =
-        | '#vu8(' number* ')'
+          '#vu8(' number* ')'
         | '#vu8[' number* ']'
         | '#vu8{' number* '}'
         ;
     
     struct =
-        | '#s(' name:symbol datum* ')'
+          '#s(' name:symbol datum* ')'
         | '#s[' name:symbol datum* ']'
         | '#s{' name:symbol datum* '}'
         ;
     
     // TODO: Unicode character classes from the spec (requires Unicode classes in msbnf)
-    identifier     @atomic = | '+' | '-' | '...' | ident_start ident_continue* ;
-    ident_start    @atomic = | [a-zA-Z!$%&*/:<=>?~_^] | '\\x' uinteger16 ;
-    ident_continue @atomic = | ident_start | digit10 | [.+-@] ;
+    identifier     @atomic = '+' | '-' | '...' | ident_start ident_continue* ;
+    ident_start    @atomic = [a-zA-Z!$%&*/:<=>?~_^] | '\\x' uinteger16 ;
+    ident_continue @atomic = ident_start | digit10 | [.+-@] ;
 
-    trivia  @noskip = | whitespace | comment ;
-    comment @noskip = | line_comment | block_comment | datum_comment ;
-    line_comment @atomic = ';' [^\n]* [\n]? ;
-    block_comment @atomic = '#|' ( | block_comment | [^|]+ | '|' !'#' )* '|#' ;
-    datum_comment = '#;' datum ;
-
+    trivia        @noskip = whitespace | line_comment | block_comment | datum_comment ;
+    line_comment  @atomic = ';' [^\n]* [\n]? ;
+    block_comment @atomic = '#|' ( block_comment | [^|]+ | '|' !'#' )* '|#' ;
+    datum_comment         = '#;' datum ;
     // TODO: Unicode whitespace classes from the spec (requires Unicode classes in msbnf)
-    whitespace @atomic = [\n\t ]* ;
+    whitespace    @atomic = [\n\t ]* ;
 
 }

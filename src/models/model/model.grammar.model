@@ -1,24 +1,22 @@
 model model {
 
-    PrimitiveType_type_0 = { "boolean" | "char" | "string" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" };
-    
-    Model = { name: Id, parent_name: option<Id>, Deletion: seq<Deletion>, MemberModification: seq<MemberModification>, Definition: seq<Definition> };
+    Model = { name: Id, parent_name: option<Id>, value: seq<Deletion>, value: seq<MemberModification>, value: seq<Definition> };
     
     Definition = { name: Id, Type: Type };
     
     Deletion = { name: Id };
     
-    MemberModification = { name: Id, MemberDeletion: seq<MemberDeletion>, MemberAddition: seq<MemberAddition> };
+    MemberModification = { name: Id, value: seq<MemberDeletion>, value: seq<MemberAddition> };
     
     MemberDeletion = { name: Id };
     
-    MemberAddition = { ProductMember: ProductMember, Type: Type };
+    MemberAddition = { value: ProductMember, value: Type };
     
     Type = { VoidType: VoidType, PrimitiveType: PrimitiveType, EnumType: EnumType, TypeWithStructure: TypeWithStructure, NamedTypeReference: NamedTypeReference };
     
     VoidType = {  };
     
-    PrimitiveType = { type: PrimitiveType_type_0 };
+    PrimitiveType = { "boolean" | "char" | "string" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" };
     
     EnumType = { member: String, member: seq<String> };
     
@@ -28,11 +26,11 @@ model model {
     
     SumType = { member: Type, member: seq<Type> };
     
-    ProductType = { member: option<ProductMember>, member: option<seq<ProductMember>> };
+    ProductType = { member: option<ProductMember>, member: seq<ProductMember> };
     
     ProductMember = { name: Id, Type: Type };
     
-    GenericType = { TupleType: TupleType, MapType: MapType, SetType: SetType, OptionType: OptionType, ResultType: ResultType };
+    GenericType = { TupleType: TupleType, MapType: MapType, SetType: SetType, SequenceType: SequenceType, OptionType: OptionType };
     
     TupleType = { member: Type, member: seq<Type> };
     
@@ -40,17 +38,15 @@ model model {
     
     SetType = { key_type: Type };
     
-    SequenceType = { Type: Type };
+    SequenceType = { elementType: Type };
     
     OptionType = { Type: Type };
-    
-    ResultType = { ok_type: Type, err_type: Type };
     
     NamedTypeReference = { name: Id, name: seq<Id> };
     
     Id = { Identifier: Identifier };
     
-    Identifier = { value: string, InitialIdentifierChar: InitialIdentifierChar, IdentifierChar: seq<IdentifierChar> };
+    Identifier = { value: string };
     
     InitialIdentifierChar = { value: string };
     

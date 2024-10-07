@@ -6,43 +6,43 @@ model sexpr {
     
     number = { num2: num2, num10: num10, num16: num16 };
     
-    num2 = { value: string, sign: option<sign>, ureal2: ureal2 };
+    num2 = { value: string };
     
-    ureal2 = { value: string, uinteger2: uinteger2 };
+    ureal2 = { value: string };
     
-    uinteger2 = { value: string, digit2: seq<digit2> };
+    uinteger2 = { value: string };
     
     digit2 = { value: string };
     
-    num10 = { value: string, sign: option<sign>, ureal10: ureal10 };
+    num10 = { value: string };
     
-    ureal10 = { value: string, uinteger10: uinteger10 };
+    ureal10 = { value: string };
     
-    uinteger10 = { value: string, digit10: seq<digit10> };
+    uinteger10 = { value: string };
     
     digit10 = { value: string };
     
-    num16 = { value: string, sign: option<sign>, ureal16: ureal16 };
+    num16 = { value: string };
     
-    ureal16 = { value: string, uinteger16: uinteger16 };
+    ureal16 = { value: string };
     
-    uinteger16 = { value: string, digit16: seq<digit16> };
+    uinteger16 = { value: string };
     
     digit16 = { value: string };
     
     sign = {  };
     
-    character = { character_name: character_name, uinteger16: uinteger16 };
+    character = { char: boolean, character_name: character_name, uinteger16: uinteger16 };
     
     character_name = { "alarm" | "backspace" | "delete" | "esc" | "linefeed" | "newline" | "page" | "return" | "space" | "tab" | "vtab" };
     
-    string = { value: string, string_character: seq<string_character> };
+    string = { value: string };
     
-    string_character = { value: string, uinteger16: uinteger16 };
+    string_character = { value: string };
     
     symbol = { identifier: identifier };
     
-    list = { datum: option<seq<datum>>, tail: option<option<datum>>, datum: option<seq<datum>>, tail: option<option<datum>>, datum: option<seq<datum>>, tail: option<option<datum>>, abbreviation: abbreviation };
+    list = { datum: seq<datum>, tail: option<option<datum>>, datum: seq<datum>, tail: option<option<datum>>, datum: seq<datum>, tail: option<option<datum>>, abbreviation: abbreviation };
     
     abbreviation = { quote: datum, quasiquote: datum, unquote: datum, unquote_splicing: datum };
     
@@ -52,19 +52,17 @@ model sexpr {
     
     struct = { name: symbol, datum: seq<datum>, name: symbol, datum: seq<datum>, name: symbol, datum: seq<datum> };
     
-    identifier = { value: string, ident_start: ident_start, ident_continue: seq<ident_continue> };
+    identifier = { value: string };
     
-    ident_start = { value: string, uinteger16: uinteger16 };
+    ident_start = { value: string };
     
-    ident_continue = { value: string, ident_start: ident_start, digit10: digit10 };
+    ident_continue = { value: string };
     
-    trivia = { whitespace: whitespace, comment: comment };
-    
-    comment = { line_comment: line_comment, block_comment: block_comment, datum_comment: datum_comment };
+    trivia = { whitespace: whitespace, line_comment: line_comment, block_comment: block_comment, datum_comment: datum_comment };
     
     line_comment = { value: string };
     
-    block_comment = { value: string, block_comment: seq<block_comment> };
+    block_comment = { value: string };
     
     datum_comment = { datum: datum };
     

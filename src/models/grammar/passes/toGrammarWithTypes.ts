@@ -37,11 +37,13 @@ export class ToGrammarWithTypes extends Transformer {
         this.ruleName = input.name;
         this.productMembers = [];
 
-        // 1. Check for a terminal
+        // 1. Check for a terminal i.e. an atomic
 
         if (this.isAtomic) {
-            this.productMembers = [new ProductMember('value', 'string')];
             const body = this.transformRuleBody(input.body);
+            // This throws away any returned substructure, but each step
+            // should check `this.isAtomic` before doing any transformation
+            this.productMembers = [new ProductMember('value', 'string')];
             return new Out.Rule(
                 input.name,
                 body,
@@ -52,9 +54,11 @@ export class ToGrammarWithTypes extends Transformer {
             );
         }
 
+        // TODO: can we just hoist from the result of processing the children
+
         // 2. Check for an enum - alternatives of strings
 
-        if (input.body instanceof In.AlternativeRules) {
+        if (input.body instanceof In.ChoiceRule) {
             const enumMembers = alternativeRulesAsEnum(input.body);
             if (enumMembers) {
                 const body = this.transformRuleBody(input.body);
@@ -80,12 +84,10 @@ export class ToGrammarWithTypes extends Transformer {
         );
     }
 
-    transformAlternativeRules(
-        input: In.AlternativeRules
-    ): Out.AlternativeRules {
-        // Process the type of each AlternativeRule
+    transformChoiceRule(input: In.ChoiceRule): Out.ChoiceRule {
+        // Check for an enum - alternatives of strings
 
-        if (this.label) {
+        if (this.label /* or at top level */) {
             const enumMembers = alternativeRulesAsEnum(input);
             if (enumMembers) {
                 const definitionName = `${this.ruleName}_${this.label}_${this.definitions.length}`;
@@ -98,15 +100,55 @@ export class ToGrammarWithTypes extends Transformer {
                         new NamedTypeReference([definitionName])
                     )
                 );
-                return new Out.AlternativeRules(
-                    input.alternatives.map((a) =>
-                        this.transformAlternativeRule(a)
-                    )
+                return new Out.ChoiceRule(
+                    input.choices.map((a) => this.transformSequenceRule(a))
                 );
             }
         }
 
-        return super.transformAlternativeRules(input);
+        // Process each choice, and then ...
+
+        // Each choice that produces more than one field is an anonymous ProductType
+
+        // If we have a label, we produce a SumType
+
+        // Merge the fields with the same name, into a SumType.
+
+        // All non-array fields become optional
+
+        return super.transformChoiceRule(input);
+    }
+
+    transformSequenceRule(input: In.SequenceRule): Out.SequenceRule {
+        // if we have a label, we produce a ProductType, or rename the field in the case of a singleton
+
+        const oldProductMembers = this.productMembers;
+        this.productMembers = [];
+        const oldLabel = this.label;
+        this.label = undefined;
+        const result = super.transformSequenceRule(input);
+        this.label = oldLabel;
+        const childProductMembers = this.productMembers;
+        this.productMembers = oldProductMembers;
+
+        if (this.label) {
+            if (childProductMembers.length === 1) {
+                childProductMembers[0].name = this.label;
+                this.productMembers.push(childProductMembers[0]);
+            } else if (childProductMembers.length > 1) {
+                const productMember = new ProductMember(
+                    this.label,
+                    new ProductType(childProductMembers)
+                );
+                this.productMembers.push(productMember);
+            }
+        } else {
+            childProductMembers.forEach((member) =>
+                this.productMembers.push(member)
+            );
+        }
+
+        return result;
     }
 
     label?: string;
@@ -114,6 +156,10 @@ export class ToGrammarWithTypes extends Transformer {
     transformCountedRuleElement(
         input: In.CountedRuleElement
     ): Out.CountedRuleElement {
+        if (this.isAtomic) {
+            return super.transformCountedRuleElement(input);
+        }
+
         const productMemberLength = this.productMembers.length;
         const oldLabel = this.label;
         this.label = input.label ?? this.label;
@@ -128,9 +174,14 @@ export class ToGrammarWithTypes extends Transformer {
                     );
                     break;
                 case In.Count.Optional:
-                    this.productMembers[i].type = new OptionType(
-                        this.productMembers[i].type
-                    );
+                    if (
+                        this.productMembers[i].type !== 'boolean' &&
+                        !(this.productMembers[i].type instanceof SequenceType)
+                    ) {
+                        this.productMembers[i].type = new OptionType(
+                            this.productMembers[i].type
+                        );
+                    }
                     break;
                 default:
                     break;
@@ -141,23 +192,39 @@ export class ToGrammarWithTypes extends Transformer {
     }
 
     transformCharSet(input: In.CharSet): Out.CharSet {
+        if (!this.isAtomic && this.label) {
+            this.productMembers.push(new ProductMember(this.label, 'string'));
+        }
+
         return this.defaultTransformCharSet(input);
     }
 
     transformRuleReference(input: In.RuleReference): Out.RuleReference {
-        const productMember = new ProductMember(
-            this.label ?? input.names[input.names.length - 1],
-            new NamedTypeReference(input.names)
-        );
-        this.productMembers.push(productMember);
-        return new Out.RuleReference(input.names, productMember);
+        if (!this.isAtomic) {
+            const productMember = new ProductMember(
+                this.label ?? input.names[input.names.length - 1],
+                new NamedTypeReference(input.names)
+            );
+            this.productMembers.push(productMember);
+            return new Out.RuleReference(input.names, productMember);
+        }
+
+        return this.defaultTransformRuleReference(input);
     }
 
     transformStringElement(input: In.StringElement): Out.StringElement {
+        if (!this.isAtomic && this.label) {
+            this.productMembers.push(new ProductMember(this.label, 'boolean'));
+        }
+
         return this.defaultTransformStringElement(input);
     }
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {
+        if (!this.isAtomic && this.label) {
+            this.productMembers.push(new ProductMember(this.label, 'boolean'));
+        }
+
         return this.defaultTransformAnyElement(input);
     }
 }

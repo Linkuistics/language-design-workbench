@@ -17,28 +17,18 @@ export abstract class Transformer {
     defaultTransformGrammar(input: In.Grammar): Out.Grammar {
         return new Out.Grammar(
             input.name,
-            input.rules.map((r) => this.transformGrammarRule(r)),
+            input.rules.map((r) => this.transformRule(r)),
+            input.prattRules.map((r) => this.transformPrattRule(r)),
             [] // New field
         );
-    }
-
-    transformGrammarRule(
-        input: In.Rule | In.PrattRule
-    ): Out.Rule | Out.PrattRule {
-        if (input instanceof In.Rule) {
-            return this.transformRule(input);
-        } else {
-            // if (input instanceof In.PrattRule) {
-            return this.transformPrattRule(input);
-        }
     }
 
     transformRuleBody(input: In.RuleBody): Out.RuleBody {
         if (input instanceof In.SequenceRule) {
             return this.transformSequenceRule(input);
         } else {
-            // if (input instanceof In.AlternativeRules) {
-            return this.transformAlternativeRules(input);
+            // if (input instanceof In.ChoiceRule) {
+            return this.transformChoiceRule(input);
         }
     }
 
@@ -55,8 +45,8 @@ export abstract class Transformer {
             return this.transformAnyElement(input);
         } else if (input instanceof In.SequenceRule) {
             return this.transformSequenceRule(input);
-        } else if (input instanceof In.AlternativeRules) {
-            return this.transformAlternativeRules(input);
+        } else if (input instanceof In.ChoiceRule) {
+            return this.transformChoiceRule(input);
         } else {
             throw new Error('Unexpected countable rule element type');
         }
@@ -114,18 +104,9 @@ export abstract class Transformer {
         );
     }
 
-    transformAlternativeRules(
-        input: In.AlternativeRules
-    ): Out.AlternativeRules {
-        return new Out.AlternativeRules(
-            input.alternatives.map((a) => this.transformAlternativeRule(a))
-        );
-    }
-
-    transformAlternativeRule(input: In.AlternativeRule): Out.AlternativeRule {
-        return new Out.AlternativeRule(
-            this.transformSequenceRule(input.sequenceRule),
-            input.versionAnnotations
+    transformChoiceRule(input: In.ChoiceRule): Out.ChoiceRule {
+        return new Out.ChoiceRule(
+            input.choices.map((a) => this.transformSequenceRule(a))
         );
     }
 
@@ -169,12 +150,12 @@ export abstract class Transformer {
     }
 
     abstract transformRuleReference(input: In.RuleReference): Out.RuleReference;
-    // defaultTransformRuleReference(input: In.RuleReference): RuleReference {
-    //     return new RuleReference(
-    //         input.names,
-    //         ??? // New field
-    //     );
-    // }
+    defaultTransformRuleReference(input: In.RuleReference): Out.RuleReference {
+        return new Out.RuleReference(
+            input.names,
+            undefined // New field
+        );
+    }
 
     abstract transformStringElement(input: In.StringElement): Out.StringElement;
     defaultTransformStringElement(input: In.StringElement): Out.StringElement {

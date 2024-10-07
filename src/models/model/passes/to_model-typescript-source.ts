@@ -8,7 +8,6 @@ import {
     OptionType,
     PrimitiveType,
     ProductType,
-    ResultType,
     SequenceType,
     SetType,
     SumType,
@@ -18,10 +17,7 @@ import {
 import { TraverseDelegate, Traverser } from '../traverser';
 
 export class ToModelTypescriptSource implements TraverseDelegate {
-    private definitionsSource =
-        'type OptionType<T> = T | undefined;\n' +
-        'type ResultType<O, E> = O | { error: E }\n' +
-        '\n\n';
+    private definitionsSource = 'type Option<T> = T | undefined;\n' + '\n\n';
 
     constructor(public useGenerics: boolean) {}
 
@@ -186,15 +182,6 @@ export class ToModelTypescriptSource implements TraverseDelegate {
         traverser.visitType(optionType.type);
         this.definitionsSource += `>`;
         return optionType;
-    }
-
-    visitResultType(resultType: ResultType, traverser: Traverser): ResultType {
-        this.definitionsSource += `Result<`;
-        traverser.visitType(resultType.okType);
-        this.definitionsSource += ', ';
-        traverser.visitType(resultType.errType);
-        this.definitionsSource += `>`;
-        return resultType;
     }
 
     visitNamedTypeReference(

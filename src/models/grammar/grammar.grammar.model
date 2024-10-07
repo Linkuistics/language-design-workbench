@@ -1,6 +1,6 @@
 model grammar {
 
-    grammar = { name: name, rule: seq<rule>, rule: seq<pratt_rule> };
+    grammar = { name: name, rule: seq<rule>, pratt_rule: seq<pratt_rule> };
     
     rule = { name: name, annotation: option<rule_annotation>, version_annotation: seq<version_annotation>, body: rule_body };
     
@@ -8,7 +8,7 @@ model grammar {
     
     pratt_rule = { name: name, version_annotation: seq<version_annotation>, operator: seq<pratt_operator>, primary: pratt_primary };
     
-    pratt_operator = { pratt_operator_type: pratt_operator_type, name: name, version_annotation: seq<version_annotation>, body: rule_body };
+    pratt_operator = { type: pratt_operator_type, name: name, version_annotation: seq<version_annotation>, body: rule_body };
     
     pratt_primary = { name: name, body: rule_body };
     
@@ -22,37 +22,35 @@ model grammar {
     
     version_segment = { value: string };
     
-    rule_body = { sequence_rule: sequence_rule, alternative_rules: alternative_rules };
+    rule_body = { choice_rule: choice_rule, sequence_rule: sequence_rule };
     
-    sequence_rule = { rule_element: seq<rule_element> };
+    choice_rule = { choice: sequence_rule, choice: seq<sequence_rule> };
     
-    alternative_rules = { alternative: seq<alternative> };
-    
-    alternative = { label: option<label>, version_annotation: seq<version_annotation>, sequence_rule: sequence_rule };
+    sequence_rule = { element: seq<rule_element> };
     
     rule_element = { counted_rule_element: counted_rule_element, negative_lookahead: negative_lookahead };
     
     counted_rule_element = { label: option<label>, countable_rule_element: countable_rule_element, count: option<count>, version_annotation: seq<version_annotation> };
     
-    countable_rule_element = { rule_reference: rule_reference, string: string, char_set: char_set, any: any, rule_body: rule_body };
-    
-    rule_reference = { name: name, name: seq<name> };
+    countable_rule_element = { rule_reference: rule_reference, string_element: string_element, char_set: char_set, any_element: any_element, rule_body: rule_body };
     
     count = { "one_or_more" | "zero_or_more" | "optional" };
     
-    name = { identifier: identifier };
-    
     label = { name: name };
     
-    string = { value: string };
+    name = { identifier: identifier };
     
-    char_set = { start_char: seq<char_set_char>, end_char: seq<option<char_set_char>> };
+    rule_reference = { name: name, name: seq<name> };
+    
+    string_element = { value: string };
+    
+    char_set = { negated: boolean, range: seq<{ start_char: char_set_char, end_char: option<char_set_char> }> };
     
     char_set_char = { value: string };
     
-    any = {  };
+    any_element = {  };
     
-    negative_lookahead = { char_set: char_set, string: string };
+    negative_lookahead = { content: char_set, content: string };
     
     identifier = { value: string };
     

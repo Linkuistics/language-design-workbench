@@ -1,15 +1,15 @@
 import {
-    AlternativeRules,
+    ChoiceRule,
     CountedRuleElement,
     SequenceRule,
     StringElement
-} from './model';
+} from '../grammar/model';
 
 export function alternativeRulesAsEnum(
-    alternativeRules: AlternativeRules
+    alternativeRules: ChoiceRule
 ): string[] | undefined {
-    const enumMembers = alternativeRules.alternatives.map((alt) =>
-        toEnumMember(alt.sequenceRule)
+    const enumMembers = alternativeRules.choices.map((choice) =>
+        toEnumMember(choice)
     );
     if (enumMembers.every((name) => name !== undefined)) {
         return Array.from(new Set(enumMembers));

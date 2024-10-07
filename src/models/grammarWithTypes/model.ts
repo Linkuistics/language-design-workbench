@@ -16,7 +16,8 @@ export {
 export class Grammar {
     constructor(
         public name: In.Name,
-        public rules: (Rule | PrattRule | IdentifierRule)[],
+        public rules: Rule[],
+        public prattRules: PrattRule[],
         public definitions: Definition[]
     ) {}
 }
@@ -57,24 +58,8 @@ export class PrattPrimary {
     ) {}
 }
 
-export class IdentifierRule {
-    constructor(
-        public name: In.Name,
-        public ruleBodies: RuleBody[],
-        public versionAnnotations: In.VersionAnnotation[]
-    ) {}
-}
-
-export class AlternativeRules {
-    constructor(public alternatives: AlternativeRule[]) {}
-}
-
-export class AlternativeRule {
-    constructor(
-        public sequenceRule: SequenceRule,
-        // public label: In.Label | undefined,
-        public versionAnnotations: In.VersionAnnotation[]
-    ) {}
+export class ChoiceRule {
+    constructor(public choices: SequenceRule[]) {}
 }
 
 export class SequenceRule {
@@ -103,17 +88,12 @@ export class CharSet {
 
 export class NegativeLookahead {
     constructor(public content: CharSet | StringElement) {}
-    public static fromPreviousType(
-        previous: In.NegativeLookahead
-    ): NegativeLookahead {
-        throw new Error('Method not implemented.');
-    }
 }
 
 export class RuleReference {
     constructor(
         public names: In.Name[],
-        public field: ProductMember
+        public field?: ProductMember
     ) {}
 }
 
@@ -128,7 +108,7 @@ export class AnyElement {
     constructor(public field?: ProductMember) {}
 }
 
-export type RuleBody = SequenceRule | AlternativeRules;
+export type RuleBody = SequenceRule | ChoiceRule;
 export type CountableRuleElement =
     | RuleReference
     | StringElement

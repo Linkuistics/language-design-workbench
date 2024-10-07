@@ -82,8 +82,7 @@ export type GenericType =
     | MapType
     | SetType
     | SequenceType
-    | OptionType
-    | ResultType;
+    | OptionType;
 
 export class TupleType {
     constructor(public members: Type[]) {}
@@ -106,13 +105,6 @@ export class SequenceType {
 
 export class OptionType {
     constructor(public type: Type) {}
-}
-
-export class ResultType {
-    constructor(
-        public okType: Type,
-        public errType: Type
-    ) {}
 }
 
 export class NamedTypeReference {

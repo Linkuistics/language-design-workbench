@@ -4,31 +4,29 @@ model json {
     
     boolean = { "true" | "false" };
     
-    number = { value: string, sign: option<sign>, ureal: ureal };
+    number = { value: string };
     
-    ureal = { value: string, uinteger: uinteger };
+    ureal = { value: string };
     
-    uinteger = { value: string, digit: seq<digit> };
+    uinteger = { value: string };
     
     digit = {  };
     
     sign = {  };
     
-    string = { value: string, string_character: seq<string_character> };
+    string = { value: string };
     
-    string_character = { value: string, uinteger16: uinteger16 };
+    string_character = { value: string };
     
     null = {  };
     
-    list = { value: option<value>, value: option<seq<value>> };
+    list = { value: option<value>, value: seq<value> };
     
-    map = { map_entry: option<map_entry>, map_entry: option<seq<map_entry>> };
+    map = { map_entry: option<map_entry>, map_entry: seq<map_entry> };
     
     map_entry = { key: string, value: value };
     
-    trivia = { whitespace: whitespace, comment: comment };
-    
-    comment = { line_comment: line_comment, block_comment: block_comment };
+    trivia = { whitespace: whitespace, line_comment: line_comment, block_comment: block_comment };
     
     line_comment = { value: string };
     

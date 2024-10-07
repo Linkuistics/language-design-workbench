@@ -5,7 +5,7 @@ import { GrammarParser } from '../parser';
 export class FromGrammarSource {
     transform(input: string): Grammar {
         const inputStream = new StringInputStream(input);
-        const parser = new GrammarParser(inputStream);
+        const parser = new GrammarParser(inputStream, false);
         const grammar = parser.parseGrammar();
         parser.mustBeEOF();
         return grammar;

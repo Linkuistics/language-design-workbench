@@ -233,8 +233,7 @@ export class ModelParser extends Parser {
                 () => this.parseMapType(),
                 () => this.parseSetType(),
                 () => this.parseSequenceType(),
-                () => this.parseOptionType(),
-                () => this.parseResultType()
+                () => this.parseOptionType()
             );
         });
     }
@@ -293,19 +292,6 @@ export class ModelParser extends Parser {
         this.mustConsumeString('>');
 
         return new Model.OptionType(type);
-    }
-
-    parseResultType(): Model.ResultType {
-        let okType;
-        let errType;
-
-        this.mustConsumeString('result<');
-        okType = this.parseType();
-        this.mustConsumeString(',');
-        errType = this.parseType();
-        this.mustConsumeString('>');
-
-        return new Model.ResultType(okType, errType);
     }
 
     parseNamedTypeReference(): Model.NamedTypeReference {
