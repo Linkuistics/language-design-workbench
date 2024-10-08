@@ -5,9 +5,9 @@ export class Model {
     constructor(
         public name:Id,
         public parentName:Option<Id>,
-        public value:Array<Deletion>,
-        public value:Array<MemberModification>,
-        public value:Array<Definition>
+        public deletion:Array<Deletion>,
+        public memberModification:Array<MemberModification>,
+        public definition:Array<Definition>
     ) {}
 }
 
@@ -27,8 +27,8 @@ export class Deletion {
 export class MemberModification {
     constructor(
         public name:Id,
-        public value:Array<MemberDeletion>,
-        public value:Array<MemberAddition>
+        public memberDeletion:Array<MemberDeletion>,
+        public memberAddition:Array<MemberAddition>
     ) {}
 }
 
@@ -40,8 +40,8 @@ export class MemberDeletion {
 
 export class MemberAddition {
     constructor(
-        public value:ProductMember,
-        public value:Type
+        public productMember:ProductMember,
+        public type:Type
     ) {}
 }
 

@@ -11,6 +11,7 @@ import {
     SequenceType
 } from '../../model/model';
 import { alternativeRulesAsEnum } from '../utils';
+import assert from 'assert';
 
 export class ToGrammarWithTypes extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
@@ -85,26 +86,10 @@ export class ToGrammarWithTypes extends Transformer {
     }
 
     transformChoiceRule(input: In.ChoiceRule): Out.ChoiceRule {
-        // Check for an enum - alternatives of strings
-
-        if (this.label /* or at top level */) {
-            const enumMembers = alternativeRulesAsEnum(input);
-            if (enumMembers) {
-                const definitionName = `${this.ruleName}_${this.label}_${this.definitions.length}`;
-                this.definitions.push(
-                    new Definition(definitionName, new EnumType(enumMembers))
-                );
-                this.productMembers.push(
-                    new ProductMember(
-                        this.label ?? 'value',
-                        new NamedTypeReference([definitionName])
-                    )
-                );
-                return new Out.ChoiceRule(
-                    input.choices.map((a) => this.transformSequenceRule(a))
-                );
-            }
-        }
+        assert(
+            this.label === undefined,
+            `Choice rule should not have a label (${this.label}) by the time this pass is applied`
+        );
 
         // Process each choice, and then ...
 
@@ -120,35 +105,12 @@ export class ToGrammarWithTypes extends Transformer {
     }
 
     transformSequenceRule(input: In.SequenceRule): Out.SequenceRule {
-        // if we have a label, we produce a ProductType, or rename the field in the case of a singleton
+        assert(
+            this.label === undefined,
+            `Sequence rule should not have a label (${this.label}) by the time this pass is applied`
+        );
 
-        const oldProductMembers = this.productMembers;
-        this.productMembers = [];
-        const oldLabel = this.label;
-        this.label = undefined;
-        const result = super.transformSequenceRule(input);
-        this.label = oldLabel;
-        const childProductMembers = this.productMembers;
-        this.productMembers = oldProductMembers;
-
-        if (this.label) {
-            if (childProductMembers.length === 1) {
-                childProductMembers[0].name = this.label;
-                this.productMembers.push(childProductMembers[0]);
-            } else if (childProductMembers.length > 1) {
-                const productMember = new ProductMember(
-                    this.label,
-                    new ProductType(childProductMembers)
-                );
-                this.productMembers.push(productMember);
-            }
-        } else {
-            childProductMembers.forEach((member) =>
-                this.productMembers.push(member)
-            );
-        }
-
-        return result;
+        return super.transformSequenceRule(input);
     }
 
     label?: string;

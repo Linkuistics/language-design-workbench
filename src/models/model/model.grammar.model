@@ -1,16 +1,16 @@
 model model {
 
-    Model = { name: Id, parent_name: option<Id>, value: seq<Deletion>, value: seq<MemberModification>, value: seq<Definition> };
+    Model = { name: Id, parent_name: option<Id>, Deletion: seq<Deletion>, MemberModification: seq<MemberModification>, Definition: seq<Definition> };
     
     Definition = { name: Id, Type: Type };
     
     Deletion = { name: Id };
     
-    MemberModification = { name: Id, value: seq<MemberDeletion>, value: seq<MemberAddition> };
+    MemberModification = { name: Id, MemberDeletion: seq<MemberDeletion>, MemberAddition: seq<MemberAddition> };
     
     MemberDeletion = { name: Id };
     
-    MemberAddition = { value: ProductMember, value: Type };
+    MemberAddition = { ProductMember: ProductMember, Type: Type };
     
     Type = { VoidType: VoidType, PrimitiveType: PrimitiveType, EnumType: EnumType, TypeWithStructure: TypeWithStructure, NamedTypeReference: NamedTypeReference };
     

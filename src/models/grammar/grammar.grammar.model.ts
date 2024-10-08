@@ -145,7 +145,8 @@ export class StringElement {
 export class CharSet {
     constructor(
         public negated:boolean,
-        public range:Array<{ startChar:CharSetChar, endChar:Option<CharSetChar> }>
+        public startChar:Array<CharSetChar>,
+        public endChar:Array<Option<CharSetChar>>
     ) {}
 }
 
@@ -160,8 +161,8 @@ export class AnyElement {
 
 export class NegativeLookahead {
     constructor(
-        public content:CharSet,
-        public content:string
+        public charSet:CharSet,
+        public string:string
     ) {}
 }
 

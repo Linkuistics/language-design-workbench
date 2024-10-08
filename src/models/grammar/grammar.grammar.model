@@ -44,13 +44,13 @@ model grammar {
     
     string_element = { value: string };
     
-    char_set = { negated: boolean, range: seq<{ start_char: char_set_char, end_char: option<char_set_char> }> };
+    char_set = { negated: boolean, start_char: seq<char_set_char>, end_char: seq<option<char_set_char>> };
     
     char_set_char = { value: string };
     
     any_element = {  };
     
-    negative_lookahead = { content: char_set, content: string };
+    negative_lookahead = { char_set: char_set, string: string };
     
     identifier = { value: string };
     

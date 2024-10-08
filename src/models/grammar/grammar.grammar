@@ -64,12 +64,12 @@ grammar grammar {
           ( "'" ( [^'\\\n]* | "\\" ['\\] )* "'" )
         | ( '"' ( [^"\\\n]* | '\\' ["\\] )* '"' ) ;
 
-    char_set      @noskip = '[' negated:'^'? range:( start_char:char_set_char ( '-' end_char:char_set_char )? )+ ']' ;
+    char_set      @noskip = '[' negated:'^'? ( start_char:char_set_char ( '-' end_char:char_set_char )? )+ ']' ;
     char_set_char @atomic = [^\\\-\]] | '\\' [\^\\\-\]nt] ;
     
     any_element = '.' ;
 
-    negative_lookahead @noskip = '!' content:( char_set | string ) ;
+    negative_lookahead @noskip = '!' ( char_set | string ) ;
 
     /**************************************************************************
 
