@@ -10,16 +10,21 @@ import {
     SumType,
     Type
 } from '../../model/model';
-import { typesAreEqual } from '../../model/util';
+import { Traverser as ModelTraverser } from '../../model/traverser';
+import { baseType, typesAreEqual } from '../../model/util';
 import * as Out from '../model';
 import { Transformer } from '../transformer';
 import { TraverseDelegate, Traverser } from '../traverser';
-import { TraverseDelegate as ModelTraverseDelegate, Traverser as ModelTraverser } from '../../model/traverser';
-import { pascalCase } from 'literal-case';
 
 export class GrammarWithTypesFromGrammarExtended extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
-        const grammar = new TransformToGrammarWithTypes().transformGrammar(input);
+        return new TransformToGrammarWithTypes().transformGrammar(input);
+    }
+}
+
+class TransformToGrammarWithTypes extends Transformer {
+    transformGrammar(input: In.Grammar): Out.Grammar {
+        const grammar = super.transformGrammar(input);
 
         // Any rule whose type is a ProductType with a single field, that is not referenced
         // from a SumType, can have its type Hoisted
@@ -49,9 +54,7 @@ export class GrammarWithTypesFromGrammarExtended extends Transformer {
 
         return grammar;
     }
-}
 
-class TransformToGrammarWithTypes extends Transformer {
     transformRule(input: In.Rule): Out.Rule {
         if (input.annotation === In.RuleAnnotation.Atomic) {
             // Default Transformer will just map the types
@@ -67,7 +70,42 @@ class TransformToGrammarWithTypes extends Transformer {
 
         const body = this.transformRuleBody(input.body);
 
-        new Traverser(new PropagateFieldMultiplicity()).visitRuleBody(body);
+        // Propagate multiplicity down through the tree
+        const counts: Out.Count[] = [];
+        new Traverser({
+            visitField(field: Out.Field, traverser: Traverser): Out.Field {
+                if (field.type) {
+                    for (let i = counts.length - 1; i >= 0; i--) {
+                        if (counts[i] === Out.Count.Optional) {
+                            if (
+                                field.type === 'boolean' ||
+                                field.type instanceof SequenceType ||
+                                field.type instanceof OptionType
+                            ) {
+                                // No change
+                            } else {
+                                field.type = new OptionType(field.type);
+                            }
+                        } else {
+                            field.type = new SequenceType(field.type);
+                        }
+                    }
+                }
+                return field;
+            },
+            visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser): Out.RuleBody {
+                counts.push(Out.Count.ZeroOrMore);
+                traverser.visitSeparatedByRuleChildren(rule);
+                counts.pop();
+                return rule;
+            },
+            visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser): Out.CountedRuleElement {
+                if (element.count) counts.push(element.count);
+                traverser.visitCountedRuleElementChildren(element);
+                if (element.count) counts.pop();
+                return element;
+            }
+        }).visitRuleBody(body);
 
         const fields: Out.Field[] = [];
         new Traverser(new CollectFields(fields)).visitRuleBody(body);
@@ -80,7 +118,6 @@ class TransformToGrammarWithTypes extends Transformer {
             else 
                replace the type with a SumType of all the types.
 
-            // TODO: if they are all SequenceTypes, make a SequenceType of the SumType of the base types
             // TODO: (maybe) if they are all OptionTypes, make a SequenceType of the SumType of the base types
 
             Do the merging by changing the types of all those fields that have
@@ -97,20 +134,13 @@ class TransformToGrammarWithTypes extends Transformer {
         );
         const duplicatedFields = Object.values(fieldsGroupedByName).filter((v) => v.length > 1);
 
-        const baseTypeOf = (type: Type): Type => {
-            if (type instanceof SequenceType) {
-                return type.elementType;
-            } else if (type instanceof OptionType) {
-                return baseTypeOf(type.type);
-            }
-            return type;
-        };
-
         for (const fields of duplicatedFields) {
-            const theBaseType = baseTypeOf(fields[0].type);
+            const theBaseType = baseType(fields[0].type);
             let theNewType;
-            if (fields.every((f) => typesAreEqual(baseTypeOf(f.type), theBaseType))) {
+            if (fields.every((f) => typesAreEqual(baseType(f.type), theBaseType))) {
                 theNewType = new SequenceType(theBaseType);
+            } else if (fields.every((f) => f instanceof SequenceType)) {
+                theNewType = new SequenceType(new SumType(fields.map((f) => f.type)));
             } else {
                 theNewType = new SumType(fields.map((f) => f.type));
             }
@@ -222,81 +252,37 @@ class TransformToGrammarWithTypes extends Transformer {
 class CollectFields implements TraverseDelegate {
     constructor(public fields: Out.Field[] = []) {}
 
-    visitChoiceRule(rules: Out.ChoiceRule, traverser: Traverser): Out.ChoiceRule {
-        // TODO: Should be option types?
-        traverser.visitChoiceRuleChildren(rules);
-        return rules;
-    }
+    visitChoiceRule(rule: Out.ChoiceRule, traverser: Traverser): Out.ChoiceRule {
+        const choicesFields = rule.choices.map((choice) => {
+            const collector = new CollectFields();
+            new Traverser(collector).visitSequenceRule(choice);
+            return collector.fields;
+        });
 
-    visitEnumRule(rule: Out.EnumRule, traverser: Traverser): Out.EnumRule {
-        if (rule.field) this.fields.push(rule.field);
-        return rule;
-    }
-
-    visitRuleReference(ruleReference: Out.RuleReference, traverser: Traverser): Out.RuleReference {
-        if (ruleReference.field) this.fields.push(ruleReference.field);
-        return ruleReference;
-    }
-
-    visitCharSet(charSet: Out.CharSet, traverser: Traverser): Out.CharSet {
-        if (charSet.field) this.fields.push(charSet.field);
-        return charSet;
-    }
-
-    visitStringElement(stringElement: Out.StringElement, traverser: Traverser): Out.StringElement {
-        if (stringElement.field) this.fields.push(stringElement.field);
-        return stringElement;
-    }
-
-    visitAnyElement(anyElement: Out.AnyElement, traverser: Traverser): Out.AnyElement {
-        if (anyElement.field) this.fields.push(anyElement.field);
-        return anyElement;
-    }
-}
-
-class PropagateFieldMultiplicity extends CollectFields {
-    transformFieldType(field: Out.Field, count: Out.Count): void {
-        if (field.type) {
-            switch (count) {
-                case Out.Count.ZeroOrMore:
-                case Out.Count.OneOrMore:
-                    field.type = new SequenceType(field.type);
-                    break;
-                case Out.Count.Optional:
-                    if (
-                        field.type === 'boolean' ||
-                        field.type instanceof SequenceType ||
-                        field.type instanceof OptionType
-                    ) {
-                    } else {
-                        field.type = new OptionType(field.type);
-                    }
-                    break;
-                default:
-                    break;
+        const firstField = choicesFields[0][0];
+        if (
+            choicesFields.every(
+                (fields) =>
+                    fields.length === 1 && fields[0].name === firstField.name && fields[0].type instanceof SequenceType
+            )
+        ) {
+            // convert F = seq<A> | F = seq<B> to F = seq<A | B>
+            const newType = new SequenceType(new SumType(choicesFields.map((fields) => baseType(fields[0].type))));
+            for (const fields of choicesFields) {
+                fields[0].type = newType;
             }
-        }
-    }
-
-    visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser): Out.RuleBody {
-        let oldFieldLength = this.fields.length;
-        traverser.visitSeparatedByRuleChildren(rule);
-        for (let i = oldFieldLength; i < this.fields.length; i++) {
-            this.transformFieldType(this.fields[i], Out.Count.ZeroOrMore);
+            this.fields.push(firstField);
+        } else {
+            for (const field of choicesFields.flat()) {
+                this.fields.push(field);
+            }
         }
 
         return rule;
     }
 
-    visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser): Out.CountedRuleElement {
-        let oldFieldLength = this.fields.length;
-        traverser.visitCountedRuleElementChildren(element);
-        if (element.count) {
-            for (let i = oldFieldLength; i < this.fields.length; i++) {
-                this.transformFieldType(this.fields[i], element.count);
-            }
-        }
-
-        return element;
+    visitField(field: Out.Field, traverser: Traverser): Out.Field {
+        this.fields.push(field);
+        return field;
     }
 }

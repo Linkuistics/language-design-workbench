@@ -16,9 +16,17 @@ import {
     SumType,
     TupleType,
     Type,
-    VoidType,
-    PrimitiveType
+    VoidType
 } from './model';
+
+export function baseType(type: Type): Type {
+    if (type instanceof SequenceType) {
+        return type.elementType;
+    } else if (type instanceof OptionType) {
+        return baseType(type.type);
+    }
+    return type;
+}
 
 export function findFieldName(field: ProductMember): string {
     if (field.name) {

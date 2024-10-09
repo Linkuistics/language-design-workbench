@@ -173,7 +173,7 @@ export class ModelToTypesTypescriptSource implements TraverseDelegate {
             traverser.visitType(sequenceType.elementType);
             this.definitionsSource += `>`;
         } else {
-            if (sequenceType.elementType instanceof OptionType) {
+            if (sequenceType.elementType instanceof OptionType || sequenceType.elementType instanceof SumType) {
                 this.definitionsSource += `(`;
                 traverser.visitType(sequenceType.elementType);
                 this.definitionsSource += `)`;
