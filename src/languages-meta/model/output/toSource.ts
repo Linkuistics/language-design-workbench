@@ -46,7 +46,7 @@ export class ModelToSource implements TraverseDelegate {
         return result;
     }
 
-    visitModel(model: Model, traverser: Traverser): Model {
+    visitModel(model: Model, traverser: Traverser) {
         model.values.forEach((value, index) => {
             if (value instanceof Definition) {
                 this.visitDefinition(value, traverser);
@@ -56,24 +56,21 @@ export class ModelToSource implements TraverseDelegate {
                 this.visitMemberModification(value, traverser);
             }
         });
-        return model;
     }
 
-    visitDefinition(definition: Definition, traverser: Traverser): Definition {
+    visitDefinition(definition: Definition, traverser: Traverser) {
         this.output.write(`${definition.name} = `);
         traverser.visitType(definition.type);
         this.output.writeLine(';');
         this.output.writeLine();
-        return definition;
     }
 
-    visitDeletion(deletion: Deletion): Deletion {
+    visitDeletion(deletion: Deletion) {
         this.output.writeLine(`delete ${deletion.name};`);
         this.output.writeLine();
-        return deletion;
     }
 
-    visitMemberModification(memberModification: MemberModification, traverser: Traverser): MemberModification {
+    visitMemberModification(memberModification: MemberModification, traverser: Traverser) {
         this.output.writeLine(`modify ${memberModification.name} {`);
         this.output.indentDuring(() => {
             memberModification.values.forEach((value) => {
@@ -94,20 +91,17 @@ export class ModelToSource implements TraverseDelegate {
         });
         this.output.writeLine('};');
         this.output.writeLine();
-        return memberModification;
     }
 
-    visitVoidType(voidType: VoidType): VoidType {
+    visitVoidType(voidType: VoidType) {
         this.output.write('()');
-        return voidType;
     }
 
-    visitPrimitiveType(primitiveType: PrimitiveType): PrimitiveType {
+    visitPrimitiveType(primitiveType: PrimitiveType) {
         this.output.write(primitiveType);
-        return primitiveType;
     }
 
-    visitEnumType(enumType: EnumType): EnumType {
+    visitEnumType(enumType: EnumType) {
         if (enumType.members.length > 1) {
             this.output.writeLine('{');
             this.output.indentDuring(() => {
@@ -119,10 +113,9 @@ export class ModelToSource implements TraverseDelegate {
             this.output.join(enumType.members, ' | ', (member) => this.output.write(`"${member}"`));
             this.output.write(' }');
         }
-        return enumType;
     }
 
-    visitSumType(sumType: SumType, traverser: Traverser): SumType {
+    visitSumType(sumType: SumType, traverser: Traverser) {
         if (sumType.members.length > 1) {
             this.output.writeLine('{');
             this.output.indentDuring(() => {
@@ -134,10 +127,9 @@ export class ModelToSource implements TraverseDelegate {
             this.output.join(sumType.members, ' | ', (member) => traverser.visitType(member));
             this.output.write(' }');
         }
-        return sumType;
     }
 
-    visitProductType(productType: ProductType, traverser: Traverser): ProductType {
+    visitProductType(productType: ProductType, traverser: Traverser) {
         if (productType.members.length > 1) {
             this.output.writeLine('{');
             this.output.indentDuring(() => {
@@ -155,48 +147,41 @@ export class ModelToSource implements TraverseDelegate {
             });
             this.output.write(' }');
         }
-        return productType;
     }
 
-    visitTupleType(tupleType: TupleType, traverser: Traverser): TupleType {
+    visitTupleType(tupleType: TupleType, traverser: Traverser) {
         this.output.write('tuple<');
         this.output.join(tupleType.members, ', ', (member) => traverser.visitType(member));
         this.output.write('>');
-        return tupleType;
     }
 
-    visitMapType(mapType: MapType, traverser: Traverser): MapType {
+    visitMapType(mapType: MapType, traverser: Traverser) {
         this.output.write('map<');
         traverser.visitType(mapType.keyType);
         this.output.write(', ');
         traverser.visitType(mapType.valueType);
         this.output.write('>');
-        return mapType;
     }
 
-    visitSetType(setType: SetType, traverser: Traverser): SetType {
+    visitSetType(setType: SetType, traverser: Traverser) {
         this.output.write('set<');
         traverser.visitType(setType.keyType);
         this.output.write('>');
-        return setType;
     }
 
-    visitSequenceType(sequenceType: SequenceType, traverser: Traverser): SequenceType {
+    visitSequenceType(sequenceType: SequenceType, traverser: Traverser) {
         this.output.write('seq<');
         traverser.visitType(sequenceType.elementType);
         this.output.write('>');
-        return sequenceType;
     }
 
-    visitOptionType(optionType: OptionType, traverser: Traverser): OptionType {
+    visitOptionType(optionType: OptionType, traverser: Traverser) {
         this.output.write('option<');
         traverser.visitType(optionType.type);
         this.output.write('>');
-        return optionType;
     }
 
-    visitNamedTypeReference(namedTypeReference: NamedTypeReference): NamedTypeReference {
+    visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
         this.output.write(namedTypeReference.names.join('::'));
-        return namedTypeReference;
     }
 }

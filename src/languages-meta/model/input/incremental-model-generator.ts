@@ -11,7 +11,6 @@ import {
     OptionType,
     PrimitiveType,
     ProductType,
-    ResultType,
     SequenceType,
     SetType,
     SumType,
@@ -19,7 +18,7 @@ import {
     Type,
     VoidType,
     ProductMember
-} from '../../../src/models/model/model';
+} from '../model';
 
 function generateRandomString(length: number = 5): string {
     const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -40,40 +39,17 @@ function generateComplexType(depth: number = 0): Type {
         () => new VoidType(),
         generatePrimitiveType,
         () => new EnumType([generateRandomString(), generateRandomString()]),
-        () =>
-            new SumType([
-                generateComplexType(depth + 1),
-                generateComplexType(depth + 1)
-            ]),
+        () => new SumType([generateComplexType(depth + 1), generateComplexType(depth + 1)]),
         () =>
             new ProductType([
-                new ProductMember(
-                    generateRandomString(),
-                    generateComplexType(depth + 1)
-                ),
-                new ProductMember(
-                    generateRandomString(),
-                    generateComplexType(depth + 1)
-                )
+                new ProductMember(generateRandomString(), generateComplexType(depth + 1)),
+                new ProductMember(generateRandomString(), generateComplexType(depth + 1))
             ]),
-        () =>
-            new TupleType([
-                generateComplexType(depth + 1),
-                generateComplexType(depth + 1)
-            ]),
-        () =>
-            new MapType(
-                generateComplexType(depth + 1),
-                generateComplexType(depth + 1)
-            ),
+        () => new TupleType([generateComplexType(depth + 1), generateComplexType(depth + 1)]),
+        () => new MapType(generateComplexType(depth + 1), generateComplexType(depth + 1)),
         () => new SetType(generateComplexType(depth + 1)),
         () => new SequenceType(generateComplexType(depth + 1)),
         () => new OptionType(generateComplexType(depth + 1)),
-        () =>
-            new ResultType(
-                generateComplexType(depth + 1),
-                generateComplexType(depth + 1)
-            ),
         () => new NamedTypeReference([generateRandomString()])
     ];
 
@@ -132,9 +108,7 @@ class CoverageTracker {
     }
 }
 
-export class IncrementalModelGenerator
-    implements IterableIterator<{ model: Model; change: string }>
-{
+export class IncrementalModelGenerator implements IterableIterator<{ model: Model; change: string }> {
     private currentModel: Model;
     private changeHistory: string[];
     private coverageTracker: CoverageTracker;
@@ -148,10 +122,7 @@ export class IncrementalModelGenerator
     }
 
     next(): IteratorResult<{ model: Model; change: string }> {
-        if (
-            this.stepCount >= this.maxSteps ||
-            this.coverageTracker.isFullyCovered()
-        ) {
+        if (this.stepCount >= this.maxSteps || this.coverageTracker.isFullyCovered()) {
             return { done: true, value: undefined };
         }
 
@@ -174,10 +145,7 @@ export class IncrementalModelGenerator
     private generateNextChange(): void {
         const uncoveredTypes = this.coverageTracker.getUncoveredTypes();
         if (uncoveredTypes.length > 0) {
-            const typeToGenerate =
-                uncoveredTypes[
-                    Math.floor(Math.random() * uncoveredTypes.length)
-                ];
+            const typeToGenerate = uncoveredTypes[Math.floor(Math.random() * uncoveredTypes.length)];
             switch (typeToGenerate) {
                 case 'Definition':
                     this.addDefinition();
@@ -193,11 +161,7 @@ export class IncrementalModelGenerator
             }
         } else {
             // If all types are covered, randomly choose an action
-            const actions = [
-                this.addDefinition,
-                this.addDeletion,
-                this.addMemberModification
-            ];
+            const actions = [this.addDefinition, this.addDeletion, this.addMemberModification];
             const action = actions[Math.floor(Math.random() * actions.length)];
             action.call(this);
         }
@@ -208,9 +172,7 @@ export class IncrementalModelGenerator
         const name = generateRandomString();
         const newDefinition = new Definition(name, type);
         this.currentModel.values.push(newDefinition);
-        this.changeHistory.push(
-            `Added definition: ${name} (${this.typeToString(type)})`
-        );
+        this.changeHistory.push(`Added definition: ${name} (${this.typeToString(type)})`);
         this.coverageTracker.markTypeCovered('Definition');
         if (typeKind) this.coverageTracker.markTypeCovered(typeKind);
     }
@@ -228,16 +190,11 @@ export class IncrementalModelGenerator
         const memberModification = new MemberModification(name, []);
 
         // Add a MemberAddition
-        const newMember = new ProductMember(
-            generateRandomString(),
-            generateComplexType()
-        );
+        const newMember = new ProductMember(generateRandomString(), generateComplexType());
         memberModification.values.push(new MemberAddition(newMember));
 
         // Add a MemberDeletion
-        memberModification.values.push(
-            new MemberDeletion(generateRandomString())
-        );
+        memberModification.values.push(new MemberDeletion(generateRandomString()));
 
         this.currentModel.values.push(memberModification);
         this.changeHistory.push(`Added member modification: ${name}`);
@@ -257,22 +214,14 @@ export class IncrementalModelGenerator
         if (type instanceof VoidType) return '()';
         if (type instanceof ProductType)
             return `{ ${type.members.map((m) => `${m.name}: ${this.typeToString(m.type)}`).join(' ')} }`;
-        if (type instanceof SumType)
-            return `{ ${type.members.map(this.typeToString).join(' | ')} }`;
-        if (type instanceof SequenceType)
-            return `seq<${this.typeToString(type.elementType)}>`;
+        if (type instanceof SumType) return `{ ${type.members.map(this.typeToString).join(' | ')} }`;
+        if (type instanceof SequenceType) return `seq<${this.typeToString(type.elementType)}>`;
         if (type instanceof MapType)
             return `map<${this.typeToString(type.keyType)} ${this.typeToString(type.valueType)}>`;
-        if (type instanceof SetType)
-            return `set<${this.typeToString(type.keyType)}>`;
-        if (type instanceof OptionType)
-            return `option<${this.typeToString(type.type)}>`;
-        if (type instanceof ResultType)
-            return `result<${this.typeToString(type.okType)} ${this.typeToString(type.errType)}>`;
-        if (type instanceof TupleType)
-            return `tuple<${type.members.map(this.typeToString).join(' ')}>`;
-        if (type instanceof EnumType)
-            return `{ ${type.members.map((m) => `"${m}"`).join(' | ')} }`;
+        if (type instanceof SetType) return `set<${this.typeToString(type.keyType)}>`;
+        if (type instanceof OptionType) return `option<${this.typeToString(type.type)}>`;
+        if (type instanceof TupleType) return `tuple<${type.members.map(this.typeToString).join(' ')}>`;
+        if (type instanceof EnumType) return `{ ${type.members.map((m) => `"${m}"`).join(' | ')} }`;
         if (type instanceof NamedTypeReference) return type.names.join('::');
         return 'unknown';
     };

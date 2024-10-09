@@ -1,4 +1,5 @@
 import { camelCase, pascalCase } from 'literal-case';
+import { IndentingOutputStream } from '../../../output/indentingOutputStream';
 import {
     Definition,
     EnumType,
@@ -17,188 +18,158 @@ import {
 import { TraverseDelegate, Traverser } from '../traverser';
 
 export class ModelToTypesTypescriptSource implements TraverseDelegate {
-    private definitionsSource = '';
+    private output: IndentingOutputStream;
 
-    constructor(public useGenerics: boolean) {}
+    constructor(public useGenerics: boolean) {
+        this.output = new IndentingOutputStream();
+    }
 
     transform(model: Model): string {
         if (this.useGenerics) {
-            this.definitionsSource += 'type Option<T> = T | undefined;\n' + '\n\n';
+            this.output.writeLine('type Option<T> = T | undefined;');
+            this.output.writeLine();
         }
         new Traverser(this).visitModel(model);
 
-        return this.definitionsSource.trim();
+        return this.output.toString().trim();
     }
 
-    visitDefinition(definition: Definition, traverser: Traverser): Definition {
+    visitDefinition(definition: Definition, traverser: Traverser) {
         if (definition.type instanceof ProductType) {
-            this.definitionsSource += `export class ${pascalCase(definition.name)} {\n`;
-            if (definition.type.members.length > 0) {
-                this.definitionsSource += '    constructor(\n';
-                for (let i = 0; i < definition.type.members.length; i++) {
-                    if (0 < i) this.definitionsSource += ',\n';
-                    const member = definition.type.members[i];
-                    this.definitionsSource += `        public ${camelCase(member.name)}:`;
-                    traverser.visitType(member.type);
+            this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
+            this.output.indentDuring(() => {
+                const productType = definition.type as ProductType;
+                if (productType.members.length > 0) {
+                    this.output.writeLine('constructor(');
+                    this.output.indentDuring(() => {
+                        this.output.join(productType.members, ',\n', (member) => {
+                            this.output.write(`public ${camelCase(member.name)}: `);
+                            traverser.visitType(member.type);
+                        });
+                        this.output.writeLine();
+                    });
+                    this.output.writeLine(') {}');
                 }
-                this.definitionsSource += `\n    ) {}\n`;
-            }
-            this.definitionsSource += `}\n\n`;
+            });
+            this.output.writeLine('}');
         } else if (definition.type instanceof EnumType) {
-            this.definitionsSource += `export enum ${pascalCase(definition.name)} {`;
-            for (let i = 0; i < definition.type.members.length; i++) {
-                const member = definition.type.members[i];
-                this.definitionsSource += `    ${pascalCase(member)},`;
-            }
-            this.definitionsSource += `}\n\n`;
+            this.output.writeLine(`export enum ${pascalCase(definition.name)} {`);
+            this.output.indentDuring(() => {
+                const enumType = definition.type as EnumType;
+                this.output.join(enumType.members, ',\n', (member) => {
+                    this.output.write(`${pascalCase(member)}`);
+                });
+                this.output.writeLine();
+            });
+            this.output.writeLine('}');
         } else {
-            this.definitionsSource += `export type ${pascalCase(definition.name)} = `;
+            this.output.write(`export type ${pascalCase(definition.name)} = `);
             traverser.visitType(definition.type);
-            this.definitionsSource += `;\n\n`;
+            this.output.writeLine(';');
         }
-
-        return definition;
+        this.output.writeLine();
     }
 
-    visitVoidType(voidType: VoidType): VoidType {
-        this.definitionsSource += 'void';
-        return voidType;
+    visitVoidType(voidType: VoidType) {
+        this.output.write('void');
     }
 
-    visitPrimitiveType(primitiveType: PrimitiveType): PrimitiveType {
+    visitPrimitiveType(primitiveType: PrimitiveType) {
         switch (primitiveType) {
             case 'boolean':
-                this.definitionsSource += 'boolean';
+                this.output.write('boolean');
                 break;
             case 'char':
-                this.definitionsSource += 'string';
-                break;
             case 'string':
-                this.definitionsSource += 'string';
+                this.output.write('string');
                 break;
             case 'i8':
-                this.definitionsSource += 'number';
-                break;
             case 'i16':
-                this.definitionsSource += 'number';
-                break;
             case 'i32':
-                this.definitionsSource += 'number';
-                break;
             case 'i64':
-                this.definitionsSource += 'number';
-                break;
             case 'u8':
-                this.definitionsSource += 'number';
-                break;
             case 'u16':
-                this.definitionsSource += 'number';
-                break;
             case 'u32':
-                this.definitionsSource += 'number';
-                break;
             case 'u64':
-                this.definitionsSource += 'number';
-                break;
             case 'f32':
-                this.definitionsSource += 'number';
-                break;
             case 'f64':
-                this.definitionsSource += 'number';
+                this.output.write('number');
                 break;
         }
-        return primitiveType;
     }
 
-    visitEnumType(enumType: EnumType): EnumType {
-        for (let i = 0; i < enumType.members.length; i++) {
-            if (0 < i) this.definitionsSource += ' | ';
-            this.definitionsSource += `"${pascalCase(enumType.members[i])}"`;
-        }
-        return enumType;
-    }
-
-    visitSumType(sumType: SumType, traverser: Traverser): SumType {
-        for (let i = 0; i < sumType.members.length; i++) {
-            if (0 < i) this.definitionsSource += ' | ';
-            const member = sumType.members[i];
-            traverser.visitType(member);
-        }
-        return sumType;
-    }
-
-    visitProductType(productType: ProductType, traverser: Traverser): ProductType {
-        this.definitionsSource += `{ `;
-        for (let i = 0; i < productType.members.length; i++) {
-            if (0 < i) this.definitionsSource += ', ';
-            const member = productType.members[i];
-            this.definitionsSource += `${camelCase(member.name)}:`;
-            traverser.visitType(member.type);
-        }
-        this.definitionsSource += ` }`;
-        return productType;
-    }
-
-    visitTupleType(tupleType: TupleType, traverser: Traverser): TupleType {
-        this.definitionsSource += `[`;
-        tupleType.members.forEach((member, index) => {
-            traverser.visitType(member);
-            if (index < tupleType.members.length - 1) {
-                this.definitionsSource += ', ';
-            }
+    visitEnumType(enumType: EnumType) {
+        this.output.join(enumType.members, ' | ', (member) => {
+            this.output.write(`"${pascalCase(member)}"`);
         });
-        this.definitionsSource += `]`;
-        return tupleType;
     }
 
-    visitMapType(mapType: MapType, traverser: Traverser): MapType {
-        this.definitionsSource += `Map<`;
+    visitSumType(sumType: SumType, traverser: Traverser) {
+        this.output.join(sumType.members, ' | ', (member) => {
+            traverser.visitType(member);
+        });
+    }
+
+    visitProductType(productType: ProductType, traverser: Traverser) {
+        this.output.write('{ ');
+        this.output.join(productType.members, ', ', (member) => {
+            this.output.write(`${camelCase(member.name)}: `);
+            traverser.visitType(member.type);
+        });
+        this.output.write(' }');
+    }
+
+    visitTupleType(tupleType: TupleType, traverser: Traverser) {
+        this.output.write('[');
+        this.output.join(tupleType.members, ', ', (member) => {
+            traverser.visitType(member);
+        });
+        this.output.write(']');
+    }
+
+    visitMapType(mapType: MapType, traverser: Traverser) {
+        this.output.write('Map<');
         traverser.visitType(mapType.keyType);
-        this.definitionsSource += ', ';
+        this.output.write(', ');
         traverser.visitType(mapType.valueType);
-        this.definitionsSource += `>`;
-        return mapType;
+        this.output.write('>');
     }
 
-    visitSetType(setType: SetType, traverser: Traverser): SetType {
-        this.definitionsSource += `Set<`;
+    visitSetType(setType: SetType, traverser: Traverser) {
+        this.output.write('Set<');
         traverser.visitType(setType.keyType);
-        this.definitionsSource += `>`;
-        return setType;
+        this.output.write('>');
     }
 
-    visitSequenceType(sequenceType: SequenceType, traverser: Traverser): SequenceType {
+    visitSequenceType(sequenceType: SequenceType, traverser: Traverser) {
         if (this.useGenerics) {
-            this.definitionsSource += `Array<`;
+            this.output.write('Array<');
             traverser.visitType(sequenceType.elementType);
-            this.definitionsSource += `>`;
+            this.output.write('>');
         } else {
             if (sequenceType.elementType instanceof OptionType || sequenceType.elementType instanceof SumType) {
-                this.definitionsSource += `(`;
+                this.output.write('(');
                 traverser.visitType(sequenceType.elementType);
-                this.definitionsSource += `)`;
+                this.output.write(')');
             } else {
                 traverser.visitType(sequenceType.elementType);
             }
-            this.definitionsSource += `[]`;
+            this.output.write('[]');
         }
-        return sequenceType;
     }
 
-    visitOptionType(optionType: OptionType, traverser: Traverser): OptionType {
+    visitOptionType(optionType: OptionType, traverser: Traverser) {
         if (this.useGenerics) {
-            this.definitionsSource += `Option<`;
+            this.output.write('Option<');
             traverser.visitType(optionType.type);
-            this.definitionsSource += `>`;
+            this.output.write('>');
         } else {
             traverser.visitType(optionType.type);
-            this.definitionsSource += ` | undefined`;
+            this.output.write(' | undefined');
         }
-        return optionType;
     }
 
-    visitNamedTypeReference(namedTypeReference: NamedTypeReference): NamedTypeReference {
-        this.definitionsSource += pascalCase(namedTypeReference.names[namedTypeReference.names.length - 1]);
-        return namedTypeReference;
+    visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
+        this.output.write(pascalCase(namedTypeReference.names[namedTypeReference.names.length - 1]));
     }
 }

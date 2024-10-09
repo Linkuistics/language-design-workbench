@@ -3,7 +3,7 @@ import { ModelFromSource } from '../../../../src/languages-meta/model/input/from
 import { Model } from '../../../../src/languages-meta/model/model';
 import { ModelToSource } from '../../../../src/languages-meta/model/output/toSource';
 import { modelsAreEqual } from '../../../../src/languages-meta/model/util';
-import { IncrementalModelGenerator } from '../incremental-model-generator';
+import { IncrementalModelGenerator } from '../../../../src/languages-meta/model/input/incremental-model-generator';
 
 describe('ToLDWMSource', () => {
     it('should correctly transform and parse back incrementally generated models', () => {

@@ -1,4 +1,4 @@
-import { ModelBuilder } from '../../../src/models/model/builder';
+import { ModelBuilder } from '../../../src/languages-meta/model/builder';
 import {
     Definition,
     EnumType,
@@ -7,18 +7,13 @@ import {
     ProductType,
     SequenceType,
     SumType
-} from '../../../src/models/model/model';
-
-let passedTests = 0;
-let failedTests = 0;
+} from '../../../src/languages-meta/model/model';
 
 function assertDeepEqual(actual: any, expected: any, message: string) {
     const actualStr = JSON.stringify(actual);
     const expectedStr = JSON.stringify(expected);
     if (actualStr !== expectedStr) {
-        throw new Error(
-            `${message}\nExpected: ${expectedStr}\nActual: ${actualStr}`
-        );
+        throw new Error(`${message}\nExpected: ${expectedStr}\nActual: ${actualStr}`);
     }
 }
 
@@ -34,9 +29,7 @@ describe('NewLDWMBuilder', () => {
         const model = builder.build();
         assertDeepEqual(
             model,
-            new Model('TestModel', undefined, [
-                new Definition('TestString', 'string')
-            ]),
+            new Model('TestModel', undefined, [new Definition('TestString', 'string')]),
             'Model with primitive type mismatch'
         );
     });
@@ -55,9 +48,7 @@ describe('NewLDWMBuilder', () => {
         const model = builder.build();
         assertDeepEqual(
             model,
-            new Model('TestModel', undefined, [
-                new Definition('TestEnum', new EnumType(['A', 'B', 'C']))
-            ]),
+            new Model('TestModel', undefined, [new Definition('TestEnum', new EnumType(['A', 'B', 'C']))]),
             'Model with enum type mismatch'
         );
     });
@@ -81,10 +72,7 @@ describe('NewLDWMBuilder', () => {
             new Model('TestModel', undefined, [
                 new Definition(
                     'TestProduct',
-                    new ProductType([
-                        new ProductMember('name', 'string'),
-                        new ProductMember('age', 'i32')
-                    ])
+                    new ProductType([new ProductMember('name', 'string'), new ProductMember('age', 'i32')])
                 )
             ]),
             'Model with product type mismatch'
@@ -107,9 +95,7 @@ describe('NewLDWMBuilder', () => {
         const model = builder.build();
         assertDeepEqual(
             model,
-            new Model('TestModel', undefined, [
-                new Definition('TestSum', new SumType(['string', 'i32']))
-            ]),
+            new Model('TestModel', undefined, [new Definition('TestSum', new SumType(['string', 'i32']))]),
             'Model with sum type mismatch'
         );
     });
@@ -135,10 +121,7 @@ describe('NewLDWMBuilder', () => {
                 new Definition(
                     'TestNested',
                     new SequenceType(
-                        new ProductType([
-                            new ProductMember('name', 'string'),
-                            new ProductMember('age', 'i32')
-                        ])
+                        new ProductType([new ProductMember('name', 'string'), new ProductMember('age', 'i32')])
                     )
                 )
             ]),

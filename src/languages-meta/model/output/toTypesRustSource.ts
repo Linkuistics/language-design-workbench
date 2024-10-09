@@ -18,9 +18,7 @@ import { TraverseDelegate, Traverser } from '../traverser';
 
 export class ModelToTypesRustSource implements TraverseDelegate {
     private definitionsSource =
-        'type OptionType<T> = T | undefined;\n' +
-        'type ResultType<O, E> = O | { error: E }\n' +
-        '\n\n';
+        'type OptionType<T> = T | undefined;\n' + 'type ResultType<O, E> = O | { error: E }\n' + '\n\n';
 
     constructor(public useGenerics: boolean) {}
 
@@ -32,27 +30,25 @@ export class ModelToTypesRustSource implements TraverseDelegate {
 
     visitDefinition(definition: Definition, traverser: Traverser): Definition {
         if (definition.type instanceof ProductType) {
-            this.definitionsSource += `export class ${pascalCase(definition.name)} {\n`;
+            this.definitionsSource += `pub struct ${pascalCase(definition.name)} {\n`;
             if (definition.type.members.length > 0) {
-                this.definitionsSource += '    constructor(\n';
                 for (let i = 0; i < definition.type.members.length; i++) {
-                    if (0 < i) this.definitionsSource += ',\n';
                     const member = definition.type.members[i];
-                    this.definitionsSource += `        public ${camelCase(member.name)}:`;
+                    this.definitionsSource += `    pub ${camelCase(member.name)}: `;
                     traverser.visitType(member.type);
+                    this.definitionsSource += ',\n';
                 }
-                this.definitionsSource += `\n    ) {}\n`;
             }
             this.definitionsSource += `}\n\n`;
         } else if (definition.type instanceof EnumType) {
-            this.definitionsSource += `export enum ${pascalCase(definition.name)} {`;
+            this.definitionsSource += `pub enum ${pascalCase(definition.name)} {`;
             for (let i = 0; i < definition.type.members.length; i++) {
                 const member = definition.type.members[i];
                 this.definitionsSource += `    ${pascalCase(member)},`;
             }
             this.definitionsSource += `}\n\n`;
         } else {
-            this.definitionsSource += `export type ${pascalCase(definition.name)} =`;
+            this.definitionsSource += `pub type ${pascalCase(definition.name)} =`;
             traverser.visitType(definition.type);
             this.definitionsSource += `;\n\n`;
         }
@@ -67,44 +63,11 @@ export class ModelToTypesRustSource implements TraverseDelegate {
 
     visitPrimitiveType(primitiveType: PrimitiveType): PrimitiveType {
         switch (primitiveType) {
-            case 'boolean':
-                this.definitionsSource += 'boolean';
-                break;
-            case 'char':
-                this.definitionsSource += 'string';
-                break;
             case 'string':
-                this.definitionsSource += 'string';
+                this.definitionsSource += 'String';
                 break;
-            case 'i8':
-                this.definitionsSource += 'number';
-                break;
-            case 'i16':
-                this.definitionsSource += 'number';
-                break;
-            case 'i32':
-                this.definitionsSource += 'number';
-                break;
-            case 'i64':
-                this.definitionsSource += 'number';
-                break;
-            case 'u8':
-                this.definitionsSource += 'number';
-                break;
-            case 'u16':
-                this.definitionsSource += 'number';
-                break;
-            case 'u32':
-                this.definitionsSource += 'number';
-                break;
-            case 'u64':
-                this.definitionsSource += 'number';
-                break;
-            case 'f32':
-                this.definitionsSource += 'number';
-                break;
-            case 'f64':
-                this.definitionsSource += 'number';
+            default:
+                this.definitionsSource += primitiveType;
                 break;
         }
         return primitiveType;
@@ -127,10 +90,7 @@ export class ModelToTypesRustSource implements TraverseDelegate {
         return sumType;
     }
 
-    visitProductType(
-        productType: ProductType,
-        traverser: Traverser
-    ): ProductType {
+    visitProductType(productType: ProductType, traverser: Traverser): ProductType {
         this.definitionsSource += `{ `;
         for (let i = 0; i < productType.members.length; i++) {
             if (0 < i) this.definitionsSource += ', ';
@@ -155,7 +115,7 @@ export class ModelToTypesRustSource implements TraverseDelegate {
     }
 
     visitMapType(mapType: MapType, traverser: Traverser): MapType {
-        this.definitionsSource += `Map<`;
+        this.definitionsSource += `std::collections::HashMap<`;
         traverser.visitType(mapType.keyType);
         this.definitionsSource += ', ';
         traverser.visitType(mapType.valueType);
@@ -164,17 +124,14 @@ export class ModelToTypesRustSource implements TraverseDelegate {
     }
 
     visitSetType(setType: SetType, traverser: Traverser): SetType {
-        this.definitionsSource += `Set<`;
+        this.definitionsSource += `std::collections::HashSet<`;
         traverser.visitType(setType.keyType);
         this.definitionsSource += `>`;
         return setType;
     }
 
-    visitSequenceType(
-        sequenceType: SequenceType,
-        traverser: Traverser
-    ): SequenceType {
-        this.definitionsSource += `Array<`;
+    visitSequenceType(sequenceType: SequenceType, traverser: Traverser): SequenceType {
+        this.definitionsSource += `Vec<`;
         traverser.visitType(sequenceType.elementType);
         this.definitionsSource += `>`;
         return sequenceType;
@@ -187,12 +144,8 @@ export class ModelToTypesRustSource implements TraverseDelegate {
         return optionType;
     }
 
-    visitNamedTypeReference(
-        namedTypeReference: NamedTypeReference
-    ): NamedTypeReference {
-        this.definitionsSource += pascalCase(
-            namedTypeReference.names[namedTypeReference.names.length - 1]
-        );
+    visitNamedTypeReference(namedTypeReference: NamedTypeReference): NamedTypeReference {
+        this.definitionsSource += pascalCase(namedTypeReference.names[namedTypeReference.names.length - 1]);
         return namedTypeReference;
     }
 }

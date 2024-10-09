@@ -7,8 +7,7 @@ import {
     ProductMember,
     ProductType,
     SequenceType,
-    SumType,
-    Type
+    SumType
 } from '../../model/model';
 import { Traverser as ModelTraverser } from '../../model/traverser';
 import { baseType, typesAreEqual } from '../../model/util';
@@ -31,14 +30,13 @@ class TransformToGrammarWithTypes extends Transformer {
 
         const sumMembers = new Set<string>();
         const traverser = new ModelTraverser({
-            visitSumType(type: SumType, traverser: ModelTraverser): SumType {
+            visitSumType(type: SumType, traverser: ModelTraverser) {
                 for (const member of type.members) {
                     if (member instanceof NamedTypeReference) {
                         sumMembers.add(member.names[member.names.length - 1]);
                     }
                 }
                 traverser.visitSumTypeChildren(type);
-                return type;
             }
         });
 
@@ -73,7 +71,7 @@ class TransformToGrammarWithTypes extends Transformer {
         // Propagate multiplicity down through the tree
         const counts: Out.Count[] = [];
         new Traverser({
-            visitField(field: Out.Field, traverser: Traverser): Out.Field {
+            visitField(field: Out.Field) {
                 if (field.type) {
                     for (let i = counts.length - 1; i >= 0; i--) {
                         if (counts[i] === Out.Count.Optional) {
@@ -91,19 +89,16 @@ class TransformToGrammarWithTypes extends Transformer {
                         }
                     }
                 }
-                return field;
             },
-            visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser): Out.RuleBody {
+            visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser) {
                 counts.push(Out.Count.ZeroOrMore);
                 traverser.visitSeparatedByRuleChildren(rule);
                 counts.pop();
-                return rule;
             },
-            visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser): Out.CountedRuleElement {
+            visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser) {
                 if (element.count) counts.push(element.count);
                 traverser.visitCountedRuleElementChildren(element);
                 if (element.count) counts.pop();
-                return element;
             }
         }).visitRuleBody(body);
 
@@ -252,7 +247,7 @@ class TransformToGrammarWithTypes extends Transformer {
 class CollectFields implements TraverseDelegate {
     constructor(public fields: Out.Field[] = []) {}
 
-    visitChoiceRule(rule: Out.ChoiceRule, traverser: Traverser): Out.ChoiceRule {
+    visitChoiceRule(rule: Out.ChoiceRule) {
         const choicesFields = rule.choices.map((choice) => {
             const collector = new CollectFields();
             new Traverser(collector).visitSequenceRule(choice);
@@ -277,12 +272,9 @@ class CollectFields implements TraverseDelegate {
                 this.fields.push(field);
             }
         }
-
-        return rule;
     }
 
-    visitField(field: Out.Field, traverser: Traverser): Out.Field {
+    visitField(field: Out.Field) {
         this.fields.push(field);
-        return field;
     }
 }
