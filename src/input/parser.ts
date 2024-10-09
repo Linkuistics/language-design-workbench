@@ -15,9 +15,7 @@ export type ParseFailure = {
     position: number;
     children?: ParseFailure[];
 };
-export type ParseResult<T> =
-    | { success: true; value: T }
-    | { success: false; failure: ParseFailure };
+export type ParseResult<T> = { success: true; value: T } | { success: false; failure: ParseFailure };
 
 /**
  * Represents a piece of skipped trivia in the input stream.
@@ -139,8 +137,7 @@ export abstract class Parser implements InputStream {
      * @throws Error if attempting to restore to a future position.
      */
     restorePosition(position: number): void {
-        if (position > this.input.getPosition())
-            throw new Error('Cannot restore to a future position');
+        if (position > this.input.getPosition()) throw new Error('Cannot restore to a future position');
         this.input.restorePosition(position);
         this.debugLog(`Restored position to ${position}`);
     }
@@ -168,18 +165,14 @@ export abstract class Parser implements InputStream {
     peek(): string | undefined {
         this.skipTriviaIfEnabled();
         const peeked = this.input.peek();
-        this.debugLog(
-            `Peeked: ${peeked === undefined ? 'EOF' : `"${peeked}"`}`
-        );
+        this.debugLog(`Peeked: ${peeked === undefined ? 'EOF' : `"${peeked}"`}`);
         return peeked;
     }
 
     mustBeEOF(): ParseResult<void> {
         if (!this.isEOF()) {
             const remainingContent = this.input.peek();
-            return this.failure(
-                `Unexpected content parsing: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`
-            );
+            return this.failure(`Unexpected content parsing: "${remainingContent}${this.input.peek(1) ? '...' : ''}"`);
         }
         return this.success(undefined);
     }
@@ -206,10 +199,7 @@ export abstract class Parser implements InputStream {
      * @throws {Error} if str is not a single-character string.
      */
     isEOFOrPeekChar(str: string): boolean {
-        if (str.length > 1)
-            throw new Error(
-                'notEOFAndCannotPeekChar only accepts single-character strings'
-            );
+        if (str.length > 1) throw new Error('notEOFAndCannotPeekChar only accepts single-character strings');
         this.skipTriviaIfEnabled();
         const result = this.isEOF() || this.input.peek() === str;
         this.debugLog(`Checked EOF or peek char "${str}": ${result}`);
@@ -266,9 +256,7 @@ export abstract class Parser implements InputStream {
     protected mustConsumeString(str: string): ParseResult<string> {
         const consumed = this.consumeString(str);
         if (consumed === undefined) {
-            return this.failure(
-                `Expected "${str}", but found "${this.peek() ?? 'EOF'}"`
-            );
+            return this.failure(`Expected "${str}", but found "${this.peek() ?? 'EOF'}"`);
         }
         return this.success(consumed);
     }
@@ -294,9 +282,7 @@ export abstract class Parser implements InputStream {
     protected mustConsumeKeyword(keyword: string): ParseResult<string> {
         const consumed = this.consumeKeyword(keyword);
         if (consumed === undefined) {
-            return this.failure(
-                `Expected keyword "${keyword}", but found "${this.peek() ?? 'EOF'}"`
-            );
+            return this.failure(`Expected keyword "${keyword}", but found "${this.peek() ?? 'EOF'}"`);
         }
         return this.success(consumed);
     }
@@ -315,15 +301,10 @@ export abstract class Parser implements InputStream {
         return consumed;
     }
 
-    mustConsumeWhile(
-        predicate: (char: string) => boolean,
-        expected: string
-    ): ParseResult<string> {
+    mustConsumeWhile(predicate: (char: string) => boolean, expected: string): ParseResult<string> {
         const consumed = this.consumeWhile(predicate);
         if (consumed === undefined) {
-            return this.failure(
-                `Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`
-            );
+            return this.failure(`Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`);
         }
         return this.success(consumed);
     }
@@ -345,9 +326,7 @@ export abstract class Parser implements InputStream {
     mustConsumeRegex(regex: RegExp, expected: string): ParseResult<string> {
         const consumed = this.consumeRegex(regex);
         if (consumed === undefined) {
-            return this.failure(
-                `Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`
-            );
+            return this.failure(`Expected ${expected}, but found "${this.peek() ?? 'EOF'}"`);
         }
         return this.success(consumed);
     }
@@ -400,9 +379,7 @@ export abstract class Parser implements InputStream {
                 elements.push(result.value);
             } else {
                 this.restorePosition(pos);
-                this.debugLog(
-                    `Zero or more ended with ${elements.length} elements`
-                );
+                this.debugLog(`Zero or more ended with ${elements.length} elements`);
                 return this.success(elements);
             }
         }
@@ -424,9 +401,7 @@ export abstract class Parser implements InputStream {
             } else {
                 this.restorePosition(pos);
                 if (elements.length > 0) {
-                    this.debugLog(
-                        `One or more ended with ${elements.length} elements`
-                    );
+                    this.debugLog(`One or more ended with ${elements.length} elements`);
                     return this.success(elements);
                 }
                 return result;
@@ -444,9 +419,7 @@ export abstract class Parser implements InputStream {
     protected must<T>(value: T | undefined, expected: string): ParseResult<T> {
         if (value === undefined) {
             const found = this.peek() ?? 'EOF';
-            this.debugLog(
-                `Must failed: Expected "${expected}", but found "${found}"`
-            );
+            this.debugLog(`Must failed: Expected "${expected}", but found "${found}"`);
             return this.failure(`Expected "${expected}", but found "${found}"`);
         }
         this.debugLog(`Must succeeded: "${expected}"`);
@@ -460,9 +433,7 @@ export abstract class Parser implements InputStream {
      * @param parser - A function that performs a parsing operation.
      * @returns A ParseResult containing the result of the parsing operation, or a success result with undefined value if it fails.
      */
-    protected maybe<T>(
-        parser: () => ParseResult<T>
-    ): ParseResult<T | undefined> {
+    protected maybe<T>(parser: () => ParseResult<T>): ParseResult<T | undefined> {
         const pos = this.getPosition();
         const result = parser();
         if (result.success) {
@@ -483,10 +454,7 @@ export abstract class Parser implements InputStream {
      * @returns A ParseResult containing the result of the parsing operation or a failure with added context information.
      */
     private indent = 0;
-    protected withContext<T>(
-        context: string,
-        parser: () => ParseResult<T>
-    ): ParseResult<T> {
+    protected withContext<T>(context: string, parser: () => ParseResult<T>): ParseResult<T> {
         const pos = this.getPosition();
         this.debugLog(`+ ${context} "${this.peek()}" ${this.getPosition()}`);
         this.indent++;
@@ -528,7 +496,7 @@ export abstract class Parser implements InputStream {
         };
     }
 
-    unwrap<T>(arg0: ParseResult<T>): T {
+    successOrThrow<T>(arg0: ParseResult<T>): T {
         if (arg0.success) {
             return arg0.value;
         } else {

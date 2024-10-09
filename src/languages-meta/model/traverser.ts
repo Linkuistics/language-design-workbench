@@ -86,11 +86,11 @@ export class Traverser {
             const result = this.delegate.visitModel(model, this);
             return result ?? model;
         }
-        this.visitModelChildren(model);
+        this.visitModelContent(model);
         return model;
     }
 
-    visitModelChildren(model: Model) {
+    visitModelContent(model: Model) {
         for (let i = 0; i < model.values.length; i++) {
             model.values[i] = this.dispatchModelValue(model.values[i]);
         }
@@ -111,11 +111,11 @@ export class Traverser {
             const result = this.delegate.visitDefinition(definition, this);
             return result ?? definition;
         }
-        this.visitDefinitionChildren(definition);
+        this.visitDefinitionContent(definition);
         return definition;
     }
 
-    visitDefinitionChildren(definition: Definition) {
+    visitDefinitionContent(definition: Definition) {
         definition.type = this.visitType(definition.type);
     }
 
@@ -132,11 +132,11 @@ export class Traverser {
             const result = this.delegate.visitMemberModification(memberModification, this);
             return result ?? memberModification;
         }
-        this.visitMemberModificationChildren(memberModification);
+        this.visitMemberModificationContent(memberModification);
         return memberModification;
     }
 
-    visitMemberModificationChildren(memberModification: MemberModification) {
+    visitMemberModificationContent(memberModification: MemberModification) {
         for (let i = 0; i < memberModification.values.length; i++) {
             memberModification.values[i] = this.dispatchMemberModificationValue(memberModification.values[i]);
         }
@@ -252,11 +252,11 @@ export class Traverser {
             const result = this.delegate.visitSumType(sumType, this);
             return result ?? sumType;
         }
-        this.visitSumTypeChildren(sumType);
+        this.visitSumTypeContent(sumType);
         return sumType;
     }
 
-    visitSumTypeChildren(sumType: SumType) {
+    visitSumTypeContent(sumType: SumType) {
         for (let i = 0; i < sumType.members.length; i++) {
             sumType.members[i] = this.visitType(sumType.members[i]);
         }
@@ -267,11 +267,11 @@ export class Traverser {
             const result = this.delegate.visitProductType(productType, this);
             return result ?? productType;
         }
-        this.visitProductTypeChildren(productType);
+        this.visitProductTypeContent(productType);
         return productType;
     }
 
-    visitProductTypeChildren(productType: ProductType) {
+    visitProductTypeContent(productType: ProductType) {
         for (let i = 0; i < productType.members.length; i++) {
             productType.members[i] = this.visitProductMember(productType.members[i]);
         }
@@ -313,11 +313,11 @@ export class Traverser {
             const result = this.delegate.visitTupleType(tupleType, this);
             return result ?? tupleType;
         }
-        this.visitTupleTypeChildren(tupleType);
+        this.visitTupleTypeContent(tupleType);
         return tupleType;
     }
 
-    visitTupleTypeChildren(tupleType: TupleType) {
+    visitTupleTypeContent(tupleType: TupleType) {
         for (let i = 0; i < tupleType.members.length; i++) {
             tupleType.members[i] = this.visitType(tupleType.members[i]);
         }
@@ -328,11 +328,11 @@ export class Traverser {
             const result = this.delegate.visitMapType(mapType, this);
             return result ?? mapType;
         }
-        this.visitMapTypeChildren(mapType);
+        this.visitMapTypeContent(mapType);
         return mapType;
     }
 
-    visitMapTypeChildren(mapType: MapType) {
+    visitMapTypeContent(mapType: MapType) {
         mapType.keyType = this.visitType(mapType.keyType);
         mapType.valueType = this.visitType(mapType.valueType);
     }
@@ -342,11 +342,11 @@ export class Traverser {
             const result = this.delegate.visitSetType(setType, this);
             return result ?? setType;
         }
-        this.visitSetTypeChildren(setType);
+        this.visitSetTypeContent(setType);
         return setType;
     }
 
-    visitSetTypeChildren(setType: SetType) {
+    visitSetTypeContent(setType: SetType) {
         setType.keyType = this.visitType(setType.keyType);
     }
 
@@ -355,11 +355,11 @@ export class Traverser {
             const result = this.delegate.visitSequenceType(sequenceType, this);
             return result ?? sequenceType;
         }
-        this.visitSequenceTypeChildren(sequenceType);
+        this.visitSequenceTypeContent(sequenceType);
         return sequenceType;
     }
 
-    visitSequenceTypeChildren(sequenceType: SequenceType) {
+    visitSequenceTypeContent(sequenceType: SequenceType) {
         sequenceType.elementType = this.visitType(sequenceType.elementType);
     }
 
@@ -368,11 +368,11 @@ export class Traverser {
             const result = this.delegate.visitOptionType(optionType, this);
             return result ?? optionType;
         }
-        this.visitOptionTypeChildren(optionType);
+        this.visitOptionTypeContent(optionType);
         return optionType;
     }
 
-    visitOptionTypeChildren(optionType: OptionType) {
+    visitOptionTypeContent(optionType: OptionType) {
         optionType.type = this.visitType(optionType.type);
     }
 

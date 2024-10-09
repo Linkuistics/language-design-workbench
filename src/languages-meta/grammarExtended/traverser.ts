@@ -74,11 +74,11 @@ export class Traverser {
 
     visitGrammar(grammar: Grammar): Grammar {
         if (this.delegate.visitGrammar) return this.delegate.visitGrammar(grammar, this) ?? grammar;
-        this.visitGrammarChildren(grammar);
+        this.visitGrammarContent(grammar);
         return grammar;
     }
 
-    visitGrammarChildren(grammar: Grammar) {
+    visitGrammarContent(grammar: Grammar) {
         for (let i = 0; i < grammar.rules.length; i++) {
             grammar.rules[i] = this.visitRule(grammar.rules[i]);
         }
@@ -89,11 +89,11 @@ export class Traverser {
 
     visitRule(rule: Rule): Rule {
         if (this.delegate.visitRule) return this.delegate.visitRule(rule, this) ?? rule;
-        this.visitRuleChildren(rule);
+        this.visitRuleContent(rule);
         return rule;
     }
 
-    visitRuleChildren(rule: Rule) {
+    visitRuleContent(rule: Rule) {
         rule.body = this.visitRuleBody(rule.body);
         for (let i = 0; i < rule.versionAnnotations.length; i++) {
             rule.versionAnnotations[i] = this.visitVersionAnnotation(rule.versionAnnotations[i]);
@@ -119,11 +119,11 @@ export class Traverser {
 
     visitSeparatedByRule(ruleBody: SeparatedByRule): RuleBody {
         if (this.delegate.visitSeparatedByRule) return this.delegate.visitSeparatedByRule(ruleBody, this) ?? ruleBody;
-        this.visitSeparatedByRuleChildren(ruleBody);
+        this.visitSeparatedByRuleContent(ruleBody);
         return ruleBody;
     }
 
-    visitSeparatedByRuleChildren(ruleBody: SeparatedByRule) {
+    visitSeparatedByRuleContent(ruleBody: SeparatedByRule) {
         ruleBody.element = this.visitRuleElement(ruleBody.element);
     }
 
@@ -134,11 +134,11 @@ export class Traverser {
 
     visitPrattRule(rule: PrattRule): PrattRule {
         if (this.delegate.visitPrattRule) return this.delegate.visitPrattRule(rule, this) ?? rule;
-        this.visitPrattRuleChildren(rule);
+        this.visitPrattRuleContent(rule);
         return rule;
     }
 
-    visitPrattRuleChildren(rule: PrattRule) {
+    visitPrattRuleContent(rule: PrattRule) {
         for (let i = 0; i < rule.operators.length; i++) rule.operators[i] = this.visitPrattOperator(rule.operators[i]);
         rule.primary = this.visitPrattPrimary(rule.primary);
         for (let i = 0; i < rule.versionAnnotations.length; i++) {
@@ -148,11 +148,11 @@ export class Traverser {
 
     visitPrattOperator(operator: PrattOperator): PrattOperator {
         if (this.delegate.visitPrattOperator) return this.delegate.visitPrattOperator(operator, this) ?? operator;
-        this.visitPrattOperatorChildren(operator);
+        this.visitPrattOperatorContent(operator);
         return operator;
     }
 
-    visitPrattOperatorChildren(operator: PrattOperator) {
+    visitPrattOperatorContent(operator: PrattOperator) {
         operator.body = this.visitRuleBody(operator.body);
         for (let i = 0; i < operator.versionAnnotations.length; i++) {
             operator.versionAnnotations[i] = this.visitVersionAnnotation(operator.versionAnnotations[i]);
@@ -161,21 +161,21 @@ export class Traverser {
 
     visitPrattPrimary(primary: PrattPrimary): PrattPrimary {
         if (this.delegate.visitPrattPrimary) return this.delegate.visitPrattPrimary(primary, this) ?? primary;
-        this.visitPrattPrimaryChildren(primary);
+        this.visitPrattPrimaryContent(primary);
         return primary;
     }
 
-    visitPrattPrimaryChildren(primary: PrattPrimary) {
+    visitPrattPrimaryContent(primary: PrattPrimary) {
         primary.body = this.visitRuleBody(primary.body);
     }
 
     visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
         if (this.delegate.visitSequenceRule) return this.delegate.visitSequenceRule(sequenceRule, this) ?? sequenceRule;
-        this.visitSequenceRuleChildren(sequenceRule);
+        this.visitSequenceRuleContent(sequenceRule);
         return sequenceRule;
     }
 
-    visitSequenceRuleChildren(sequenceRule: SequenceRule) {
+    visitSequenceRuleContent(sequenceRule: SequenceRule) {
         for (let i = 0; i < sequenceRule.elements.length; i++) {
             sequenceRule.elements[i] = this.visitRuleElement(sequenceRule.elements[i]);
         }
@@ -197,11 +197,11 @@ export class Traverser {
 
     visitCharSet(charSet: CharSet): CharSet {
         if (this.delegate.visitCharSet) return this.delegate.visitCharSet(charSet, this) ?? charSet;
-        this.visitCharSetChildren(charSet);
+        this.visitCharSetContent(charSet);
         return charSet;
     }
 
-    visitCharSetChildren(charSet: CharSet) {
+    visitCharSetContent(charSet: CharSet) {
         for (let i = 0; i < charSet.ranges.length; i++) {
             charSet.ranges[i] = this.visitCharSetRange(charSet.ranges[i]);
         }
@@ -218,11 +218,11 @@ export class Traverser {
     visitNegativeLookahead(negativeLookahead: NegativeLookahead): NegativeLookahead {
         if (this.delegate.visitNegativeLookahead)
             return this.delegate.visitNegativeLookahead(negativeLookahead, this) ?? negativeLookahead;
-        this.visitNegativeLookaheadChildren(negativeLookahead);
+        this.visitNegativeLookaheadContent(negativeLookahead);
         return negativeLookahead;
     }
 
-    visitNegativeLookaheadChildren(negativeLookahead: NegativeLookahead) {
+    visitNegativeLookaheadContent(negativeLookahead: NegativeLookahead) {
         negativeLookahead.content = this.dispatchNegativeLookaheadContent(negativeLookahead.content);
     }
 
@@ -237,11 +237,11 @@ export class Traverser {
 
     visitChoiceRule(rules: ChoiceRule): ChoiceRule {
         if (this.delegate.visitChoiceRule) return this.delegate.visitChoiceRule(rules, this) ?? rules;
-        this.visitChoiceRuleChildren(rules);
+        this.visitChoiceRuleContent(rules);
         return rules;
     }
 
-    visitChoiceRuleChildren(rules: ChoiceRule) {
+    visitChoiceRuleContent(rules: ChoiceRule) {
         for (let i = 0; i < rules.choices.length; i++) {
             rules.choices[i] = this.visitSequenceRule(rules.choices[i]);
         }
@@ -251,11 +251,11 @@ export class Traverser {
         if (this.delegate.visitCountedRuleElement) {
             return this.delegate.visitCountedRuleElement(element, this) ?? element;
         }
-        this.visitCountedRuleElementChildren(element);
+        this.visitCountedRuleElementContent(element);
         return element;
     }
 
-    visitCountedRuleElementChildren(element: CountedRuleElement) {
+    visitCountedRuleElementContent(element: CountedRuleElement) {
         element.countableRuleElement = this.visitCountableRuleElement(element.countableRuleElement);
         for (let i = 0; i < element.versionAnnotations.length; i++) {
             element.versionAnnotations[i] = this.visitVersionAnnotation(element.versionAnnotations[i]);
@@ -302,11 +302,11 @@ export class Traverser {
     visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation {
         if (this.delegate.visitVersionAnnotation)
             return this.delegate.visitVersionAnnotation(versionAnnotation, this) ?? versionAnnotation;
-        this.visitVersionAnnotationChildren(versionAnnotation);
+        this.visitVersionAnnotationContent(versionAnnotation);
         return versionAnnotation;
     }
 
-    visitVersionAnnotationChildren(versionAnnotation: VersionAnnotation) {
+    visitVersionAnnotationContent(versionAnnotation: VersionAnnotation) {
         versionAnnotation.version = this.visitVersionNumber(versionAnnotation.version);
     }
 

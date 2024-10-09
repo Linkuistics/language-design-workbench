@@ -36,7 +36,7 @@ class TransformToGrammarWithTypes extends Transformer {
                         sumMembers.add(member.names[member.names.length - 1]);
                     }
                 }
-                traverser.visitSumTypeChildren(type);
+                traverser.visitSumTypeContent(type);
             }
         });
 
@@ -92,12 +92,12 @@ class TransformToGrammarWithTypes extends Transformer {
             },
             visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser) {
                 counts.push(Out.Count.ZeroOrMore);
-                traverser.visitSeparatedByRuleChildren(rule);
+                traverser.visitSeparatedByRuleContent(rule);
                 counts.pop();
             },
             visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser) {
                 if (element.count) counts.push(element.count);
-                traverser.visitCountedRuleElementChildren(element);
+                traverser.visitCountedRuleElementContent(element);
                 if (element.count) counts.pop();
             }
         }).visitRuleBody(body);
