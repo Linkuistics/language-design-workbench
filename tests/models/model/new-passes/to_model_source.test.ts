@@ -1,8 +1,8 @@
-import { Model } from '../../../../src/models/model/model';
-import { FromModelSource } from '../../../../src/models/model/passes/from_model-source';
-import { ToModelSource } from '../../../../src/models/model/passes/to_model-source';
-import { modelsAreEqual } from '../../../../src/models/model/util';
-import { ParseError } from '../../../../src/parser/parseError';
+import { ParseError } from '../../../../src/input/parseError';
+import { ModelFromSource } from '../../../../src/languages-meta/model/input/fromSource';
+import { Model } from '../../../../src/languages-meta/model/model';
+import { ModelToSource } from '../../../../src/languages-meta/model/output/toSource';
+import { modelsAreEqual } from '../../../../src/languages-meta/model/util';
 import { IncrementalModelGenerator } from '../incremental-model-generator';
 
 describe('ToLDWMSource', () => {
@@ -18,8 +18,8 @@ describe('ToLDWMSource', () => {
 });
 
 function testModelTransformation(model: Model, changeDescription: string) {
-    const toLDWMSource = new ToModelSource();
-    const fromLDWMSource = new FromModelSource();
+    const toLDWMSource = new ModelToSource();
+    const fromLDWMSource = new ModelFromSource();
 
     let ldwmSource: string;
     let parsedModel: Model;
@@ -27,9 +27,7 @@ function testModelTransformation(model: Model, changeDescription: string) {
     try {
         ldwmSource = toLDWMSource.transform(model);
     } catch (error) {
-        console.error(
-            `Error transforming model to LDWM source after change: ${changeDescription}`
-        );
+        console.error(`Error transforming model to LDWM source after change: ${changeDescription}`);
         console.error(error);
         throw error;
     }
@@ -47,12 +45,10 @@ function testModelTransformation(model: Model, changeDescription: string) {
         throw error;
     }
 
-    const modelsEqual = modelsAreEqual(model, parsedModel);
+    const modelsEqual = modelsAreEqual(model, parsedModel, true);
 
     if (!modelsEqual) {
-        console.error(
-            `Models are not equal after change: ${changeDescription}`
-        );
+        console.error(`Models are not equal after change: ${changeDescription}`);
         console.error('Original Model:', JSON.stringify(model, null, 2));
         console.error('Generated LDWM Source:', ldwmSource);
         console.error('Parsed Model:', JSON.stringify(parsedModel, null, 2));
