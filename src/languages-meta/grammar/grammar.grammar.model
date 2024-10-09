@@ -21,7 +21,7 @@ model grammar {
     pratt_rule = {
         name: name,
         version_annotations: seq<version_annotation>,
-        operator: pratt_operator,
+        operators: seq<pratt_operator>,
         primary: pratt_primary
     };
     
@@ -65,7 +65,7 @@ model grammar {
     
     choice_rule = { choices: seq<sequence_rule> };
     
-    sequence_rule = { element: rule_element };
+    sequence_rule = { elements: seq<rule_element> };
     
     rule_element = {
           counted_rule_element
@@ -103,8 +103,8 @@ model grammar {
     
     char_set = {
         negated: boolean,
-        start_char: char_set_char,
-        end_char: option<char_set_char>
+        start_chars: seq<char_set_char>,
+        end_chars: seq<option<char_set_char>>
     };
     
     char_set_char = string;

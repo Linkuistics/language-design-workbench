@@ -16,8 +16,8 @@ export class Rule {
 }
 
 export enum RuleAnnotation {
-    NoSkip,
-    Atomic
+    NoSkip = 1,
+    Atomic = 2
 }
 
 export class PrattRule {
@@ -46,10 +46,10 @@ export class PrattPrimary {
 }
 
 export enum PrattOperatorType {
-    Prefix,
-    Postfix,
-    Left,
-    Right
+    Prefix = 1,
+    Postfix = 2,
+    Left = 3,
+    Right = 4
 }
 
 export class VersionAnnotation {
@@ -60,8 +60,8 @@ export class VersionAnnotation {
 }
 
 export enum VersionAnnotationType {
-    Enabled,
-    Disabled
+    Enabled = 1,
+    Disabled = 2
 }
 
 export type VersionNumber = VersionSegment[];
@@ -92,9 +92,9 @@ export class CountedRuleElement {
 export type CountableRuleElement = RuleReference | StringElement | CharSet | AnyElement | RuleBody;
 
 export enum Count {
-    OneOrMore,
-    ZeroOrMore,
-    Optional
+    OneOrMore = 1,
+    ZeroOrMore = 2,
+    Optional = 3
 }
 
 export type Label = Name;

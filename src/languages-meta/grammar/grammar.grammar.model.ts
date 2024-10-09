@@ -16,15 +16,15 @@ export class Rule {
 }
 
 export enum RuleAnnotation {
-    NoSkip,
-    Atomic
+    NoSkip = 1,
+    Atomic = 2
 }
 
 export class PrattRule {
     constructor(
         public name: Name,
         public versionAnnotations: VersionAnnotation[],
-        public operator: PrattOperator,
+        public operators: PrattOperator[],
         public primary: PrattPrimary
     ) {}
 }
@@ -46,10 +46,10 @@ export class PrattPrimary {
 }
 
 export enum PrattOperatorType {
-    Prefix,
-    Postfix,
-    Left,
-    Right
+    Prefix = 1,
+    Postfix = 2,
+    Left = 3,
+    Right = 4
 }
 
 export class VersionAnnotation {
@@ -60,8 +60,8 @@ export class VersionAnnotation {
 }
 
 export enum VersionAnnotationType {
-    Enabled,
-    Disabled
+    Enabled = 1,
+    Disabled = 2
 }
 
 export type VersionNumber = VersionSegment[];
@@ -75,7 +75,7 @@ export class ChoiceRule {
 }
 
 export class SequenceRule {
-    constructor(public element: RuleElement) {}
+    constructor(public elements: RuleElement[]) {}
 }
 
 export type RuleElement = CountedRuleElement | NegativeLookahead;
@@ -92,9 +92,9 @@ export class CountedRuleElement {
 export type CountableRuleElement = RuleReference | StringElement | CharSet | AnyElement | RuleBody;
 
 export enum Count {
-    OneOrMore,
-    ZeroOrMore,
-    Optional
+    OneOrMore = 1,
+    ZeroOrMore = 2,
+    Optional = 3
 }
 
 export type Label = Name;
@@ -112,8 +112,8 @@ export class StringElement {
 export class CharSet {
     constructor(
         public negated: boolean,
-        public startChar: CharSetChar,
-        public endChar: CharSetChar | undefined
+        public startChars: CharSetChar[],
+        public endChars: (CharSetChar | undefined)[]
     ) {}
 }
 

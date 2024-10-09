@@ -20,8 +20,8 @@ export type Deletion = Id;
 export class MemberModification {
     constructor(
         public name: Id,
-        public memberDeletion: MemberDeletion,
-        public memberAddition: MemberAddition
+        public memberDeletions: MemberDeletion[],
+        public memberAdditions: MemberAddition[]
     ) {}
 }
 
@@ -39,19 +39,19 @@ export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | Nam
 export class VoidType {}
 
 export enum PrimitiveType {
-    Boolean,
-    Char,
-    String,
-    I8,
-    I16,
-    I32,
-    I64,
-    U8,
-    U16,
-    U32,
-    U64,
-    F32,
-    F64
+    Boolean = 1,
+    Char = 2,
+    String = 3,
+    I8 = 4,
+    I16 = 5,
+    I32 = 6,
+    I64 = 7,
+    U8 = 8,
+    U16 = 9,
+    U32 = 10,
+    U64 = 11,
+    F32 = 12,
+    F64 = 13
 }
 
 export class EnumType {

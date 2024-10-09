@@ -41,18 +41,18 @@ export class IndentingOutputStream {
         this.dedent();
     }
 
-    join<T>(items: T[], separator: string, itemCallback: (item: T) => void): void {
+    join<T>(items: T[], separator: string, itemCallback: (item: T, index: number) => void): void {
         items.forEach((item, index) => {
-            itemCallback(item);
+            itemCallback(item, index);
             if (index < items.length - 1) {
                 this.write(separator);
             }
         });
     }
 
-    joinLinesSeparating<T>(items: T[], separator: string, itemCallback: (item: T) => void): void {
+    joinLinesSeparating<T>(items: T[], separator: string, itemCallback: (item: T, index: number) => void): void {
         items.forEach((item, index) => {
-            itemCallback(item);
+            itemCallback(item, index);
             if (index < items.length - 1) {
                 this.writeLine(separator);
             } else {
@@ -61,14 +61,14 @@ export class IndentingOutputStream {
         });
     }
 
-    joinLinesPrefixing<T>(items: T[], prefix: string, itemCallback: (item: T) => void): void {
+    joinLinesPrefixing<T>(items: T[], prefix: string, itemCallback: (item: T, index: number) => void): void {
         items.forEach((item, index) => {
             if (index > 0) {
                 this.write(prefix);
             } else {
                 this.write(' '.repeat(prefix.length));
             }
-            itemCallback(item);
+            itemCallback(item, index);
             this.writeLine();
         });
     }

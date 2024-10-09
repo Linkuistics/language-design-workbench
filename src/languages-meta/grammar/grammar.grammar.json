@@ -54,7 +54,7 @@
                 }
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -86,7 +86,7 @@
               ]
             },
             "label": "annotation",
-            "count": 2,
+            "count": 3,
             "versionAnnotations": []
           },
           {
@@ -95,7 +95,7 @@
                 "version_annotation"
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -163,7 +163,7 @@
                 "version_annotation"
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -179,7 +179,7 @@
               ]
             },
             "label": "operator",
-            "count": 0,
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -228,7 +228,7 @@
                 "version_annotation"
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -359,7 +359,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -423,12 +423,12 @@
                 "9"
               ]
             },
-            "count": 0,
+            "count": 1,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -513,7 +513,7 @@
               ]
             },
             "label": "element",
-            "count": 0,
+            "count": 1,
             "versionAnnotations": []
           }
         ]
@@ -570,7 +570,7 @@
                 "label"
               ]
             },
-            "count": 2,
+            "count": 3,
             "versionAnnotations": []
           },
           {
@@ -587,7 +587,7 @@
                 "count"
               ]
             },
-            "count": 2,
+            "count": 3,
             "versionAnnotations": []
           },
           {
@@ -596,7 +596,7 @@
                 "version_annotation"
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           }
         ]
@@ -731,7 +731,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -771,7 +771,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -808,7 +808,7 @@
                                     null
                                   ]
                                 },
-                                "count": 1,
+                                "count": 2,
                                 "versionAnnotations": []
                               }
                             ]
@@ -839,7 +839,7 @@
                           }
                         ]
                       },
-                      "count": 1,
+                      "count": 2,
                       "versionAnnotations": []
                     },
                     {
@@ -884,7 +884,7 @@
                                     null
                                   ]
                                 },
-                                "count": 1,
+                                "count": 2,
                                 "versionAnnotations": []
                               }
                             ]
@@ -915,7 +915,7 @@
                           }
                         ]
                       },
-                      "count": 1,
+                      "count": 2,
                       "versionAnnotations": []
                     },
                     {
@@ -932,7 +932,7 @@
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -950,7 +950,7 @@
               "value": "^"
             },
             "label": "negated",
-            "count": 2,
+            "count": 3,
             "versionAnnotations": []
           },
           {
@@ -985,12 +985,12 @@
                       }
                     ]
                   },
-                  "count": 2,
+                  "count": 3,
                   "versionAnnotations": []
                 }
               ]
             },
-            "count": 0,
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -1001,7 +1001,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1062,7 +1062,7 @@
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -1123,7 +1123,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1162,12 +1162,12 @@
                 null
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -1220,7 +1220,7 @@
           }
         ]
       },
-      "annotation": 0,
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1243,19 +1243,19 @@
                 null
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
             "countableRuleElement": {
               "value": "\\n"
             },
-            "count": 2,
+            "count": 3,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -1283,7 +1283,7 @@
                           null
                         ]
                       },
-                      "count": 0,
+                      "count": 1,
                       "versionAnnotations": []
                     }
                   ]
@@ -1305,7 +1305,7 @@
                 }
               ]
             },
-            "count": 1,
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -1316,7 +1316,7 @@
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     },
     {
@@ -1337,12 +1337,12 @@
                 null
               ]
             },
-            "count": 0,
+            "count": 1,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": 1,
+      "annotation": 2,
       "versionAnnotations": []
     }
   ],

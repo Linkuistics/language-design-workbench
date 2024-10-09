@@ -56,8 +56,8 @@ export class ModelToTypesTypescriptSource implements TraverseDelegate {
             this.output.writeLine(`export enum ${pascalCase(definition.name)} {`);
             this.output.indentDuring(() => {
                 const enumType = definition.type as EnumType;
-                this.output.join(enumType.members, ',\n', (member) => {
-                    this.output.write(`${pascalCase(member)}`);
+                this.output.join(enumType.members, ',\n', (member, index) => {
+                    this.output.write(`${pascalCase(member)} = ${index + 1}`);
                 });
                 this.output.writeLine();
             });
