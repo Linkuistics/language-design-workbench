@@ -69,16 +69,12 @@ function generateParser(grammar: Grammar, options: ParserOptions = {}): string {
         output += generateParseMethod(rule, debug, memoize);
     }
 
-    const triviaRule = grammar.rules.find(
-        (rule) => rule.name.toLowerCase() === 'trivia'
-    );
+    const triviaRule = grammar.rules.find((rule) => rule.name.toLowerCase() === 'trivia');
     if (triviaRule && triviaRule instanceof Rule) {
         output += generateTriviaHandlingMethods(triviaRule, debug);
     }
 
-    const identifierRule = grammar.rules.find(
-        (rule) => rule.name.toLowerCase() === 'identifier'
-    );
+    const identifierRule = grammar.rules.find((rule) => rule.name.toLowerCase() === 'identifier');
     if (identifierRule && identifierRule instanceof Rule) {
         // output += generateConsumeIdentifierForKeyword(identifierRule);
     }
@@ -88,11 +84,7 @@ function generateParser(grammar: Grammar, options: ParserOptions = {}): string {
     return output;
 }
 
-function generateParseMethod(
-    rule: Rule | PrattRule,
-    debug: boolean,
-    memoize: boolean
-): string {
+function generateParseMethod(rule: Rule | PrattRule, debug: boolean, memoize: boolean): string {
     const methodName = `parse${capitalize(rule.name)}`;
     let methodBody = '';
 
@@ -127,10 +119,7 @@ function generateParseMethod(
     return parseMethod;
 }
 
-function generateRuleBody(
-    ruleBody: SequenceRule | ChoiceRule | EnumRule | SeparatedByRule,
-    debug: boolean
-): string {
+function generateRuleBody(ruleBody: SequenceRule | ChoiceRule | EnumRule | SeparatedByRule, debug: boolean): string {
     if (ruleBody instanceof SequenceRule) {
         return generateSequenceRuleBody(ruleBody, debug);
     } else if (ruleBody instanceof ChoiceRule) {
@@ -144,19 +133,13 @@ function generateRuleBody(
     }
 }
 
-function generateSequenceRuleBody(
-    sequenceRule: SequenceRule,
-    debug: boolean
-): string {
+function generateSequenceRuleBody(sequenceRule: SequenceRule, debug: boolean): string {
     let body = '';
     let declarations = '';
     let constructorArgs = [];
 
     for (const element of sequenceRule.elements) {
-        const { declaration, parsing, argName } = generateElementParsing(
-            element,
-            debug
-        );
+        const { declaration, parsing, argName } = generateElementParsing(element, debug);
         declarations += declaration;
         body += parsing;
         if (argName) {
@@ -168,10 +151,7 @@ function generateSequenceRuleBody(
     return declarations + body;
 }
 
-function generateAlternativeRulesBody(
-    alternativeRules: ChoiceRule,
-    debug: boolean
-): string {
+function generateAlternativeRulesBody(alternativeRules: ChoiceRule, debug: boolean): string {
     const alternatives = alternativeRules.choices
         .map(
             (cre) => `() => {
@@ -256,10 +236,7 @@ function generateCountedElementParsing(
     debug: boolean
 ): { declaration: string; parsing: string; argName?: string } {
     const { countableRuleElement, count } = countedElement;
-    const { declaration, parsing, argName } = generateElementParsing(
-        countableRuleElement,
-        debug
-    );
+    const { declaration, parsing, argName } = generateElementParsing(countableRuleElement, debug);
     let wrappedParsing = '';
 
     switch (count) {
@@ -279,10 +256,7 @@ function generateCountedElementParsing(
     return { declaration, parsing: wrappedParsing, argName };
 }
 
-function generateTriviaHandlingMethods(
-    triviaRule: Rule,
-    debug: boolean
-): string {
+function generateTriviaHandlingMethods(triviaRule: Rule, debug: boolean): string {
     let methods = `
     protected consumeTrivia(): string | undefined {
         return this.parseTrivia()?.constructor.name;
@@ -314,11 +288,13 @@ function generateTriviaHandlingMethods(
 
 function charSetToRegex(charSet: CharSet): string {
     let regex = charSet.negated ? '/^[^' : '/^[';
-    for (const range of charSet.ranges) {
-        if (range.endChar) {
-            regex += `${range.startChar}-${range.endChar}`;
+    for (let i = 0; i < charSet.startChars.length; i++) {
+        const startChar = charSet.startChars[i];
+        const endChar = charSet.endChars[i];
+        if (endChar) {
+            regex += `${startChar}-${endChar}`;
         } else {
-            regex += range.startChar;
+            regex += startChar;
         }
     }
     regex += ']/';

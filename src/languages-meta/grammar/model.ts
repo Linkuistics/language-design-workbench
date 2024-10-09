@@ -9,23 +9,23 @@ export class Grammar {
 export class Rule {
     constructor(
         public name: Name,
-        public body: RuleBody,
         public annotation: RuleAnnotation | undefined,
-        public versionAnnotations: VersionAnnotation[]
+        public versionAnnotations: VersionAnnotation[],
+        public body: RuleBody
     ) {}
 }
 
 export enum RuleAnnotation {
-    NoSkip = '@noskip',
-    Atomic = '@atomic'
+    NoSkip,
+    Atomic
 }
 
 export class PrattRule {
     constructor(
         public name: Name,
+        public versionAnnotations: VersionAnnotation[],
         public operators: PrattOperator[],
-        public primary: PrattPrimary,
-        public versionAnnotations: VersionAnnotation[]
+        public primary: PrattPrimary
     ) {}
 }
 
@@ -33,8 +33,8 @@ export class PrattOperator {
     constructor(
         public type: PrattOperatorType,
         public name: Name,
-        public body: RuleBody,
-        public versionAnnotations: VersionAnnotation[]
+        public versionAnnotations: VersionAnnotation[],
+        public body: RuleBody
     ) {}
 }
 
@@ -46,10 +46,10 @@ export class PrattPrimary {
 }
 
 export enum PrattOperatorType {
-    Prefix = 'prefix',
-    Postfix = 'postfix',
-    Left = 'left',
-    Right = 'right'
+    Prefix,
+    Postfix,
+    Left,
+    Right
 }
 
 export class VersionAnnotation {
@@ -60,17 +60,15 @@ export class VersionAnnotation {
 }
 
 export enum VersionAnnotationType {
-    Enabled = '@enabled',
-    Disabled = '@disabled'
+    Enabled,
+    Disabled
 }
 
-export class VersionNumber {
-    constructor(public segments: VersionSegment[]) {}
-}
+export type VersionNumber = VersionSegment[];
 
 export type VersionSegment = string;
 
-export type RuleBody = SequenceRule | ChoiceRule;
+export type RuleBody = ChoiceRule | SequenceRule;
 
 export class ChoiceRule {
     constructor(public choices: SequenceRule[]) {}
@@ -84,8 +82,8 @@ export type RuleElement = CountedRuleElement | NegativeLookahead;
 
 export class CountedRuleElement {
     constructor(
-        public countableRuleElement: CountableRuleElement,
         public label: Label | undefined,
+        public countableRuleElement: CountableRuleElement,
         public count: Count | undefined,
         public versionAnnotations: VersionAnnotation[]
     ) {}
@@ -94,9 +92,9 @@ export class CountedRuleElement {
 export type CountableRuleElement = RuleReference | StringElement | CharSet | AnyElement | RuleBody;
 
 export enum Count {
-    OneOrMore = '+',
-    ZeroOrMore = '*',
-    Optional = '?'
+    OneOrMore,
+    ZeroOrMore,
+    Optional
 }
 
 export type Label = Name;
@@ -114,7 +112,8 @@ export class StringElement {
 export class CharSet {
     constructor(
         public negated: boolean,
-        public ranges: { startChar: CharSetChar; endChar?: CharSetChar }[]
+        public startChars: CharSetChar[],
+        public endChars: (CharSetChar | undefined)[]
     ) {}
 }
 

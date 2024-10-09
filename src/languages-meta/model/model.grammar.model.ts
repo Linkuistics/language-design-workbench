@@ -20,8 +20,8 @@ export type Deletion = Id;
 export class MemberModification {
     constructor(
         public name: Id,
-        public memberDeletions: MemberDeletion[],
-        public memberAdditions: MemberAddition[]
+        public memberDeletion: MemberDeletion,
+        public memberAddition: MemberAddition
     ) {}
 }
 

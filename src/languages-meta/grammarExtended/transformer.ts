@@ -84,7 +84,7 @@ export class Transformer {
     }
 
     transformCharSet(input: In.CharSet): Out.CharSet {
-        return new Out.CharSet(input.negated, input.ranges);
+        return new Out.CharSet(input.negated, input.startChars, input.endChars);
     }
 
     transformNegativeLookahead(input: In.NegativeLookahead): Out.NegativeLookahead {

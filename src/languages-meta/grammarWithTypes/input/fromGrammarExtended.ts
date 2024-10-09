@@ -214,7 +214,8 @@ class TransformToGrammarWithTypes extends Transformer {
     transformCharSet(input: In.CharSet): Out.CharSet {
         return new Out.CharSet(
             input.negated,
-            input.ranges,
+            input.startChars,
+            input.endChars,
             this.forceFieldName ? new Out.Field('string', this.explicitFieldName, true) : undefined
         );
     }

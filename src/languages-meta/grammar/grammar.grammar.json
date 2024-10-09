@@ -54,7 +54,7 @@
                 }
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -86,7 +86,7 @@
               ]
             },
             "label": "annotation",
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -95,7 +95,7 @@
                 "version_annotation"
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -163,7 +163,7 @@
                 "version_annotation"
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -179,7 +179,7 @@
               ]
             },
             "label": "operator",
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           },
           {
@@ -228,7 +228,7 @@
                 "version_annotation"
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -359,7 +359,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -416,19 +416,19 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "0",
-                  "endChar": "9"
-                }
+              "startChars": [
+                "0"
+              ],
+              "endChars": [
+                "9"
               ]
             },
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -513,7 +513,7 @@
               ]
             },
             "label": "element",
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           }
         ]
@@ -570,7 +570,7 @@
                 "label"
               ]
             },
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -587,7 +587,7 @@
                 "count"
               ]
             },
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -596,7 +596,7 @@
                 "version_annotation"
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           }
         ]
@@ -731,7 +731,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -771,7 +771,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -797,19 +797,18 @@
                               {
                                 "countableRuleElement": {
                                   "negated": true,
-                                  "ranges": [
-                                    {
-                                      "startChar": "'"
-                                    },
-                                    {
-                                      "startChar": "\\\\"
-                                    },
-                                    {
-                                      "startChar": "\\n"
-                                    }
+                                  "startChars": [
+                                    "'",
+                                    "\\\\",
+                                    "\\n"
+                                  ],
+                                  "endChars": [
+                                    null,
+                                    null,
+                                    null
                                   ]
                                 },
-                                "count": "*",
+                                "count": 1,
                                 "versionAnnotations": []
                               }
                             ]
@@ -825,13 +824,13 @@
                               {
                                 "countableRuleElement": {
                                   "negated": false,
-                                  "ranges": [
-                                    {
-                                      "startChar": "'"
-                                    },
-                                    {
-                                      "startChar": "\\\\"
-                                    }
+                                  "startChars": [
+                                    "'",
+                                    "\\\\"
+                                  ],
+                                  "endChars": [
+                                    null,
+                                    null
                                   ]
                                 },
                                 "versionAnnotations": []
@@ -840,7 +839,7 @@
                           }
                         ]
                       },
-                      "count": "*",
+                      "count": 1,
                       "versionAnnotations": []
                     },
                     {
@@ -874,19 +873,18 @@
                               {
                                 "countableRuleElement": {
                                   "negated": true,
-                                  "ranges": [
-                                    {
-                                      "startChar": "\""
-                                    },
-                                    {
-                                      "startChar": "\\\\"
-                                    },
-                                    {
-                                      "startChar": "\\n"
-                                    }
+                                  "startChars": [
+                                    "\"",
+                                    "\\\\",
+                                    "\\n"
+                                  ],
+                                  "endChars": [
+                                    null,
+                                    null,
+                                    null
                                   ]
                                 },
-                                "count": "*",
+                                "count": 1,
                                 "versionAnnotations": []
                               }
                             ]
@@ -902,13 +900,13 @@
                               {
                                 "countableRuleElement": {
                                   "negated": false,
-                                  "ranges": [
-                                    {
-                                      "startChar": "\""
-                                    },
-                                    {
-                                      "startChar": "\\\\"
-                                    }
+                                  "startChars": [
+                                    "\"",
+                                    "\\\\"
+                                  ],
+                                  "endChars": [
+                                    null,
+                                    null
                                   ]
                                 },
                                 "versionAnnotations": []
@@ -917,7 +915,7 @@
                           }
                         ]
                       },
-                      "count": "*",
+                      "count": 1,
                       "versionAnnotations": []
                     },
                     {
@@ -934,7 +932,7 @@
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -952,7 +950,7 @@
               "value": "^"
             },
             "label": "negated",
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -987,12 +985,12 @@
                       }
                     ]
                   },
-                  "count": "?",
+                  "count": 2,
                   "versionAnnotations": []
                 }
               ]
             },
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           },
           {
@@ -1003,7 +1001,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -1015,16 +1013,15 @@
               {
                 "countableRuleElement": {
                   "negated": true,
-                  "ranges": [
-                    {
-                      "startChar": "\\\\"
-                    },
-                    {
-                      "startChar": "\\-"
-                    },
-                    {
-                      "startChar": "\\]"
-                    }
+                  "startChars": [
+                    "\\\\",
+                    "\\-",
+                    "\\]"
+                  ],
+                  "endChars": [
+                    null,
+                    null,
+                    null
                   ]
                 },
                 "versionAnnotations": []
@@ -1042,25 +1039,21 @@
               {
                 "countableRuleElement": {
                   "negated": false,
-                  "ranges": [
-                    {
-                      "startChar": "\\^"
-                    },
-                    {
-                      "startChar": "\\\\"
-                    },
-                    {
-                      "startChar": "\\-"
-                    },
-                    {
-                      "startChar": "\\]"
-                    },
-                    {
-                      "startChar": "n"
-                    },
-                    {
-                      "startChar": "t"
-                    }
+                  "startChars": [
+                    "\\^",
+                    "\\\\",
+                    "\\-",
+                    "\\]",
+                    "n",
+                    "t"
+                  ],
+                  "endChars": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
                   ]
                 },
                 "versionAnnotations": []
@@ -1069,7 +1062,7 @@
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1130,7 +1123,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -1140,18 +1133,15 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "a",
-                  "endChar": "z"
-                },
-                {
-                  "startChar": "A",
-                  "endChar": "Z"
-                },
-                {
-                  "startChar": "_"
-                }
+              "startChars": [
+                "a",
+                "A",
+                "_"
+              ],
+              "endChars": [
+                "z",
+                "Z",
+                null
               ]
             },
             "versionAnnotations": []
@@ -1159,30 +1149,25 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "a",
-                  "endChar": "z"
-                },
-                {
-                  "startChar": "A",
-                  "endChar": "Z"
-                },
-                {
-                  "startChar": "0",
-                  "endChar": "9"
-                },
-                {
-                  "startChar": "_"
-                }
+              "startChars": [
+                "a",
+                "A",
+                "0",
+                "_"
+              ],
+              "endChars": [
+                "z",
+                "Z",
+                "9",
+                null
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1235,7 +1220,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -1251,25 +1236,26 @@
           {
             "countableRuleElement": {
               "negated": true,
-              "ranges": [
-                {
-                  "startChar": "\\n"
-                }
+              "startChars": [
+                "\\n"
+              ],
+              "endChars": [
+                null
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
             "countableRuleElement": {
               "value": "\\n"
             },
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1290,13 +1276,14 @@
                     {
                       "countableRuleElement": {
                         "negated": true,
-                        "ranges": [
-                          {
-                            "startChar": "*"
-                          }
+                        "startChars": [
+                          "*"
+                        ],
+                        "endChars": [
+                          null
                         ]
                       },
-                      "count": "+",
+                      "count": 0,
                       "versionAnnotations": []
                     }
                   ]
@@ -1318,7 +1305,7 @@
                 }
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -1329,7 +1316,7 @@
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1339,24 +1326,23 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "\\n"
-                },
-                {
-                  "startChar": "\\t"
-                },
-                {
-                  "startChar": " "
-                }
+              "startChars": [
+                "\\n",
+                "\\t",
+                " "
+              ],
+              "endChars": [
+                null,
+                null,
+                null
               ]
             },
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     }
   ],

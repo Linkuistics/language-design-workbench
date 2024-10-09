@@ -40,7 +40,7 @@
                 }
               ]
             },
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -103,7 +103,7 @@
                 }
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -218,7 +218,7 @@
                 }
               ]
             },
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           }
         ]
@@ -512,7 +512,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -641,7 +641,7 @@
               ]
             },
             "label": "member",
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           },
           {
@@ -963,7 +963,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -1007,12 +1007,12 @@
                 }
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1022,25 +1022,22 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "a",
-                  "endChar": "z"
-                },
-                {
-                  "startChar": "A",
-                  "endChar": "Z"
-                },
-                {
-                  "startChar": "_"
-                }
+              "startChars": [
+                "a",
+                "A",
+                "_"
+              ],
+              "endChars": [
+                "z",
+                "Z",
+                null
               ]
             },
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1050,29 +1047,24 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "a",
-                  "endChar": "z"
-                },
-                {
-                  "startChar": "A",
-                  "endChar": "Z"
-                },
-                {
-                  "startChar": "_"
-                },
-                {
-                  "startChar": "0",
-                  "endChar": "9"
-                }
+              "startChars": [
+                "a",
+                "A",
+                "_",
+                "0"
+              ],
+              "endChars": [
+                "z",
+                "Z",
+                null,
+                "9"
               ]
             },
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1125,7 +1117,7 @@
           }
         ]
       },
-      "annotation": "@noskip",
+      "annotation": 0,
       "versionAnnotations": []
     },
     {
@@ -1135,24 +1127,23 @@
           {
             "countableRuleElement": {
               "negated": false,
-              "ranges": [
-                {
-                  "startChar": "\\n"
-                },
-                {
-                  "startChar": "\\t"
-                },
-                {
-                  "startChar": " "
-                }
+              "startChars": [
+                "\\n",
+                "\\t",
+                " "
+              ],
+              "endChars": [
+                null,
+                null,
+                null
               ]
             },
-            "count": "+",
+            "count": 0,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1168,25 +1159,26 @@
           {
             "countableRuleElement": {
               "negated": true,
-              "ranges": [
-                {
-                  "startChar": "\\n"
-                }
+              "startChars": [
+                "\\n"
+              ],
+              "endChars": [
+                null
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
             "countableRuleElement": {
               "value": "\\n"
             },
-            "count": "?",
+            "count": 2,
             "versionAnnotations": []
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     },
     {
@@ -1207,13 +1199,14 @@
                     {
                       "countableRuleElement": {
                         "negated": true,
-                        "ranges": [
-                          {
-                            "startChar": "*"
-                          }
+                        "startChars": [
+                          "*"
+                        ],
+                        "endChars": [
+                          null
                         ]
                       },
-                      "count": "+",
+                      "count": 0,
                       "versionAnnotations": []
                     }
                   ]
@@ -1235,7 +1228,7 @@
                 }
               ]
             },
-            "count": "*",
+            "count": 1,
             "versionAnnotations": []
           },
           {
@@ -1246,7 +1239,7 @@
           }
         ]
       },
-      "annotation": "@atomic",
+      "annotation": 1,
       "versionAnnotations": []
     }
   ],

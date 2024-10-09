@@ -126,10 +126,8 @@ export class StringElement {
 export class CharSet {
     constructor(
         public negated: boolean,
-        public ranges: {
-            startChar: CharSetChar;
-            endChar?: CharSetChar;
-        }[],
+        public startChars: CharSetChar[],
+        public endChars: (CharSetChar | undefined)[],
         public field?: Field
     ) {}
 }

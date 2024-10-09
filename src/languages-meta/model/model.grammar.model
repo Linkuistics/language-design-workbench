@@ -17,8 +17,8 @@ model model {
     
     MemberModification = {
         name: Id,
-        MemberDeletions: seq<MemberDeletion>,
-        MemberAdditions: seq<MemberAddition>
+        MemberDeletion: MemberDeletion,
+        MemberAddition: MemberAddition
     };
     
     MemberDeletion = Id;

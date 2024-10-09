@@ -1,3 +1,4 @@
+import { start } from 'repl';
 import { InputStream } from '../../../input/inputStream';
 import { Parser, ParseResult } from '../../../input/parser';
 import { StringInputStream } from '../../../input/stringInputStream';
@@ -93,7 +94,7 @@ class GrammarParser extends Parser {
             const semicolon = this.mustConsumeString(';');
             if (!semicolon.success) return semicolon;
 
-            return this.success(new Model.Rule(name, body, annotation, versionAnnotations));
+            return this.success(new Model.Rule(name, annotation, versionAnnotations, body));
         });
     }
 
@@ -135,7 +136,7 @@ class GrammarParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.PrattRule(name, operators, primary, versionAnnotations));
+            return this.success(new Model.PrattRule(name, versionAnnotations, operators, primary));
         });
     }
 
@@ -168,7 +169,7 @@ class GrammarParser extends Parser {
             const semicolon = this.mustConsumeString(';');
             if (!semicolon.success) return semicolon;
 
-            return this.success(new Model.PrattOperator(type, name, body, versionAnnotations));
+            return this.success(new Model.PrattOperator(type, name, versionAnnotations, body));
         });
     }
 
@@ -257,7 +258,7 @@ class GrammarParser extends Parser {
         if (!otherSegmentsResult.success) return otherSegmentsResult;
 
         const segments = [firstSegmentResult.value, ...otherSegmentsResult.value];
-        return this.success(new Model.VersionNumber(segments));
+        return this.success(segments);
     }
 
     private parseVersionSegment(): ParseResult<Model.VersionSegment> {
@@ -332,7 +333,7 @@ class GrammarParser extends Parser {
         if (!versionAnnotationsResult.success) return versionAnnotationsResult;
         versionAnnotations = versionAnnotationsResult.value;
 
-        return this.success(new Model.CountedRuleElement(countableRuleElement, label, count, versionAnnotations));
+        return this.success(new Model.CountedRuleElement(label, countableRuleElement, count, versionAnnotations));
     }
 
     private parseCountableRuleElement(): ParseResult<Model.CountableRuleElement> {
@@ -438,40 +439,27 @@ class GrammarParser extends Parser {
 
             const negated = this.consumeString('^') !== undefined;
 
-            const ranges: {
-                startChar: Model.CharSetChar;
-                endChar?: Model.CharSetChar;
-            }[] = [];
+            const startChars: Model.CharSetChar[] = [];
+            const endChars: (Model.CharSetChar | undefined)[] = [];
             while (!this.isEOF() && this.peek() !== ']') {
-                const rangeResult = this.parseCharSetRange();
-                if (!rangeResult.success) return rangeResult;
-                ranges.push(rangeResult.value);
+                const startCharResult = this.parseCharsetChar();
+                if (!startCharResult.success) return startCharResult;
+                startChars.push(startCharResult.value);
+
+                if (this.consumeString('-') && this.peek() !== ']') {
+                    const endCharResult = this.parseCharsetChar();
+                    if (!endCharResult.success) return endCharResult;
+                    endChars.push(endCharResult.value);
+                } else {
+                    endChars.push(undefined);
+                }
             }
 
             const closeBracket = this.mustConsumeString(']');
             if (!closeBracket.success) return closeBracket;
 
-            return this.success(new Model.CharSet(negated, ranges));
+            return this.success(new Model.CharSet(negated, startChars, endChars));
         });
-    }
-
-    private parseCharSetRange(): ParseResult<{
-        startChar: Model.CharSetChar;
-        endChar?: Model.CharSetChar;
-    }> {
-        const startCharResult = this.parseCharsetChar();
-        if (!startCharResult.success) return startCharResult;
-
-        if (this.consumeString('-') && this.peek() !== ']') {
-            const endCharResult = this.parseCharsetChar();
-            if (!endCharResult.success) return endCharResult;
-            return this.success({
-                startChar: startCharResult.value,
-                endChar: endCharResult.value
-            });
-        }
-
-        return this.success({ startChar: startCharResult.value });
     }
 
     private parseCharsetChar(): ParseResult<Model.CharSetChar> {

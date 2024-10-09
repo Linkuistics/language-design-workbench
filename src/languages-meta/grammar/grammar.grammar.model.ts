@@ -24,7 +24,7 @@ export class PrattRule {
     constructor(
         public name: Name,
         public versionAnnotations: VersionAnnotation[],
-        public operators: PrattOperator[],
+        public operator: PrattOperator,
         public primary: PrattPrimary
     ) {}
 }
@@ -75,7 +75,7 @@ export class ChoiceRule {
 }
 
 export class SequenceRule {
-    constructor(public elements: RuleElement[]) {}
+    constructor(public element: RuleElement) {}
 }
 
 export type RuleElement = CountedRuleElement | NegativeLookahead;
@@ -112,8 +112,8 @@ export class StringElement {
 export class CharSet {
     constructor(
         public negated: boolean,
-        public startChars: CharSetChar[],
-        public endChars: (CharSetChar | undefined)[]
+        public startChar: CharSetChar,
+        public endChar: CharSetChar | undefined
     ) {}
 }
 

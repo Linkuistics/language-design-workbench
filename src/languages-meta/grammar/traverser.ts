@@ -175,22 +175,7 @@ export class Traverser {
 
     visitCharSet(charSet: CharSet): CharSet {
         if (this.delegate.visitCharSet) return this.delegate.visitCharSet(charSet, this) ?? charSet;
-        this.visitCharSetContent(charSet);
         return charSet;
-    }
-
-    visitCharSetContent(charSet: CharSet) {
-        for (let i = 0; i < charSet.ranges.length; i++) {
-            charSet.ranges[i] = this.visitCharSetRange(charSet.ranges[i]);
-        }
-    }
-
-    visitCharSetRange(range: { startChar: CharSetChar; endChar?: CharSetChar }): {
-        startChar: CharSetChar;
-        endChar?: CharSetChar;
-    } {
-        if (this.delegate.visitCharSetRange) return this.delegate.visitCharSetRange(range, this) ?? range;
-        return range;
     }
 
     visitNegativeLookahead(negativeLookahead: NegativeLookahead): NegativeLookahead {
