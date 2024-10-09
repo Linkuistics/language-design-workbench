@@ -122,7 +122,7 @@ export type CharSetChar = string;
 export class AnyElement {}
 
 export class NegativeLookahead {
-    constructor(public content: CharSet | string) {}
+    constructor(public content: CharSet | StringElement) {}
 }
 
 export type Identifier = string;

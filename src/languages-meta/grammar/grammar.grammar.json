@@ -1116,7 +1116,7 @@
                     {
                       "countableRuleElement": {
                         "names": [
-                          "string"
+                          "string_element"
                         ]
                       },
                       "versionAnnotations": []

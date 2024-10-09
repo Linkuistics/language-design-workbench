@@ -113,7 +113,7 @@ model grammar {
     
     negative_lookahead = { content: {
           char_set
-        | string
+        | string_element
     } };
     
     identifier = string;

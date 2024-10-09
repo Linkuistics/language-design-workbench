@@ -69,7 +69,7 @@ grammar grammar {
     
     any_element = '.' ;
 
-    negative_lookahead @noskip = '!' content:( char_set | string ) ;
+    negative_lookahead @noskip = '!' content:( char_set | string_element ) ;
 
     /**************************************************************************
 
