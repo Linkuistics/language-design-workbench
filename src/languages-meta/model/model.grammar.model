@@ -1,40 +1,92 @@
 model model {
 
-    Model = { name: Id, parent_name: option<Id>, Deletions: seq<Deletion>, MemberModifications: seq<MemberModification>, Definitions: seq<Definition> };
+    Model = {
+        name: Id,
+        parent_name: option<Id>,
+        Deletions: seq<Deletion>,
+        MemberModifications: seq<MemberModification>,
+        Definitions: seq<Definition>
+    };
     
-    Definition = { name: Id, Type: Type };
+    Definition = {
+        name: Id,
+        Type: Type
+    };
     
     Deletion = Id;
     
-    MemberModification = { name: Id, MemberDeletions: seq<MemberDeletion>, MemberAdditions: seq<MemberAddition> };
+    MemberModification = {
+        name: Id,
+        MemberDeletions: seq<MemberDeletion>,
+        MemberAdditions: seq<MemberAddition>
+    };
     
     MemberDeletion = Id;
     
-    MemberAddition = { ProductMember: ProductMember, Type: Type };
+    MemberAddition = {
+        ProductMember: ProductMember,
+        Type: Type
+    };
     
-    Type = { VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference };
+    Type = {
+          VoidType
+        | PrimitiveType
+        | EnumType
+        | TypeWithStructure
+        | NamedTypeReference
+    };
     
     VoidType = {  };
     
-    PrimitiveType = { "boolean" | "char" | "string" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" };
+    PrimitiveType = {
+          "boolean"
+        | "char"
+        | "string"
+        | "i8"
+        | "i16"
+        | "i32"
+        | "i64"
+        | "u8"
+        | "u16"
+        | "u32"
+        | "u64"
+        | "f32"
+        | "f64"
+    };
     
     EnumType = { members: seq<StringElement> };
     
     StringElement = Id;
     
-    TypeWithStructure = { SumType | ProductType | GenericType };
+    TypeWithStructure = {
+          SumType
+        | ProductType
+        | GenericType
+    };
     
     SumType = { members: seq<Type> };
     
     ProductType = { members: seq<ProductMember> };
     
-    ProductMember = { name: Id, Type: Type };
+    ProductMember = {
+        name: Id,
+        Type: Type
+    };
     
-    GenericType = { TupleType | MapType | SetType | SequenceType | OptionType };
+    GenericType = {
+          TupleType
+        | MapType
+        | SetType
+        | SequenceType
+        | OptionType
+    };
     
     TupleType = { members: seq<Type> };
     
-    MapType = { key_type: Type, value_type: Type };
+    MapType = {
+        key_type: Type,
+        value_type: Type
+    };
     
     SetType = { key_type: Type };
     
@@ -52,7 +104,11 @@ model model {
     
     IdentifierChar = string;
     
-    Trivia = { LineComment | BlockComment | Whitespace };
+    Trivia = {
+          LineComment
+        | BlockComment
+        | Whitespace
+    };
     
     Whitespace = { value: string };
     

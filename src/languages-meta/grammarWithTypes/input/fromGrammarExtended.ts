@@ -41,11 +41,8 @@ export class GrammarWithTypesFromGrammarExtended extends Transformer {
             traverser.visitType(rule.type);
         }
 
-        console.log('Non-hoistable:', sumMembers);
-
         for (const rule of grammar.rules) {
             if (!sumMembers.has(rule.name) && rule.type instanceof ProductType && rule.type.members.length === 1) {
-                console.log('hoisted:', pascalCase(rule.name));
                 rule.type = rule.type.members[0].type;
             }
         }

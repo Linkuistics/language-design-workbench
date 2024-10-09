@@ -73,20 +73,13 @@ export class ModelToSource implements TraverseDelegate {
         return deletion;
     }
 
-    visitMemberModification(
-        memberModification: MemberModification,
-        traverser: Traverser
-    ): MemberModification {
+    visitMemberModification(memberModification: MemberModification, traverser: Traverser): MemberModification {
         this.output.writeLine(`modify ${memberModification.name} {`);
         this.output.indentDuring(() => {
             memberModification.values.forEach((value) => {
                 if (value instanceof MemberDeletion) {
                     this.output.write('-= ');
-                    this.output.writeLine(
-                        Array.isArray(value.name)
-                            ? value.name.join('::')
-                            : value.name.toString()
-                    );
+                    this.output.writeLine(Array.isArray(value.name) ? value.name.join('::') : value.name.toString());
                 } else {
                     this.output.write('+= ');
                     if (value.value instanceof ProductMember) {
@@ -115,41 +108,59 @@ export class ModelToSource implements TraverseDelegate {
     }
 
     visitEnumType(enumType: EnumType): EnumType {
-        this.output.write('{ ');
-        this.output.join(enumType.members, ' | ', (member) =>
-            this.output.write(`"${member}"`)
-        );
-        this.output.write(' }');
+        if (enumType.members.length > 1) {
+            this.output.writeLine('{');
+            this.output.indentDuring(() => {
+                this.output.joinLinesPrefixing(enumType.members, '| ', (member) => this.output.write(`"${member}"`));
+            });
+            this.output.write('}');
+        } else {
+            this.output.write('{ ');
+            this.output.join(enumType.members, ' | ', (member) => this.output.write(`"${member}"`));
+            this.output.write(' }');
+        }
         return enumType;
     }
 
     visitSumType(sumType: SumType, traverser: Traverser): SumType {
-        this.output.write('{ ');
-        this.output.join(sumType.members, ' | ', (member) =>
-            traverser.visitType(member)
-        );
-        this.output.write(' }');
+        if (sumType.members.length > 1) {
+            this.output.writeLine('{');
+            this.output.indentDuring(() => {
+                this.output.joinLinesPrefixing(sumType.members, '| ', (member) => traverser.visitType(member));
+            });
+            this.output.write('}');
+        } else {
+            this.output.write('{ ');
+            this.output.join(sumType.members, ' | ', (member) => traverser.visitType(member));
+            this.output.write(' }');
+        }
         return sumType;
     }
 
-    visitProductType(
-        productType: ProductType,
-        traverser: Traverser
-    ): ProductType {
-        this.output.write('{ ');
-        this.output.join(productType.members, ', ', (member) => {
-            this.output.write(`${member.name}: `);
-            traverser.visitType(member.type);
-        });
-        this.output.write(' }');
+    visitProductType(productType: ProductType, traverser: Traverser): ProductType {
+        if (productType.members.length > 1) {
+            this.output.writeLine('{');
+            this.output.indentDuring(() => {
+                this.output.joinLinesSeparating(productType.members, ',', (member) => {
+                    this.output.write(`${member.name}: `);
+                    traverser.visitType(member.type);
+                });
+            });
+            this.output.write('}');
+        } else {
+            this.output.write('{ ');
+            this.output.join(productType.members, ', ', (member) => {
+                this.output.write(`${member.name}: `);
+                traverser.visitType(member.type);
+            });
+            this.output.write(' }');
+        }
         return productType;
     }
 
     visitTupleType(tupleType: TupleType, traverser: Traverser): TupleType {
         this.output.write('tuple<');
-        this.output.join(tupleType.members, ', ', (member) =>
-            traverser.visitType(member)
-        );
+        this.output.join(tupleType.members, ', ', (member) => traverser.visitType(member));
         this.output.write('>');
         return tupleType;
     }
@@ -170,10 +181,7 @@ export class ModelToSource implements TraverseDelegate {
         return setType;
     }
 
-    visitSequenceType(
-        sequenceType: SequenceType,
-        traverser: Traverser
-    ): SequenceType {
+    visitSequenceType(sequenceType: SequenceType, traverser: Traverser): SequenceType {
         this.output.write('seq<');
         traverser.visitType(sequenceType.elementType);
         this.output.write('>');
@@ -187,9 +195,7 @@ export class ModelToSource implements TraverseDelegate {
         return optionType;
     }
 
-    visitNamedTypeReference(
-        namedTypeReference: NamedTypeReference
-    ): NamedTypeReference {
+    visitNamedTypeReference(namedTypeReference: NamedTypeReference): NamedTypeReference {
         this.output.write(namedTypeReference.names.join('::'));
         return namedTypeReference;
     }
