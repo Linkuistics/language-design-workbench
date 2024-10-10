@@ -1,7 +1,7 @@
 import { SexprParser } from './input/parser';
 import { readFileSync } from 'fs';
-import { StringInputStream } from '../../parser/stringInputStream';
-import { ParseError } from '../../parser/parseError';
+import { StringInputStream } from '../../input/stringInputStream';
+import { ParseError } from '../../input/parseError';
 
 const sampleContent = readFileSync('src/languages/sexpr/sample.sexpr', 'utf-8');
 const parser = new SexprParser(new StringInputStream(sampleContent));
