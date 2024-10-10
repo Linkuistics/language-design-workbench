@@ -1,2 +1,14 @@
 model grammarExtended modifies grammar {
+
+    /*
+        registerAssignment = {
+            register: string,
+            lifetime: string
+        };
+        
+        modify variableDeclaration
+            += register: registerAssignment
+        ;
+    */
+
 }

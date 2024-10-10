@@ -3,15 +3,15 @@ grammar model {
     Model =
         'model' name:Id 
         ( 'modifies' parent_name:Id )? 
-        '{' ( ( Deletion | MemberModification | Definition ) ';' )* '}'
+        '{' ( values:( Deletion | MemberModification | Definition ) ';' )* '}'
         ;
 
     Definition = name:Id '=' Type  ;
 
     Deletion           = 'delete' name:Id  ;
-    MemberModification = 'modify' name:Id ( MemberDeletion | MemberAddition )+ ;
+    MemberModification = 'modify' name:Id values:( MemberDeletion | MemberAddition )+ ;
     MemberDeletion     = '-=' name:Id ; 
-    MemberAddition     = '+=' ( ProductMember | Type ) ;
+    MemberAddition     = '+=' value:( ProductMember | Type ) ;
 
 
     /************************************

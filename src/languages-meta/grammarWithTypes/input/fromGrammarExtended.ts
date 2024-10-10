@@ -13,7 +13,7 @@ import { Traverser as ModelTraverser } from '../../model/traverser';
 import { baseType, typesAreEqual } from '../../model/util';
 import * as Out from '../model';
 import { Transformer } from '../transformer';
-import { TraverseDelegate, Traverser } from '../traverser';
+import { TraverseDelegate, TraverserEngine, Traverser } from '../traverser';
 
 export class GrammarWithTypesFromGrammarExtended extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
@@ -70,7 +70,7 @@ class TransformToGrammarWithTypes extends Transformer {
 
         // Propagate multiplicity down through the tree
         const counts: Out.Count[] = [];
-        new Traverser({
+        new TraverserEngine({
             visitField(field: Out.Field) {
                 if (field.type) {
                     for (let i = counts.length - 1; i >= 0; i--) {
@@ -92,18 +92,18 @@ class TransformToGrammarWithTypes extends Transformer {
             },
             visitSeparatedByRule(rule: Out.SeparatedByRule, traverser: Traverser) {
                 counts.push(Out.Count.ZeroOrMore);
-                traverser.visitSeparatedByRuleContent(rule);
+                traverser.next();
                 counts.pop();
             },
             visitCountedRuleElement(element: Out.CountedRuleElement, traverser: Traverser) {
                 if (element.count) counts.push(element.count);
-                traverser.visitCountedRuleElementContent(element);
+                traverser.next();
                 if (element.count) counts.pop();
             }
         }).visitRuleBody(body);
 
         const fields: Out.Field[] = [];
-        new Traverser(new CollectFields(fields)).visitRuleBody(body);
+        new TraverserEngine(new CollectFields(fields)).visitRuleBody(body);
 
         /*
             Merge fields that have the same name.
@@ -251,7 +251,7 @@ class CollectFields implements TraverseDelegate {
     visitChoiceRule(rule: Out.ChoiceRule) {
         const choicesFields = rule.choices.map((choice) => {
             const collector = new CollectFields();
-            new Traverser(collector).visitSequenceRule(choice);
+            new TraverserEngine(collector).visitSequenceRule(choice);
             return collector.fields;
         });
 

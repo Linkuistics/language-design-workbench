@@ -10,6 +10,8 @@ import { ModelToSource } from '../languages-meta/model/output/toSource';
 import { ModelToTypesTypescriptSource } from '../languages-meta/model/output/toTypesTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../input/parseError';
+import { ModelToVisitorTypescriptSource } from '../languages-meta/model/output/toVisitorTypescriptSource';
+import { ModelToTypesRustSource } from '../languages-meta/model/output/toTypesRustSource';
 
 program.version('1.0.0').description('Language Design Workbench CLI');
 
@@ -144,23 +146,46 @@ program
     .option('-i, --input <file>', 'Input file (default: stdin)')
     .option('-o, --output <file>', 'Output file (default: stdout)')
     .option('-g, --generics', 'Use generics for typescript', false)
-    // .option(
-    //     '-l, --language <lang>',
-    //     'Output language (typescript or rust)',
-    //     'typescript'
-    // )
+    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
     // .option('-r, --roots <roots>', 'Comma-separated list of root types')
     .action(async (options) => {
         try {
             const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
 
-            // const isTypescript = options.language === 'typescript';
+            const isTypescript = options.language === 'typescript';
             // const roots = options.roots ? options.roots.split(',') : undefined;
 
             const output = composePasses(
                 new ModelFromSource(),
-                new ModelToTypesTypescriptSource(options.generics)
+                isTypescript ? new ModelToTypesTypescriptSource(options.generics) : new ModelToTypesRustSource()
             ).transform(input);
+
+            if (options.output) {
+                fs.writeFileSync(options.output, output);
+            } else {
+                console.log(output);
+            }
+        } catch (error) {
+            if (error instanceof ParseError) {
+                console.error(error.toString());
+            } else {
+                console.error(error);
+            }
+
+            process.exit(1);
+        }
+    });
+
+program
+    .command('model-to-visitor')
+    .description('Parse .model source and produce type definitions')
+    .option('-i, --input <file>', 'Input file (default: stdin)')
+    .option('-o, --output <file>', 'Output file (default: stdout)')
+    .action(async (options) => {
+        try {
+            const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
+
+            const output = composePasses(new ModelFromSource(), new ModelToVisitorTypescriptSource()).transform(input);
 
             if (options.output) {
                 fs.writeFileSync(options.output, output);

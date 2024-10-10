@@ -2,9 +2,7 @@ export class Model {
     constructor(
         public name: Id,
         public parentName: Id | undefined,
-        public deletions: Deletion[],
-        public memberModifications: MemberModification[],
-        public definitions: Definition[]
+        public values: (Deletion | MemberModification | Definition)[]
     ) {}
 }
 
@@ -15,23 +13,23 @@ export class Definition {
     ) {}
 }
 
-export type Deletion = Id;
+export class Deletion {
+    constructor(public name: Id) {}
+}
 
 export class MemberModification {
     constructor(
         public name: Id,
-        public memberDeletions: MemberDeletion[],
-        public memberAdditions: MemberAddition[]
+        public values: (MemberDeletion | MemberAddition)[]
     ) {}
 }
 
-export type MemberDeletion = Id;
+export class MemberDeletion {
+    constructor(public name: Id) {}
+}
 
 export class MemberAddition {
-    constructor(
-        public productMember: ProductMember,
-        public type: Type
-    ) {}
+    constructor(public value: ProductMember | Type) {}
 }
 
 export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;

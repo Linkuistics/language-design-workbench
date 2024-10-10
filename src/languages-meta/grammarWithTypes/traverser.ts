@@ -24,6 +24,31 @@ import {
 
 type VisitorResult<T> = T | void;
 
+export interface Traverser {
+    visitGrammar(grammar: Grammar): Grammar;
+    visitRule(rule: Rule): Rule;
+    visitRuleBody(ruleBody: RuleBody): RuleBody;
+    visitPrattRule(rule: PrattRule): PrattRule;
+    visitPrattOperator(operator: PrattOperator): PrattOperator;
+    visitPrattPrimary(primary: PrattPrimary): PrattPrimary;
+    visitSequenceRule(sequenceRule: SequenceRule): SequenceRule;
+    visitRuleElement(ruleElement: RuleElement): RuleElement;
+    visitChoiceRule(rules: ChoiceRule): ChoiceRule;
+    visitEnumRule(ruleBody: EnumRule): EnumRule;
+    visitSeparatedByRule(ruleBody: SeparatedByRule): SeparatedByRule;
+    visitCountableRuleElement(cre: CountableRuleElement): CountableRuleElement;
+    visitCountedRuleElement(element: CountedRuleElement): CountedRuleElement;
+    visitNegativeLookahead(ruleElement: NegativeLookahead): NegativeLookahead;
+    visitRuleReference(ruleReference: RuleReference): RuleReference;
+    visitStringElement(string: StringElement): StringElement;
+    visitCharSet(charSet: CharSet): CharSet;
+    visitAnyElement(anyElement: AnyElement): AnyElement;
+    visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation;
+    visitVersionNumber(versionNumber: VersionNumber): VersionNumber;
+    visitField(field: Field): Field;
+    next(): void;
+}
+
 export interface TraverseDelegate {
     visitGrammar?(grammar: Grammar, traverser: Traverser): VisitorResult<Grammar>;
     visitRule?(rule: Rule, traverser: Traverser): VisitorResult<Rule>;
@@ -31,11 +56,11 @@ export interface TraverseDelegate {
     visitPrattRule?(rule: PrattRule, traverser: Traverser): VisitorResult<PrattRule>;
     visitPrattOperator?(operator: PrattOperator, traverser: Traverser): VisitorResult<PrattOperator>;
     visitPrattPrimary?(primary: PrattPrimary, traverser: Traverser): VisitorResult<PrattPrimary>;
-    visitChoiceRule?(rules: ChoiceRule, traverser: Traverser): VisitorResult<ChoiceRule>;
     visitSequenceRule?(sequenceRule: SequenceRule, traverser: Traverser): VisitorResult<SequenceRule>;
+    visitRuleElement?(ruleElement: RuleElement, traverser: Traverser): VisitorResult<RuleElement>;
+    visitChoiceRule?(rules: ChoiceRule, traverser: Traverser): VisitorResult<ChoiceRule>;
     visitEnumRule?(ruleBody: EnumRule, traverser: Traverser): VisitorResult<EnumRule>;
     visitSeparatedByRule?(ruleBody: SeparatedByRule, traverser: Traverser): VisitorResult<SeparatedByRule>;
-    visitRuleElement?(ruleElement: RuleElement, traverser: Traverser): VisitorResult<RuleElement>;
     visitCountableRuleElement?(cre: CountableRuleElement, traverser: Traverser): VisitorResult<CountableRuleElement>;
     visitCountedRuleElement?(element: CountedRuleElement, traverser: Traverser): VisitorResult<CountedRuleElement>;
     visitNegativeLookahead?(ruleElement: NegativeLookahead, traverser: Traverser): VisitorResult<NegativeLookahead>;
@@ -51,36 +76,129 @@ export interface TraverseDelegate {
     visitField?(field: Field, traverser: Traverser): VisitorResult<Field>;
 }
 
-export class Traverser {
-    constructor(public delegate: TraverseDelegate) {}
+class TraverserProxy implements Traverser {
+    constructor(
+        private engine: TraverserEngine,
+        private nextTraversal?: () => void
+    ) {}
 
-    private visit<T>(node: T, visitorMethod: keyof TraverseDelegate, contentVisitor: () => void): T {
-        const visitor = this.delegate[visitorMethod] as
-            | ((node: T, traverser: Traverser) => VisitorResult<T>)
-            | undefined;
-        if (visitor) {
-            return visitor.call(this.delegate, node, this) ?? node;
-        }
-        contentVisitor();
-        return node;
+    next(): void {
+        this.nextTraversal?.();
     }
 
     visitGrammar(grammar: Grammar): Grammar {
-        return this.visit(grammar, 'visitGrammar', () => this.visitGrammarContent(grammar));
-    }
-
-    visitGrammarContent(grammar: Grammar) {
-        grammar.rules = grammar.rules.map((rule) => this.visitRule(rule));
-        grammar.prattRules = grammar.prattRules.map((rule) => this.visitPrattRule(rule));
+        return this.engine.visitGrammar(grammar);
     }
 
     visitRule(rule: Rule): Rule {
-        return this.visit(rule, 'visitRule', () => this.visitRuleContent(rule));
+        return this.engine.visitRule(rule);
     }
 
-    visitRuleContent(rule: Rule) {
-        rule.body = this.visitRuleBody(rule.body);
-        rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+    visitRuleBody(ruleBody: RuleBody): RuleBody {
+        return this.engine.visitRuleBody(ruleBody);
+    }
+
+    visitPrattRule(rule: PrattRule): PrattRule {
+        return this.engine.visitPrattRule(rule);
+    }
+
+    visitPrattOperator(operator: PrattOperator): PrattOperator {
+        return this.engine.visitPrattOperator(operator);
+    }
+
+    visitPrattPrimary(primary: PrattPrimary): PrattPrimary {
+        return this.engine.visitPrattPrimary(primary);
+    }
+
+    visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
+        return this.engine.visitSequenceRule(sequenceRule);
+    }
+
+    visitRuleElement(ruleElement: RuleElement): RuleElement {
+        return this.engine.visitRuleElement(ruleElement);
+    }
+
+    visitChoiceRule(rules: ChoiceRule): ChoiceRule {
+        return this.engine.visitChoiceRule(rules);
+    }
+
+    visitEnumRule(ruleBody: EnumRule): EnumRule {
+        return this.engine.visitEnumRule(ruleBody);
+    }
+
+    visitSeparatedByRule(ruleBody: SeparatedByRule): SeparatedByRule {
+        return this.engine.visitSeparatedByRule(ruleBody);
+    }
+
+    visitCountableRuleElement(cre: CountableRuleElement): CountableRuleElement {
+        return this.engine.visitCountableRuleElement(cre);
+    }
+
+    visitCountedRuleElement(element: CountedRuleElement): CountedRuleElement {
+        return this.engine.visitCountedRuleElement(element);
+    }
+
+    visitNegativeLookahead(ruleElement: NegativeLookahead): NegativeLookahead {
+        return this.engine.visitNegativeLookahead(ruleElement);
+    }
+
+    visitRuleReference(ruleReference: RuleReference): RuleReference {
+        return this.engine.visitRuleReference(ruleReference);
+    }
+
+    visitStringElement(string: StringElement): StringElement {
+        return this.engine.visitStringElement(string);
+    }
+
+    visitCharSet(charSet: CharSet): CharSet {
+        return this.engine.visitCharSet(charSet);
+    }
+
+    visitAnyElement(anyElement: AnyElement): AnyElement {
+        return this.engine.visitAnyElement(anyElement);
+    }
+
+    visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation {
+        return this.engine.visitVersionAnnotation(versionAnnotation);
+    }
+
+    visitVersionNumber(versionNumber: VersionNumber): VersionNumber {
+        return this.engine.visitVersionNumber(versionNumber);
+    }
+
+    visitField(field: Field): Field {
+        return this.engine.visitField(field);
+    }
+}
+
+export class TraverserEngine implements Traverser {
+    constructor(public delegate: TraverseDelegate) {}
+
+    private visit<N>(node: N, visitorMethod: keyof TraverseDelegate, nextTraversal?: () => void): N {
+        const visitor = this.delegate[visitorMethod] as
+            | ((node: N, traverser: Traverser) => VisitorResult<N>)
+            | undefined;
+        if (visitor) {
+            const proxy = nextTraversal ? new TraverserProxy(this, nextTraversal) : this;
+            return visitor.call(this.delegate, node, proxy) ?? node;
+        } else {
+            nextTraversal?.();
+            return node;
+        }
+    }
+
+    visitGrammar(grammar: Grammar): Grammar {
+        return this.visit(grammar, 'visitGrammar', () => {
+            grammar.rules = grammar.rules.map((rule) => this.visitRule(rule));
+            grammar.prattRules = grammar.prattRules.map((rule) => this.visitPrattRule(rule));
+        });
+    }
+
+    visitRule(rule: Rule): Rule {
+        return this.visit(rule, 'visitRule', () => {
+            rule.body = this.visitRuleBody(rule.body);
+            rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitRuleBody(ruleBody: RuleBody): RuleBody {
@@ -98,56 +216,30 @@ export class Traverser {
     }
 
     visitPrattRule(rule: PrattRule): PrattRule {
-        return this.visit(rule, 'visitPrattRule', () => this.visitPrattRuleContent(rule));
-    }
-
-    visitPrattRuleContent(rule: PrattRule) {
-        rule.operators = rule.operators.map((op) => this.visitPrattOperator(op));
-        rule.primary = this.visitPrattPrimary(rule.primary);
-        rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        return this.visit(rule, 'visitPrattRule', () => {
+            rule.operators = rule.operators.map((op) => this.visitPrattOperator(op));
+            rule.primary = this.visitPrattPrimary(rule.primary);
+            rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitPrattOperator(operator: PrattOperator): PrattOperator {
-        return this.visit(operator, 'visitPrattOperator', () => this.visitPrattOperatorContent(operator));
-    }
-
-    visitPrattOperatorContent(operator: PrattOperator) {
-        operator.body = this.visitRuleBody(operator.body);
-        operator.versionAnnotations = operator.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        return this.visit(operator, 'visitPrattOperator', () => {
+            operator.body = this.visitRuleBody(operator.body);
+            operator.versionAnnotations = operator.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitPrattPrimary(primary: PrattPrimary): PrattPrimary {
-        return this.visit(primary, 'visitPrattPrimary', () => this.visitPrattPrimaryContent(primary));
-    }
-
-    visitPrattPrimaryContent(primary: PrattPrimary) {
-        primary.body = this.visitRuleBody(primary.body);
+        return this.visit(primary, 'visitPrattPrimary', () => {
+            primary.body = this.visitRuleBody(primary.body);
+        });
     }
 
     visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
-        return this.visit(sequenceRule, 'visitSequenceRule', () => this.visitSequenceRuleContent(sequenceRule));
-    }
-
-    visitSequenceRuleContent(sequenceRule: SequenceRule) {
-        sequenceRule.elements = sequenceRule.elements.map((el) => this.visitRuleElement(el));
-    }
-
-    visitEnumRule(rule: EnumRule): EnumRule {
-        return this.visit(rule, 'visitEnumRule', () => this.visitEnumRuleContent(rule));
-    }
-
-    visitEnumRuleContent(rule: EnumRule) {
-        if (rule.field) {
-            rule.field = this.visitField(rule.field);
-        }
-    }
-
-    visitSeparatedByRule(rule: SeparatedByRule): SeparatedByRule {
-        return this.visit(rule, 'visitSeparatedByRule', () => this.visitSeparatedByRuleContent(rule));
-    }
-
-    visitSeparatedByRuleContent(rule: SeparatedByRule) {
-        rule.element = this.visitRuleElement(rule.element);
+        return this.visit(sequenceRule, 'visitSequenceRule', () => {
+            sequenceRule.elements = sequenceRule.elements.map((el: RuleElement) => this.visitRuleElement(el));
+        });
     }
 
     visitRuleElement(ruleElement: RuleElement): RuleElement {
@@ -161,43 +253,41 @@ export class Traverser {
     }
 
     visitCharSet(charSet: CharSet): CharSet {
-        return this.visit(charSet, 'visitCharSet', () => this.visitCharSetContent(charSet));
-    }
-
-    visitCharSetContent(charSet: CharSet) {
-        if (charSet.field) {
-            charSet.field = this.visitField(charSet.field);
-        }
+        return this.visit(charSet, 'visitCharSet');
     }
 
     visitNegativeLookahead(negativeLookahead: NegativeLookahead): NegativeLookahead {
-        return this.visit(negativeLookahead, 'visitNegativeLookahead', () =>
-            this.visitNegativeLookaheadContent(negativeLookahead)
-        );
-    }
-
-    visitNegativeLookaheadContent(negativeLookahead: NegativeLookahead) {
-        negativeLookahead.content =
-            negativeLookahead.content instanceof CharSet
-                ? this.visitCharSet(negativeLookahead.content)
-                : this.visitStringElement(negativeLookahead.content);
+        return this.visit(negativeLookahead, 'visitNegativeLookahead', () => {
+            negativeLookahead.content =
+                negativeLookahead.content instanceof CharSet
+                    ? this.visitCharSet(negativeLookahead.content)
+                    : this.visitStringElement(negativeLookahead.content);
+        });
     }
 
     visitChoiceRule(rules: ChoiceRule): ChoiceRule {
-        return this.visit(rules, 'visitChoiceRule', () => this.visitChoiceRuleContent(rules));
+        return this.visit(rules, 'visitChoiceRule', () => {
+            rules.choices = rules.choices.map((choice: SequenceRule) => this.visitSequenceRule(choice));
+        });
     }
 
-    visitChoiceRuleContent(rules: ChoiceRule) {
-        rules.choices = rules.choices.map((choice) => this.visitSequenceRule(choice));
+    visitEnumRule(ruleBody: EnumRule): EnumRule {
+        return this.visit(ruleBody, 'visitEnumRule', () => {
+            if (ruleBody.field) ruleBody.field = this.visitField(ruleBody.field);
+        });
+    }
+
+    visitSeparatedByRule(ruleBody: SeparatedByRule): SeparatedByRule {
+        return this.visit(ruleBody, 'visitSeparatedByRule', () => {
+            ruleBody.element = this.visitRuleElement(ruleBody.element);
+        });
     }
 
     visitCountedRuleElement(element: CountedRuleElement): CountedRuleElement {
-        return this.visit(element, 'visitCountedRuleElement', () => this.visitCountedRuleElementContent(element));
-    }
-
-    visitCountedRuleElementContent(element: CountedRuleElement) {
-        element.countableRuleElement = this.visitCountableRuleElement(element.countableRuleElement);
-        element.versionAnnotations = element.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        return this.visit(element, 'visitCountedRuleElement', () => {
+            element.countableRuleElement = this.visitCountableRuleElement(element.countableRuleElement);
+            element.versionAnnotations = element.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitCountableRuleElement(cre: CountableRuleElement): CountableRuleElement {
@@ -217,43 +307,27 @@ export class Traverser {
     }
 
     visitRuleReference(ruleReference: RuleReference): RuleReference {
-        return this.visit(ruleReference, 'visitRuleReference', () => this.visitRuleReferenceContent(ruleReference));
-    }
-
-    visitRuleReferenceContent(ruleReference: RuleReference) {
-        if (ruleReference.field) {
-            ruleReference.field = this.visitField(ruleReference.field);
-        }
+        return this.visit(ruleReference, 'visitRuleReference', () => {
+            if (ruleReference.field) ruleReference.field = this.visitField(ruleReference.field);
+        });
     }
 
     visitStringElement(stringElement: StringElement): StringElement {
-        return this.visit(stringElement, 'visitStringElement', () => this.visitStringElementContent(stringElement));
-    }
-
-    visitStringElementContent(stringElement: StringElement) {
-        if (stringElement.field) {
-            stringElement.field = this.visitField(stringElement.field);
-        }
+        return this.visit(stringElement, 'visitStringElement', () => {
+            if (stringElement.field) stringElement.field = this.visitField(stringElement.field);
+        });
     }
 
     visitAnyElement(anyElement: AnyElement): AnyElement {
-        return this.visit(anyElement, 'visitAnyElement', () => this.visitAnyElementContent(anyElement));
-    }
-
-    visitAnyElementContent(anyElement: AnyElement) {
-        if (anyElement.field) {
-            anyElement.field = this.visitField(anyElement.field);
-        }
+        return this.visit(anyElement, 'visitAnyElement', () => {
+            if (anyElement.field) anyElement.field = this.visitField(anyElement.field);
+        });
     }
 
     visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation {
-        return this.visit(versionAnnotation, 'visitVersionAnnotation', () =>
-            this.visitVersionAnnotationContent(versionAnnotation)
-        );
-    }
-
-    visitVersionAnnotationContent(versionAnnotation: VersionAnnotation) {
-        versionAnnotation.version = this.visitVersionNumber(versionAnnotation.version);
+        return this.visit(versionAnnotation, 'visitVersionAnnotation', () => {
+            versionAnnotation.version = this.visitVersionNumber(versionAnnotation.version);
+        });
     }
 
     visitVersionNumber(versionNumber: VersionNumber): VersionNumber {
@@ -263,4 +337,6 @@ export class Traverser {
     visitField(field: Field): Field {
         return this.visit(field, 'visitField', () => {});
     }
+
+    next(): void {}
 }

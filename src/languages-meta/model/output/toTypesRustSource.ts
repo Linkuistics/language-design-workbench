@@ -17,10 +17,9 @@ import {
 import { TraverseDelegate, Traverser } from '../traverser';
 
 export class ModelToTypesRustSource implements TraverseDelegate {
-    private definitionsSource =
-        'type OptionType<T> = T | undefined;\n' + 'type ResultType<O, E> = O | { error: E }\n' + '\n\n';
+    private definitionsSource = '';
 
-    constructor(public useGenerics: boolean) {}
+    constructor() {}
 
     transform(model: Model): string {
         new Traverser(this).visitModel(model);

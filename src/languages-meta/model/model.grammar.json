@@ -93,6 +93,7 @@
                       }
                     ]
                   },
+                  "label": "values",
                   "versionAnnotations": []
                 },
                 {
@@ -218,6 +219,7 @@
                 }
               ]
             },
+            "label": "values",
             "count": 1,
             "versionAnnotations": []
           }
@@ -287,6 +289,7 @@
                 }
               ]
             },
+            "label": "value",
             "versionAnnotations": []
           }
         ]

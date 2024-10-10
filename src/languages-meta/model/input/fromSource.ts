@@ -108,18 +108,15 @@ export class ModelParser extends Parser {
             if (!nameResult.success) return nameResult;
             name = nameResult.value;
 
-            const openBrace = this.mustConsumeString('{');
-            if (!openBrace.success) return openBrace;
-
-            do {
+            this.oneOrMore(() => {
                 const element = this.firstAlternative(
                     'member modification element',
                     () => this.parseMemberDeletion(),
                     () => this.parseMemberAddition()
                 );
-                if (!element.success) return element;
-                values.push(element.value);
-            } while (!this.consumeString('}'));
+                if (element.success) values.push(element.value);
+                return element;
+            });
 
             return this.success(new Model.MemberModification(name, values));
         });

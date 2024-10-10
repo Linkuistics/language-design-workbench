@@ -3,9 +3,11 @@ model model {
     Model = {
         name: Id,
         parent_name: option<Id>,
-        Deletions: seq<Deletion>,
-        MemberModifications: seq<MemberModification>,
-        Definitions: seq<Definition>
+        values: seq<{
+              Deletion
+            | MemberModification
+            | Definition
+        }>
     };
     
     Definition = {
@@ -13,20 +15,22 @@ model model {
         Type: Type
     };
     
-    Deletion = Id;
+    Deletion = { name: Id };
     
     MemberModification = {
         name: Id,
-        MemberDeletions: seq<MemberDeletion>,
-        MemberAdditions: seq<MemberAddition>
+        values: seq<{
+              MemberDeletion
+            | MemberAddition
+        }>
     };
     
-    MemberDeletion = Id;
+    MemberDeletion = { name: Id };
     
-    MemberAddition = {
-        ProductMember: ProductMember,
-        Type: Type
-    };
+    MemberAddition = { value: {
+          ProductMember
+        | Type
+    } };
     
     Type = {
           VoidType

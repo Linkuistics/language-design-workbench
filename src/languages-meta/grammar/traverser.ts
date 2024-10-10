@@ -40,7 +40,7 @@ interface Traverser {
     visitAnyElement(anyElement: AnyElement): AnyElement;
     visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation;
     visitVersionNumber(versionNumber: VersionNumber): VersionNumber;
-    followContent(): void;
+    next(): void;
 }
 
 export interface TraverseDelegate {
@@ -70,11 +70,11 @@ export interface TraverseDelegate {
 class TraverserProxy implements Traverser {
     constructor(
         private engine: TraverserEngine,
-        private contentVisitor?: () => void
+        private nextTraversal?: () => void
     ) {}
 
-    followContent(): void {
-        this.contentVisitor?.();
+    next(): void {
+        this.nextTraversal?.();
     }
 
     visitGrammar(grammar: Grammar): Grammar {
@@ -153,15 +153,15 @@ class TraverserProxy implements Traverser {
 export class TraverserEngine implements Traverser {
     constructor(public delegate: TraverseDelegate) {}
 
-    private visit<N>(node: N, visitorMethod: keyof TraverseDelegate, contentVisitor?: () => void): N {
-        const proxy = new TraverserProxy(this, contentVisitor);
+    private visit<N>(node: N, visitorMethod: keyof TraverseDelegate, nextTraversal?: () => void): N {
         const visitor = this.delegate[visitorMethod] as
             | ((node: N, traverser: Traverser) => VisitorResult<N>)
             | undefined;
         if (visitor) {
+            const proxy = nextTraversal ? new TraverserProxy(this, nextTraversal) : this;
             return visitor.call(this.delegate, node, proxy) ?? node;
         } else {
-            proxy.followContent();
+            nextTraversal?.();
             return node;
         }
     }
@@ -300,5 +300,5 @@ export class TraverserEngine implements Traverser {
         return this.visit(versionNumber, 'visitVersionNumber');
     }
 
-    followContent(): void {}
+    next(): void {}
 }

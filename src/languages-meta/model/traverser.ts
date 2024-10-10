@@ -73,11 +73,11 @@ export class Traverser {
             | ((node: N, traverser: Traverser) => VisitorResult<N>)
             | undefined;
         if (visitor) {
-            const result = visitor.call(this.delegate, node, this);
-            return result !== undefined ? result : node;
+            return visitor.call(this.delegate, node, this) ?? node;
+        } else {
+            contentVisitor?.();
+            return node;
         }
-        contentVisitor?.();
-        return node;
     }
 
     visitModel(model: Model): Model {
