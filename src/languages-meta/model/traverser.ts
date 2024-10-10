@@ -26,74 +26,66 @@ import {
     Whitespace
 } from './model';
 
+type VisitorResult<T> = T | void;
+
 export interface TraverseDelegate {
-    visitModel?(model: Model, traverser: Traverser): Model | void;
-
-    visitDefinition?(definition: Definition, traverser: Traverser): Definition | void;
-
-    visitDeletion?(deletion: Deletion, traverser: Traverser): Deletion | void;
-
-    visitMemberModification?(memberModification: MemberModification, traverser: Traverser): MemberModification | void;
-
-    visitMemberDeletion?(memberDeletion: MemberDeletion, traverser: Traverser): MemberDeletion | void;
-
-    visitMemberAddition?(memberAddition: MemberAddition, traverser: Traverser): MemberAddition | void;
-
-    visitType?(type: Type, traverser: Traverser): Type | void;
-
-    visitVoidType?(voidType: VoidType, traverser: Traverser): VoidType | void;
-
-    visitPrimitiveType?(primitiveType: PrimitiveType, traverser: Traverser): PrimitiveType | void;
-
-    visitEnumType?(enumType: EnumType, traverser: Traverser): EnumType | void;
-
-    visitTypeWithStructure?(typeWithStructure: TypeWithStructure, traverser: Traverser): TypeWithStructure | void;
-
-    visitNamedTypeReference?(namedTypeReference: NamedTypeReference, traverser: Traverser): NamedTypeReference | void;
-
-    visitSumType?(sumType: SumType, traverser: Traverser): SumType | void;
-
-    visitProductType?(productType: ProductType, traverser: Traverser): ProductType | void;
-
-    visitProductMember?(productMember: ProductMember, traverser: Traverser): ProductMember | void;
-
-    visitGenericType?(genericType: GenericType, traverser: Traverser): GenericType | void;
-
-    visitTupleType?(tupleType: TupleType, traverser: Traverser): TupleType | void;
-
-    visitMapType?(mapType: MapType, traverser: Traverser): MapType | void;
-
-    visitSetType?(setType: SetType, traverser: Traverser): SetType | void;
-
-    visitSequenceType?(sequenceType: SequenceType, traverser: Traverser): SequenceType | void;
-
-    visitOptionType?(optionType: OptionType, traverser: Traverser): OptionType | void;
-
-    visitTrivia?(trivia: Trivia, traverser: Traverser): Trivia | void;
-
-    visitBlockComment?(blockComment: BlockComment, traverser: Traverser): BlockComment | void;
-
-    visitLineComment?(lineComment: LineComment, traverser: Traverser): LineComment | void;
-
-    visitWhitespace?(whitespace: Whitespace, traverser: Traverser): Whitespace | void;
+    visitModel?(model: Model, traverser: Traverser): VisitorResult<Model>;
+    visitDefinition?(definition: Definition, traverser: Traverser): VisitorResult<Definition>;
+    visitDeletion?(deletion: Deletion, traverser: Traverser): VisitorResult<Deletion>;
+    visitMemberModification?(
+        memberModification: MemberModification,
+        traverser: Traverser
+    ): VisitorResult<MemberModification>;
+    visitMemberDeletion?(memberDeletion: MemberDeletion, traverser: Traverser): VisitorResult<MemberDeletion>;
+    visitMemberAddition?(memberAddition: MemberAddition, traverser: Traverser): VisitorResult<MemberAddition>;
+    visitType?(type: Type, traverser: Traverser): VisitorResult<Type>;
+    visitVoidType?(voidType: VoidType, traverser: Traverser): VisitorResult<VoidType>;
+    visitPrimitiveType?(primitiveType: PrimitiveType, traverser: Traverser): VisitorResult<PrimitiveType>;
+    visitEnumType?(enumType: EnumType, traverser: Traverser): VisitorResult<EnumType>;
+    visitTypeWithStructure?(
+        typeWithStructure: TypeWithStructure,
+        traverser: Traverser
+    ): VisitorResult<TypeWithStructure>;
+    visitNamedTypeReference?(
+        namedTypeReference: NamedTypeReference,
+        traverser: Traverser
+    ): VisitorResult<NamedTypeReference>;
+    visitSumType?(sumType: SumType, traverser: Traverser): VisitorResult<SumType>;
+    visitProductType?(productType: ProductType, traverser: Traverser): VisitorResult<ProductType>;
+    visitProductMember?(productMember: ProductMember, traverser: Traverser): VisitorResult<ProductMember>;
+    visitGenericType?(genericType: GenericType, traverser: Traverser): VisitorResult<GenericType>;
+    visitTupleType?(tupleType: TupleType, traverser: Traverser): VisitorResult<TupleType>;
+    visitMapType?(mapType: MapType, traverser: Traverser): VisitorResult<MapType>;
+    visitSetType?(setType: SetType, traverser: Traverser): VisitorResult<SetType>;
+    visitSequenceType?(sequenceType: SequenceType, traverser: Traverser): VisitorResult<SequenceType>;
+    visitOptionType?(optionType: OptionType, traverser: Traverser): VisitorResult<OptionType>;
+    visitTrivia?(trivia: Trivia, traverser: Traverser): VisitorResult<Trivia>;
+    visitBlockComment?(blockComment: BlockComment, traverser: Traverser): VisitorResult<BlockComment>;
+    visitLineComment?(lineComment: LineComment, traverser: Traverser): VisitorResult<LineComment>;
+    visitWhitespace?(whitespace: Whitespace, traverser: Traverser): VisitorResult<Whitespace>;
 }
 
 export class Traverser {
     constructor(public delegate: TraverseDelegate) {}
 
-    visitModel(model: Model): Model {
-        if (this.delegate.visitModel) {
-            const result = this.delegate.visitModel(model, this);
-            return result ?? model;
+    private visit<N>(node: N, visitorMethod: keyof TraverseDelegate, contentVisitor?: () => void): N {
+        const visitor = this.delegate[visitorMethod] as
+            | ((node: N, traverser: Traverser) => VisitorResult<N>)
+            | undefined;
+        if (visitor) {
+            const result = visitor.call(this.delegate, node, this);
+            return result !== undefined ? result : node;
         }
-        this.visitModelContent(model);
-        return model;
+        contentVisitor?.();
+        return node;
+    }
+
+    visitModel(model: Model): Model {
+        return this.visit(model, 'visitModel', () => this.visitModelContent(model));
     }
 
     visitModelContent(model: Model) {
-        for (let i = 0; i < model.values.length; i++) {
-            model.values[i] = this.dispatchModelValue(model.values[i]);
-        }
+        model.values = model.values.map((value) => this.dispatchModelValue(value));
     }
 
     dispatchModelValue(value: Definition | Deletion | MemberModification): Definition | Deletion | MemberModification {
@@ -107,12 +99,7 @@ export class Traverser {
     }
 
     visitDefinition(definition: Definition): Definition {
-        if (this.delegate.visitDefinition) {
-            const result = this.delegate.visitDefinition(definition, this);
-            return result ?? definition;
-        }
-        this.visitDefinitionContent(definition);
-        return definition;
+        return this.visit(definition, 'visitDefinition', () => this.visitDefinitionContent(definition));
     }
 
     visitDefinitionContent(definition: Definition) {
@@ -120,26 +107,19 @@ export class Traverser {
     }
 
     visitDeletion(deletion: Deletion): Deletion {
-        if (this.delegate.visitDeletion) {
-            const result = this.delegate.visitDeletion(deletion, this);
-            return result ?? deletion;
-        }
-        return deletion;
+        return this.visit(deletion, 'visitDeletion');
     }
 
     visitMemberModification(memberModification: MemberModification): MemberModification {
-        if (this.delegate.visitMemberModification) {
-            const result = this.delegate.visitMemberModification(memberModification, this);
-            return result ?? memberModification;
-        }
-        this.visitMemberModificationContent(memberModification);
-        return memberModification;
+        return this.visit(memberModification, 'visitMemberModification', () =>
+            this.visitMemberModificationContent(memberModification)
+        );
     }
 
     visitMemberModificationContent(memberModification: MemberModification) {
-        for (let i = 0; i < memberModification.values.length; i++) {
-            memberModification.values[i] = this.dispatchMemberModificationValue(memberModification.values[i]);
-        }
+        memberModification.values = memberModification.values.map((value) =>
+            this.dispatchMemberModificationValue(value)
+        );
     }
 
     dispatchMemberModificationValue(value: MemberDeletion | MemberAddition): MemberDeletion | MemberAddition {
@@ -151,185 +131,115 @@ export class Traverser {
     }
 
     visitMemberDeletion(memberDeletion: MemberDeletion): MemberDeletion {
-        if (this.delegate.visitMemberDeletion) {
-            const result = this.delegate.visitMemberDeletion(memberDeletion, this);
-            return result ?? memberDeletion;
-        }
-        return memberDeletion;
+        return this.visit(memberDeletion, 'visitMemberDeletion');
     }
 
     visitMemberAddition(memberAddition: MemberAddition): MemberAddition {
-        if (this.delegate.visitMemberAddition) {
-            const result = this.delegate.visitMemberAddition(memberAddition, this);
-            return result ?? memberAddition;
-        }
-        memberAddition.value = this.dispatchMemberAdditionValue(memberAddition.value);
-        return memberAddition;
+        return this.visit(memberAddition, 'visitMemberAddition', () => {
+            memberAddition.value = this.dispatchMemberAdditionValue(memberAddition.value);
+        });
     }
 
     dispatchMemberAdditionValue(value: Type | ProductMember): Type | ProductMember {
-        if (this.isType(value)) {
-            return this.visitType(value);
-        } else {
+        if (value instanceof ProductMember) {
             return this.visitProductMember(value);
+        } else {
+            return this.visitType(value);
         }
     }
 
     visitType(type: Type): Type {
-        if (this.delegate.visitType) {
-            const result = this.delegate.visitType(type, this);
-            return result ?? type;
-        }
-        return this.dispatchType(type);
-    }
-
-    dispatchType(type: Type): Type {
-        if (type instanceof VoidType) {
-            return this.visitVoidType(type);
-        } else if (typeof type === 'string') {
-            return this.visitPrimitiveType(type);
-        } else if (type instanceof EnumType) {
-            return this.visitEnumType(type);
-        } else if (this.isTypeWithStructure(type)) {
-            return this.visitTypeWithStructure(type);
-        } else {
-            return this.visitNamedTypeReference(type);
-        }
+        return this.visit(type, 'visitType', () => {
+            if (type instanceof VoidType) {
+                return this.visitVoidType(type);
+            } else if (typeof type === 'string') {
+                return this.visitPrimitiveType(type);
+            } else if (type instanceof EnumType) {
+                return this.visitEnumType(type);
+            } else if (type instanceof NamedTypeReference) {
+                return this.visitNamedTypeReference(type);
+            } else {
+                return this.visitTypeWithStructure(type);
+            }
+        });
     }
 
     visitVoidType(voidType: VoidType): VoidType {
-        if (this.delegate.visitVoidType) {
-            const result = this.delegate.visitVoidType(voidType, this);
-            return result ?? voidType;
-        }
-        return voidType;
+        return this.visit(voidType, 'visitVoidType');
     }
 
     visitPrimitiveType(primitiveType: PrimitiveType): PrimitiveType {
-        if (this.delegate.visitPrimitiveType) {
-            const result = this.delegate.visitPrimitiveType(primitiveType, this);
-            return result ?? primitiveType;
-        }
-        return primitiveType;
+        return this.visit(primitiveType, 'visitPrimitiveType');
     }
 
     visitEnumType(enumType: EnumType): EnumType {
-        if (this.delegate.visitEnumType) {
-            const result = this.delegate.visitEnumType(enumType, this);
-            return result ?? enumType;
-        }
-        return enumType;
+        return this.visit(enumType, 'visitEnumType');
     }
 
     visitTypeWithStructure(typeWithStructure: TypeWithStructure): TypeWithStructure {
-        if (this.delegate.visitTypeWithStructure) {
-            const result = this.delegate.visitTypeWithStructure(typeWithStructure, this);
-            return result ?? typeWithStructure;
-        }
-        return this.dispatchTypeWithStructure(typeWithStructure);
-    }
-
-    dispatchTypeWithStructure(typeWithStructure: TypeWithStructure): TypeWithStructure {
-        if (typeWithStructure instanceof SumType) {
-            return this.visitSumType(typeWithStructure);
-        } else if (typeWithStructure instanceof ProductType) {
-            return this.visitProductType(typeWithStructure);
-        } else {
-            return this.visitGenericType(typeWithStructure);
-        }
+        return this.visit(typeWithStructure, 'visitTypeWithStructure', () => {
+            if (typeWithStructure instanceof SumType) {
+                return this.visitSumType(typeWithStructure);
+            } else if (typeWithStructure instanceof ProductType) {
+                return this.visitProductType(typeWithStructure);
+            } else {
+                return this.visitGenericType(typeWithStructure);
+            }
+        });
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference): NamedTypeReference {
-        if (this.delegate.visitNamedTypeReference) {
-            const result = this.delegate.visitNamedTypeReference(namedTypeReference, this);
-            return result ?? namedTypeReference;
-        }
-        return namedTypeReference;
+        return this.visit(namedTypeReference, 'visitNamedTypeReference');
     }
 
     visitSumType(sumType: SumType): SumType {
-        if (this.delegate.visitSumType) {
-            const result = this.delegate.visitSumType(sumType, this);
-            return result ?? sumType;
-        }
-        this.visitSumTypeContent(sumType);
-        return sumType;
+        return this.visit(sumType, 'visitSumType', () => this.visitSumTypeContent(sumType));
     }
 
     visitSumTypeContent(sumType: SumType) {
-        for (let i = 0; i < sumType.members.length; i++) {
-            sumType.members[i] = this.visitType(sumType.members[i]);
-        }
+        sumType.members = sumType.members.map((member) => this.visitType(member));
     }
 
     visitProductType(productType: ProductType): ProductType {
-        if (this.delegate.visitProductType) {
-            const result = this.delegate.visitProductType(productType, this);
-            return result ?? productType;
-        }
-        this.visitProductTypeContent(productType);
-        return productType;
+        return this.visit(productType, 'visitProductType', () => this.visitProductTypeContent(productType));
     }
 
     visitProductTypeContent(productType: ProductType) {
-        for (let i = 0; i < productType.members.length; i++) {
-            productType.members[i] = this.visitProductMember(productType.members[i]);
-        }
+        productType.members = productType.members.map((member) => this.visitProductMember(member));
     }
 
     visitProductMember(productMember: ProductMember): ProductMember {
-        if (this.delegate.visitProductMember) {
-            const result = this.delegate.visitProductMember(productMember, this);
-            return result ?? productMember;
-        }
-        productMember.type = this.visitType(productMember.type);
-        return productMember;
+        return this.visit(productMember, 'visitProductMember', () => {
+            productMember.type = this.visitType(productMember.type);
+        });
     }
 
     visitGenericType(genericType: GenericType): GenericType {
-        if (this.delegate.visitGenericType) {
-            const result = this.delegate.visitGenericType(genericType, this);
-            return result ?? genericType;
-        }
-        return this.dispatchGenericType(genericType);
-    }
-
-    dispatchGenericType(genericType: GenericType): GenericType {
-        if (genericType instanceof TupleType) {
-            return this.visitTupleType(genericType);
-        } else if (genericType instanceof MapType) {
-            return this.visitMapType(genericType);
-        } else if (genericType instanceof SetType) {
-            return this.visitSetType(genericType);
-        } else if (genericType instanceof SequenceType) {
-            return this.visitSequenceType(genericType);
-        } else {
-            return this.visitOptionType(genericType);
-        }
+        return this.visit(genericType, 'visitGenericType', () => {
+            if (genericType instanceof TupleType) {
+                return this.visitTupleType(genericType);
+            } else if (genericType instanceof MapType) {
+                return this.visitMapType(genericType);
+            } else if (genericType instanceof SetType) {
+                return this.visitSetType(genericType);
+            } else if (genericType instanceof SequenceType) {
+                return this.visitSequenceType(genericType);
+            } else {
+                return this.visitOptionType(genericType);
+            }
+        });
     }
 
     visitTupleType(tupleType: TupleType): TupleType {
-        if (this.delegate.visitTupleType) {
-            const result = this.delegate.visitTupleType(tupleType, this);
-            return result ?? tupleType;
-        }
-        this.visitTupleTypeContent(tupleType);
-        return tupleType;
+        return this.visit(tupleType, 'visitTupleType', () => this.visitTupleTypeContent(tupleType));
     }
 
     visitTupleTypeContent(tupleType: TupleType) {
-        for (let i = 0; i < tupleType.members.length; i++) {
-            tupleType.members[i] = this.visitType(tupleType.members[i]);
-        }
+        tupleType.members = tupleType.members.map((member) => this.visitType(member));
     }
 
     visitMapType(mapType: MapType): MapType {
-        if (this.delegate.visitMapType) {
-            const result = this.delegate.visitMapType(mapType, this);
-            return result ?? mapType;
-        }
-        this.visitMapTypeContent(mapType);
-        return mapType;
+        return this.visit(mapType, 'visitMapType', () => this.visitMapTypeContent(mapType));
     }
 
     visitMapTypeContent(mapType: MapType) {
@@ -338,12 +248,7 @@ export class Traverser {
     }
 
     visitSetType(setType: SetType): SetType {
-        if (this.delegate.visitSetType) {
-            const result = this.delegate.visitSetType(setType, this);
-            return result ?? setType;
-        }
-        this.visitSetTypeContent(setType);
-        return setType;
+        return this.visit(setType, 'visitSetType', () => this.visitSetTypeContent(setType));
     }
 
     visitSetTypeContent(setType: SetType) {
@@ -351,12 +256,7 @@ export class Traverser {
     }
 
     visitSequenceType(sequenceType: SequenceType): SequenceType {
-        if (this.delegate.visitSequenceType) {
-            const result = this.delegate.visitSequenceType(sequenceType, this);
-            return result ?? sequenceType;
-        }
-        this.visitSequenceTypeContent(sequenceType);
-        return sequenceType;
+        return this.visit(sequenceType, 'visitSequenceType', () => this.visitSequenceTypeContent(sequenceType));
     }
 
     visitSequenceTypeContent(sequenceType: SequenceType) {
@@ -364,12 +264,7 @@ export class Traverser {
     }
 
     visitOptionType(optionType: OptionType): OptionType {
-        if (this.delegate.visitOptionType) {
-            const result = this.delegate.visitOptionType(optionType, this);
-            return result ?? optionType;
-        }
-        this.visitOptionTypeContent(optionType);
-        return optionType;
+        return this.visit(optionType, 'visitOptionType', () => this.visitOptionTypeContent(optionType));
     }
 
     visitOptionTypeContent(optionType: OptionType) {
@@ -377,68 +272,26 @@ export class Traverser {
     }
 
     visitTrivia(trivia: Trivia): Trivia {
-        if (this.delegate.visitTrivia) {
-            const result = this.delegate.visitTrivia(trivia, this);
-            return result ?? trivia;
-        }
-        return this.dispatchTrivia(trivia);
-    }
-
-    dispatchTrivia(trivia: Trivia): Trivia {
-        if (trivia instanceof BlockComment) {
-            return this.visitBlockComment(trivia);
-        } else if (trivia instanceof LineComment) {
-            return this.visitLineComment(trivia);
-        } else {
-            return this.visitWhitespace(trivia);
-        }
+        return this.visit(trivia, 'visitTrivia', () => {
+            if (trivia instanceof BlockComment) {
+                return this.visitBlockComment(trivia);
+            } else if (trivia instanceof LineComment) {
+                return this.visitLineComment(trivia);
+            } else {
+                return this.visitWhitespace(trivia);
+            }
+        });
     }
 
     visitBlockComment(blockComment: BlockComment): BlockComment {
-        if (this.delegate.visitBlockComment) {
-            const result = this.delegate.visitBlockComment(blockComment, this);
-            return result ?? blockComment;
-        }
-        return blockComment;
+        return this.visit(blockComment, 'visitBlockComment');
     }
 
     visitLineComment(lineComment: LineComment): LineComment {
-        if (this.delegate.visitLineComment) {
-            const result = this.delegate.visitLineComment(lineComment, this);
-            return result ?? lineComment;
-        }
-        return lineComment;
+        return this.visit(lineComment, 'visitLineComment');
     }
 
     visitWhitespace(whitespace: Whitespace): Whitespace {
-        if (this.delegate.visitWhitespace) {
-            const result = this.delegate.visitWhitespace(whitespace, this);
-            return result ?? whitespace;
-        }
-        return whitespace;
-    }
-
-    private isType(value: any): value is Type {
-        return (
-            value instanceof VoidType ||
-            value instanceof EnumType ||
-            value instanceof NamedTypeReference ||
-            typeof value === 'string' ||
-            this.isTypeWithStructure(value)
-        );
-    }
-
-    private isTypeWithStructure(value: any): value is TypeWithStructure {
-        return value instanceof SumType || value instanceof ProductType || this.isGenericType(value);
-    }
-
-    private isGenericType(value: any): value is GenericType {
-        return (
-            value instanceof TupleType ||
-            value instanceof MapType ||
-            value instanceof SetType ||
-            value instanceof SequenceType ||
-            value instanceof OptionType
-        );
+        return this.visit(whitespace, 'visitWhitespace');
     }
 }
