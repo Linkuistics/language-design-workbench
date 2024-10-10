@@ -496,11 +496,11 @@ export abstract class Parser implements InputStream {
         };
     }
 
-    successOrThrow<T>(arg0: ParseResult<T>): T {
-        if (arg0.success) {
-            return arg0.value;
+    successOrThrow<T>(result: ParseResult<T>): T {
+        if (result.success) {
+            return result.value;
         } else {
-            throw new Error(arg0.failure.message);
+            throw new Error(result.failure.message);
         }
     }
 }

@@ -34,6 +34,14 @@ export class ModelToTypesTypescriptSource implements TraverseDelegate {
         return this.output.toString().trim();
     }
 
+    visitDeletion(): void {
+        // TODO: new model without this
+    }
+
+    visitMemberModification(): void {
+        // TODO: new model without this
+    }
+
     visitDefinition(definition: Definition, traverser: Traverser) {
         if (definition.type instanceof ProductType) {
             this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
