@@ -167,15 +167,24 @@ export class TraverserEngine implements Traverser {
     }
 
     visitGrammar(grammar: Grammar): Grammar {
-        return this.visit(grammar, 'visitGrammar', () => this.visitGrammarContent(grammar));
+        return this.visit(grammar, 'visitGrammar', () => {
+            grammar.rules = grammar.rules.map((rule) => this.visitRule(rule));
+            grammar.prattRules = grammar.prattRules.map((rule) => this.visitPrattRule(rule));
+        });
     }
 
     visitRule(rule: Rule): Rule {
-        return this.visit(rule, 'visitRule', () => this.visitRuleContent(rule));
+        return this.visit(rule, 'visitRule', () => {
+            rule.body = this.visitRuleBody(rule.body);
+            rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitRuleBody(ruleBody: RuleBody): RuleBody {
         return this.visit(ruleBody, 'visitRuleBody', () => {
+            // TODO: not sure if this is the right approach
+            // because dispatching on the concrete type isn't
+            // the same is visiting the content
             if (ruleBody instanceof SequenceRule) {
                 return this.visitSequenceRule(ruleBody);
             } else {
@@ -185,23 +194,37 @@ export class TraverserEngine implements Traverser {
     }
 
     visitPrattRule(rule: PrattRule): PrattRule {
-        return this.visit(rule, 'visitPrattRule', () => this.visitPrattRuleContent(rule));
+        return this.visit(rule, 'visitPrattRule', () => {
+            rule.operators = rule.operators.map((op) => this.visitPrattOperator(op));
+            rule.primary = this.visitPrattPrimary(rule.primary);
+            rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitPrattOperator(operator: PrattOperator): PrattOperator {
-        return this.visit(operator, 'visitPrattOperator', () => this.visitPrattOperatorContent(operator));
+        return this.visit(operator, 'visitPrattOperator', () => {
+            operator.body = this.visitRuleBody(operator.body);
+            operator.versionAnnotations = operator.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitPrattPrimary(primary: PrattPrimary): PrattPrimary {
-        return this.visit(primary, 'visitPrattPrimary', () => this.visitPrattPrimaryContent(primary));
+        return this.visit(primary, 'visitPrattPrimary', () => {
+            primary.body = this.visitRuleBody(primary.body);
+        });
     }
 
     visitSequenceRule(sequenceRule: SequenceRule): SequenceRule {
-        return this.visit(sequenceRule, 'visitSequenceRule', () => this.visitSequenceRuleContent(sequenceRule));
+        return this.visit(sequenceRule, 'visitSequenceRule', () => {
+            sequenceRule.elements = sequenceRule.elements.map((el: RuleElement) => this.visitRuleElement(el));
+        });
     }
 
     visitRuleElement(ruleElement: RuleElement): RuleElement {
         return this.visit(ruleElement, 'visitRuleElement', () => {
+            // TODO: not sure if this is the right approach
+            // because dispatching on the concrete type isn't
+            // the same is visiting the content
             if (ruleElement instanceof CountedRuleElement) {
                 return this.visitCountedRuleElement(ruleElement);
             } else {
@@ -215,21 +238,32 @@ export class TraverserEngine implements Traverser {
     }
 
     visitNegativeLookahead(negativeLookahead: NegativeLookahead): NegativeLookahead {
-        return this.visit(negativeLookahead, 'visitNegativeLookahead', () =>
-            this.visitNegativeLookaheadContent(negativeLookahead)
-        );
+        return this.visit(negativeLookahead, 'visitNegativeLookahead', () => {
+            negativeLookahead.content =
+                negativeLookahead.content instanceof CharSet
+                    ? this.visitCharSet(negativeLookahead.content)
+                    : this.visitStringElement(negativeLookahead.content);
+        });
     }
 
     visitChoiceRule(rules: ChoiceRule): ChoiceRule {
-        return this.visit(rules, 'visitChoiceRule', () => this.visitChoiceRuleContent(rules));
+        return this.visit(rules, 'visitChoiceRule', () => {
+            rules.choices = rules.choices.map((choice: SequenceRule) => this.visitSequenceRule(choice));
+        });
     }
 
     visitCountedRuleElement(element: CountedRuleElement): CountedRuleElement {
-        return this.visit(element, 'visitCountedRuleElement', () => this.visitCountedRuleElementContent(element));
+        return this.visit(element, 'visitCountedRuleElement', () => {
+            element.countableRuleElement = this.visitCountableRuleElement(element.countableRuleElement);
+            element.versionAnnotations = element.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
+        });
     }
 
     visitCountableRuleElement(cre: CountableRuleElement): CountableRuleElement {
         return this.visit(cre, 'visitCountableRuleElement', () => {
+            // TODO: not sure if this is the right approach
+            // because dispatching on the concrete type isn't
+            // the same is visiting the content
             if (cre instanceof RuleReference) {
                 return this.visitRuleReference(cre);
             } else if (cre instanceof AnyElement) {
@@ -257,9 +291,9 @@ export class TraverserEngine implements Traverser {
     }
 
     visitVersionAnnotation(versionAnnotation: VersionAnnotation): VersionAnnotation {
-        return this.visit(versionAnnotation, 'visitVersionAnnotation', () =>
-            this.visitVersionAnnotationContent(versionAnnotation)
-        );
+        return this.visit(versionAnnotation, 'visitVersionAnnotation', () => {
+            versionAnnotation.version = this.visitVersionNumber(versionAnnotation.version);
+        });
     }
 
     visitVersionNumber(versionNumber: VersionNumber): VersionNumber {
@@ -267,55 +301,4 @@ export class TraverserEngine implements Traverser {
     }
 
     followContent(): void {}
-
-    // Private content methods
-
-    private visitGrammarContent(grammar: Grammar) {
-        grammar.rules = grammar.rules.map((rule) => this.visitRule(rule));
-        grammar.prattRules = grammar.prattRules.map((rule) => this.visitPrattRule(rule));
-    }
-
-    private visitRuleContent(rule: Rule) {
-        rule.body = this.visitRuleBody(rule.body);
-        rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
-    }
-
-    private visitPrattRuleContent(rule: PrattRule) {
-        rule.operators = rule.operators.map((op) => this.visitPrattOperator(op));
-        rule.primary = this.visitPrattPrimary(rule.primary);
-        rule.versionAnnotations = rule.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
-    }
-
-    private visitPrattOperatorContent(operator: PrattOperator) {
-        operator.body = this.visitRuleBody(operator.body);
-        operator.versionAnnotations = operator.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
-    }
-
-    private visitPrattPrimaryContent(primary: PrattPrimary) {
-        primary.body = this.visitRuleBody(primary.body);
-    }
-
-    private visitSequenceRuleContent(sequenceRule: SequenceRule) {
-        sequenceRule.elements = sequenceRule.elements.map((el) => this.visitRuleElement(el));
-    }
-
-    private visitNegativeLookaheadContent(negativeLookahead: NegativeLookahead) {
-        negativeLookahead.content =
-            negativeLookahead.content instanceof CharSet
-                ? this.visitCharSet(negativeLookahead.content)
-                : this.visitStringElement(negativeLookahead.content);
-    }
-
-    private visitChoiceRuleContent(rules: ChoiceRule) {
-        rules.choices = rules.choices.map((choice) => this.visitSequenceRule(choice));
-    }
-
-    private visitCountedRuleElementContent(element: CountedRuleElement) {
-        element.countableRuleElement = this.visitCountableRuleElement(element.countableRuleElement);
-        element.versionAnnotations = element.versionAnnotations.map((va) => this.visitVersionAnnotation(va));
-    }
-
-    private visitVersionAnnotationContent(versionAnnotation: VersionAnnotation) {
-        versionAnnotation.version = this.visitVersionNumber(versionAnnotation.version);
-    }
 }
