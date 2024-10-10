@@ -2,6 +2,7 @@
 .env
 .devbox
 .direnv
+.rustup
 node_modules
 dist
 grammars/*.json

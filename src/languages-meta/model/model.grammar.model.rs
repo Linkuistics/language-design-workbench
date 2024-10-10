@@ -1,104 +1,117 @@
 pub struct Model {
-    pub name: Id,
-    pub parentName: Option<Id>,
-    pub values: Vec<Deletion | MemberModification | Definition>,
+    pub r#name: Id,
+    pub r#parentName: Option<Id>,
+    pub r#values: Vec<()>,
 }
 
 pub struct Definition {
-    pub name: Id,
-    pub type: Type,
+    pub r#name: Id,
+    pub r#type: Type,
 }
 
 pub struct Deletion {
-    pub name: Id,
+    pub r#name: Id,
 }
 
 pub struct MemberModification {
-    pub name: Id,
-    pub values: Vec<MemberDeletion | MemberAddition>,
+    pub r#name: Id,
+    pub r#values: Vec<()>,
 }
 
 pub struct MemberDeletion {
-    pub name: Id,
+    pub r#name: Id,
 }
 
 pub struct MemberAddition {
-    pub value: ProductMember | Type,
+    pub r#value: (),
 }
 
-pub type Type =VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
+pub type Type = ();
 
-pub struct VoidType {
+pub struct VoidType {}
+
+pub enum PrimitiveType {
+    Boolean,
+    Char,
+    String,
+    I8,
+    I16,
+    I32,
+    I64,
+    U8,
+    U16,
+    U32,
+    U64,
+    F32,
+    F64,
 }
-
-pub enum PrimitiveType {    Boolean,    Char,    String,    I8,    I16,    I32,    I64,    U8,    U16,    U32,    U64,    F32,    F64,}
 
 pub struct EnumType {
-    pub members: Vec<StringElement>,
+    pub r#members: Vec<StringElement>,
 }
 
-pub type StringElement =Id;
+pub type StringElement = Id;
 
-pub type TypeWithStructure =SumType | ProductType | GenericType;
+pub type TypeWithStructure = ();
 
 pub struct SumType {
-    pub members: Vec<Type>,
+    pub r#members: Vec<Type>,
 }
 
 pub struct ProductType {
-    pub members: Vec<ProductMember>,
+    pub r#members: Vec<ProductMember>,
 }
 
 pub struct ProductMember {
-    pub name: Id,
-    pub type: Type,
+    pub r#name: Id,
+    pub r#type: Type,
 }
 
-pub type GenericType =TupleType | MapType | SetType | SequenceType | OptionType;
+pub type GenericType = ();
 
 pub struct TupleType {
-    pub members: Vec<Type>,
+    pub r#members: Vec<Type>,
 }
 
 pub struct MapType {
-    pub keyType: Type,
-    pub valueType: Type,
+    pub r#keyType: Type,
+    pub r#valueType: Type,
 }
 
 pub struct SetType {
-    pub keyType: Type,
+    pub r#keyType: Type,
 }
 
 pub struct SequenceType {
-    pub elementType: Type,
+    pub r#elementType: Type,
 }
 
 pub struct OptionType {
-    pub type: Type,
+    pub r#type: Type,
 }
 
 pub struct NamedTypeReference {
-    pub names: Vec<Id>,
+    pub r#names: Vec<Id>,
 }
 
-pub type Id =Identifier;
+pub type Id = Identifier;
 
-pub type Identifier =String;
+pub type Identifier = String;
 
-pub type InitialIdentifierChar =String;
+pub type InitialIdentifierChar = String;
 
-pub type IdentifierChar =String;
+pub type IdentifierChar = String;
 
-pub type Trivia =LineComment | BlockComment | Whitespace;
+pub type Trivia = ();
 
 pub struct Whitespace {
-    pub value: String,
+    pub r#value: String,
 }
 
 pub struct LineComment {
-    pub value: String,
+    pub r#value: String,
 }
 
 pub struct BlockComment {
-    pub value: String,
+    pub r#value: String,
 }

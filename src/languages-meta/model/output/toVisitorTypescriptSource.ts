@@ -135,9 +135,7 @@ class TopLevelGenerator implements TraverseDelegate {
         this.valueName = '';
     }
 
-    visitOptionType(optionType: OptionType, traverser: Traverser): void | OptionType {
-        console.log('Not implemented', optionType);
-    }
+    visitOptionType(optionType: OptionType, traverser: Traverser): void | OptionType {}
 
     visitSequenceType(sequenceType: SequenceType, traverser: Traverser): void | SequenceType {
         if (
