@@ -5,4 +5,3 @@
 .rustup
 node_modules
 dist
-next-src
