@@ -1,6 +1,6 @@
-import { InputStream } from '../../../input/inputStream';
-import { Parser, ParseResult } from '../../../input/parser';
-import { StringInputStream } from '../../../input/stringInputStream';
+import { InputStream } from '../../../parsing/inputStream';
+import { Parser, ParseResult } from '../../../parsing/parser';
+import { StringInputStream } from '../../../parsing/stringInputStream';
 import * as Model from '../model';
 
 export class ModelFromSource {

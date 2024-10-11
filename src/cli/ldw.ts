@@ -1,17 +1,17 @@
 import { program } from 'commander';
 import * as fs from 'fs';
-import { GrammarFromSource } from '../languages-meta/grammar/input/fromSource';
-import { GrammarExtendedFromGrammar } from '../languages-meta/grammarExtended/input/fromGrammar';
-import { GrammarWithTypesFromGrammarExtended } from '../languages-meta/grammarWithTypes/input/fromGrammarExtended';
-import { GrammarWithTypesToParserTypescriptSource } from '../languages-meta/grammarWithTypes/output/toParserTypescriptSource';
-import { ModelFromGrammarWithTypes } from '../languages-meta/model/input/fromGrammarWithTypes';
-import { ModelFromSource } from '../languages-meta/model/input/fromSource';
-import { ModelToSource } from '../languages-meta/model/output/toSource';
-import { ModelToTypesTypescriptSource } from '../languages-meta/model/output/toTypesTypescriptSource';
+import { GrammarFromSource } from '../languages-meta/grammar/creation/fromSource';
+import { GrammarExtendedFromGrammar } from '../languages-meta/grammarExtended/creation/fromGrammar';
+import { GrammarWithTypesFromGrammarExtended } from '../languages-meta/grammarWithTypes/creation/fromGrammarExtended';
+import { GrammarWithTypesToParserTypescriptSource } from '../languages-meta/grammarWithTypes/outputs/toParserTypescriptSource';
+import { ModelFromGrammarWithTypes } from '../languages-meta/model/creation/fromGrammarWithTypes';
+import { ModelFromSource } from '../languages-meta/model/creation/fromSource';
+import { ModelToSource } from '../languages-meta/model/outputs/toSource';
+import { ModelToTypesTypescriptSource } from '../languages-meta/model/outputs/toTypesTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
-import { ParseError } from '../input/parseError';
-import { ModelToVisitorTypescriptSource } from '../languages-meta/model/output/toVisitorTypescriptSource';
-import { ModelToTypesRustSource } from '../languages-meta/model/output/toTypesRustSource';
+import { ParseError } from '../parsing/parseError';
+import { ModelToVisitorTypescriptSource } from '../languages-meta/model/outputs/toVisitorTypescriptSource';
+import { ModelToTypesRustSource } from '../languages-meta/model/outputs/toTypesRustSource';
 
 program.version('1.0.0').description('Language Design Workbench CLI');
 

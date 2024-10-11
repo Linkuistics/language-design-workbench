@@ -2,7 +2,7 @@
 
 for model in next-src/languages-meta/**/*.model ; do
 
-    dir=$(dirname $model)
+    dir=$(dirname $model)/../
 
     echo "Processing $model => $dir/model.ts"
     ts-node src/cli/ldw.ts model-to-types -l typescript -i $model -o $dir/model.ts

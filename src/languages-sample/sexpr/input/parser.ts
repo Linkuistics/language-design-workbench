@@ -1,13 +1,9 @@
-import { InputStream } from '../../../input/inputStream';
+import { InputStream } from '../../../parsing/inputStream';
 import * as Model from '../model';
-import { Parser } from '../../../input/parser';
-import { ParseError } from '../../../input/parseError';
+import { Parser } from '../../../parsing/parser';
+import { ParseError } from '../../../parsing/parseError';
 
-type TriviaKind =
-    | 'LineComment'
-    | 'BlockComment'
-    | 'DatumComment'
-    | 'Whitespace';
+type TriviaKind = 'LineComment' | 'BlockComment' | 'DatumComment' | 'Whitespace';
 
 export class SexprParser extends Parser {
     constructor(input: InputStream) {
@@ -17,11 +13,7 @@ export class SexprParser extends Parser {
     parse(): Model.Datum {
         const datum = this.parseDatum();
         if (!this.isEOF()) {
-            throw new ParseError(
-                'Unexpected content after datum',
-                this.getPosition(),
-                this
-            );
+            throw new ParseError('Unexpected content after datum', this.getPosition(), this);
         }
         return datum;
     }
@@ -63,19 +55,11 @@ export class SexprParser extends Parser {
                     if (hexValue) {
                         const charCode = parseInt(hexValue, 16);
                         if (charCode > 0x10ffff) {
-                            throw new ParseError(
-                                'Invalid Unicode character',
-                                this.getPosition(),
-                                this
-                            );
+                            throw new ParseError('Invalid Unicode character', this.getPosition(), this);
                         }
                         return { char: String.fromCodePoint(charCode) };
                     }
-                    throw new ParseError(
-                        'Expected hex value for character',
-                        this.getPosition(),
-                        this
-                    );
+                    throw new ParseError('Expected hex value for character', this.getPosition(), this);
                 }
                 const namedChar = this.consumeRegex(
                     /^(alarm|backspace|delete|esc|linefeed|newline|page|return|space|tab|vtab)/
@@ -85,27 +69,17 @@ export class SexprParser extends Parser {
                     if (characterName !== undefined) {
                         return { characterName };
                     }
-                    throw new ParseError(
-                        `Invalid character name: ${namedChar}`,
-                        this.getPosition(),
-                        this
-                    );
+                    throw new ParseError(`Invalid character name: ${namedChar}`, this.getPosition(), this);
                 }
                 return {
                     char: this.must(this.consume(), 'Expected character')
                 };
             }
-            throw new ParseError(
-                'Expected character',
-                this.getPosition(),
-                this
-            );
+            throw new ParseError('Expected character', this.getPosition(), this);
         });
     }
 
-    private stringToCharacterName(
-        name: string
-    ): Model.CharacterName | undefined {
+    private stringToCharacterName(name: string): Model.CharacterName | undefined {
         switch (name) {
             case 'alarm':
                 return Model.CharacterName.Alarm;
@@ -138,10 +112,7 @@ export class SexprParser extends Parser {
         if (this.consumeString('...')) return '...';
         if (this.consumeString('+')) return '+';
         if (this.consumeString('-')) return '-';
-        return this.mustConsumeRegex(
-            /^([a-zA-Z!$%&*/:<=>?~_^][a-zA-Z0-9!$%&*/:<=>?~_^.+-@]*)/,
-            'symbol'
-        );
+        return this.mustConsumeRegex(/^([a-zA-Z!$%&*/:<=>?~_^][a-zA-Z0-9!$%&*/:<=>?~_^.+-@]*)/, 'symbol');
     }
 
     private parseString(): Model.String {
@@ -153,11 +124,7 @@ export class SexprParser extends Parser {
                     this.consume();
                     const escapeChar = this.consume();
                     if (escapeChar === undefined) {
-                        throw new ParseError(
-                            'Unexpected end of input',
-                            this.getPosition(),
-                            this
-                        );
+                        throw new ParseError('Unexpected end of input', this.getPosition(), this);
                     }
                     switch (escapeChar) {
                         case '"':
@@ -178,15 +145,9 @@ export class SexprParser extends Parser {
                         case 'x':
                             const hexValue = this.consumeRegex(/^[0-9a-fA-F]+/);
                             if (hexValue) {
-                                value += String.fromCharCode(
-                                    parseInt(hexValue, 16)
-                                );
+                                value += String.fromCharCode(parseInt(hexValue, 16));
                             } else {
-                                throw new ParseError(
-                                    'Invalid hex escape in string',
-                                    this.getPosition(),
-                                    this
-                                );
+                                throw new ParseError('Invalid hex escape in string', this.getPosition(), this);
                             }
                             break;
                         default:
@@ -199,11 +160,7 @@ export class SexprParser extends Parser {
                 } else {
                     const char = this.consume();
                     if (char === undefined) {
-                        throw new ParseError(
-                            'Unexpected end of input',
-                            this.getPosition(),
-                            this
-                        );
+                        throw new ParseError('Unexpected end of input', this.getPosition(), this);
                     }
                     value += char;
                 }
@@ -215,40 +172,26 @@ export class SexprParser extends Parser {
 
     private parseNumber(): Model.Number {
         return this.ignoreTriviaDuring(() => {
-            const sign = this.consumeString('+')
-                ? '+'
-                : this.consumeString('-')
-                  ? '-'
-                  : '';
+            const sign = this.consumeString('+') ? '+' : this.consumeString('-') ? '-' : '';
             if (this.consumeString('#b')) {
-                const value =
-                    sign + this.mustConsumeRegex(/^[01]+/, 'binary number');
+                const value = sign + this.mustConsumeRegex(/^[01]+/, 'binary number');
                 return new Model.Num2(value);
             }
             if (this.consumeString('#x')) {
-                const value =
-                    sign +
-                    this.mustConsumeRegex(
-                        /^[0-9a-fA-F]+/,
-                        'hexadecimal number'
-                    );
+                const value = sign + this.mustConsumeRegex(/^[0-9a-fA-F]+/, 'hexadecimal number');
                 return new Model.Num16(value);
             }
-            const value =
-                sign + this.mustConsumeRegex(/^[0-9]+/, 'decimal number');
+            const value = sign + this.mustConsumeRegex(/^[0-9]+/, 'decimal number');
             return new Model.Num10(value);
         });
     }
 
     private parseList(): Model.List {
         const openDelimiter = this.must(
-            this.consumeString('(') ||
-                this.consumeString('[') ||
-                this.consumeString('{'),
+            this.consumeString('(') || this.consumeString('[') || this.consumeString('{'),
             'list opening delimiter'
         );
-        const closeDelimiter =
-            openDelimiter === '(' ? ')' : openDelimiter === '[' ? ']' : '}';
+        const closeDelimiter = openDelimiter === '(' ? ')' : openDelimiter === '[' ? ']' : '}';
 
         if (this.peek() === closeDelimiter) {
             this.consume();
@@ -272,13 +215,10 @@ export class SexprParser extends Parser {
 
     private parseVector(): Model.Vector {
         const openDelimiter = this.must(
-            this.consumeString('#(') ||
-                this.consumeString('#[') ||
-                this.consumeString('#{'),
+            this.consumeString('#(') || this.consumeString('#[') || this.consumeString('#{'),
             'vector opening delimiter'
         );
-        const closeDelimiter =
-            openDelimiter === '#(' ? ')' : openDelimiter === '#[' ? ']' : '}';
+        const closeDelimiter = openDelimiter === '#(' ? ')' : openDelimiter === '#[' ? ']' : '}';
 
         const data: Model.Datum[] = [];
         while (this.peek() !== closeDelimiter && !this.isEOF()) {
@@ -291,17 +231,10 @@ export class SexprParser extends Parser {
 
     private parseByteVector(): Model.ByteVector {
         const openDelimiter = this.must(
-            this.consumeString('#vu8(') ||
-                this.consumeString('#vu8[') ||
-                this.consumeString('#vu8{'),
+            this.consumeString('#vu8(') || this.consumeString('#vu8[') || this.consumeString('#vu8{'),
             'byte vector opening delimiter'
         );
-        const closeDelimiter =
-            openDelimiter === '#vu8('
-                ? ')'
-                : openDelimiter === '#vu8['
-                  ? ']'
-                  : '}';
+        const closeDelimiter = openDelimiter === '#vu8(' ? ')' : openDelimiter === '#vu8[' ? ']' : '}';
 
         const numbers: Model.Number[] = [];
         while (this.peek() !== closeDelimiter && !this.isEOF()) {
@@ -315,11 +248,7 @@ export class SexprParser extends Parser {
                 value = parseInt(number.value, 10);
             }
             if (value < 0 || value > 255) {
-                throw new ParseError(
-                    `Byte vector value out of range: ${value}`,
-                    this.getPosition(),
-                    this
-                );
+                throw new ParseError(`Byte vector value out of range: ${value}`, this.getPosition(), this);
             }
             numbers.push(number);
         }
@@ -330,13 +259,10 @@ export class SexprParser extends Parser {
 
     private parseStruct(): Model.Struct {
         const openDelimiter = this.must(
-            this.consumeString('#s(') ||
-                this.consumeString('#s[') ||
-                this.consumeString('#s{'),
+            this.consumeString('#s(') || this.consumeString('#s[') || this.consumeString('#s{'),
             'struct opening delimiter'
         );
-        const closeDelimiter =
-            openDelimiter === '#s(' ? ')' : openDelimiter === '#s[' ? ']' : '}';
+        const closeDelimiter = openDelimiter === '#s(' ? ')' : openDelimiter === '#s[' ? ']' : '}';
 
         const name = this.parseSymbol();
         const data: Model.Datum[] = [];
@@ -350,10 +276,7 @@ export class SexprParser extends Parser {
 
     private parseAbbreviation(): Model.List {
         const abbreviation = this.must(
-            this.consumeString("'") ||
-                this.consumeString('`') ||
-                this.consumeString(',@') ||
-                this.consumeString(','),
+            this.consumeString("'") || this.consumeString('`') || this.consumeString(',@') || this.consumeString(','),
             'abbreviation'
         );
 
@@ -374,11 +297,7 @@ export class SexprParser extends Parser {
             case ',@':
                 return 'unquote-splicing';
             default:
-                throw new ParseError(
-                    'Invalid abbreviation',
-                    this.getPosition(),
-                    this
-                );
+                throw new ParseError('Invalid abbreviation', this.getPosition(), this);
         }
     }
 
