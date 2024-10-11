@@ -1,4 +1,4 @@
-import { Type } from '../model/model';
+import { Definition, Type } from '../model/model';
 
 import {
     CharSetChar,
@@ -33,7 +33,8 @@ export class Grammar {
     constructor(
         public name: Name,
         public rules: Rule[],
-        public prattRules: PrattRule[]
+        public prattRules: PrattRule[],
+        public definitions: Definition[]
     ) {}
 }
 

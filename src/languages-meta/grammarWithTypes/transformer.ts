@@ -6,7 +6,8 @@ export class Transformer {
         return new Out.Grammar(
             input.name,
             input.rules.map((r) => this.transformRule(r)),
-            input.prattRules.map((r) => this.transformPrattRule(r))
+            input.prattRules.map((r) => this.transformPrattRule(r)),
+            []
         );
     }
 

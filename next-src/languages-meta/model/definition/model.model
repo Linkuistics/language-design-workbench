@@ -1,0 +1,123 @@
+model model {
+
+    Model = {
+        name: Id,
+        parent_name: option<Id>,
+        values: seq<{
+              Deletion
+            | MemberModification
+            | Definition
+        }>
+    };
+    
+    Definition = {
+        name: Id,
+        Type: Type
+    };
+    
+    Deletion = { name: Id };
+    
+    MemberModification = {
+        name: Id,
+        values: seq<{
+              MemberDeletion
+            | MemberAddition
+        }>
+    };
+    
+    MemberDeletion = { name: Id };
+    
+    MemberAddition = { value: {
+          ProductMember
+        | Type
+    } };
+    
+    Type = {
+          VoidType
+        | PrimitiveType
+        | EnumType
+        | TypeWithStructure
+        | NamedTypeReference
+    };
+    
+    VoidType = {  };
+    
+    PrimitiveType = {
+          "boolean"
+        | "char"
+        | "string"
+        | "i8"
+        | "i16"
+        | "i32"
+        | "i64"
+        | "u8"
+        | "u16"
+        | "u32"
+        | "u64"
+        | "f32"
+        | "f64"
+    };
+    
+    EnumType = { members: seq<StringElement> };
+    
+    StringElement = Id;
+    
+    TypeWithStructure = {
+          SumType
+        | ProductType
+        | GenericType
+    };
+    
+    SumType = { members: seq<Type> };
+    
+    ProductType = { members: seq<ProductMember> };
+    
+    ProductMember = {
+        name: Id,
+        Type: Type
+    };
+    
+    GenericType = {
+          TupleType
+        | MapType
+        | SetType
+        | SequenceType
+        | OptionType
+    };
+    
+    TupleType = { members: seq<Type> };
+    
+    MapType = {
+        key_type: Type,
+        value_type: Type
+    };
+    
+    SetType = { key_type: Type };
+    
+    SequenceType = { elementType: Type };
+    
+    OptionType = { Type: Type };
+    
+    NamedTypeReference = { names: seq<Id> };
+    
+    Id = Identifier;
+    
+    Identifier = string;
+    
+    InitialIdentifierChar = string;
+    
+    IdentifierChar = string;
+    
+    Trivia = {
+          LineComment
+        | BlockComment
+        | Whitespace
+    };
+    
+    Whitespace = { value: string };
+    
+    LineComment = { value: string };
+    
+    BlockComment = { value: string };
+    
+}

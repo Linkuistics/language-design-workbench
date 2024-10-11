@@ -15,7 +15,19 @@ for model in next-src/languages-meta/**/*.model ; do
     rustfmt $dir/model.rs
 
     echo "Generating $dir/visitor.ts"
-    ts-node src/cli/ldw.ts model-to-visitor -i $model -o $dir/visitor.ts
+    ts-node src/cli/ldw.ts model-to-visitor -l typescript -i $model -o $dir/visitor.ts
     prettier -w $dir/visitor.ts
+
+    echo "Generating $dir/visitor.rs"
+    ts-node src/cli/ldw.ts model-to-visitor -l rust -i $model -o $dir/visitor.rs
+    rustfmt $dir/visitor.rs
+
+    echo "Generating $dir/transformer.ts"
+    ts-node src/cli/ldw.ts model-to-transformer -l typescript -i $model -o $dir/transformer.ts
+    prettier -w $dir/transformer.ts
+
+    echo "Generating $dir/transformer.rs"
+    ts-node src/cli/ldw.ts model-to-transformer -l rust -i $model -o $dir/transformer.rs
+    rustfmt $dir/transformer.rs
 
 done

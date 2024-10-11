@@ -13,7 +13,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToVisitorTypescriptSource {
+export class ModelToVisitorRustSource {
     transform(model: Model): string {
         const generator = new TopLevelGenerator();
         generator.visitModel(model);
@@ -62,18 +62,18 @@ class TopLevelGenerator extends Visitor {
         });
         this.collectVisitableDefinitions(model);
 
-        this.output.writeLine('import * as Model from "./model";');
-        this.output.writeLine();
-        this.output.writeLine('export class Visitor {');
-        this.output.writeLine();
-        this.output.indentDuring(() => {
-            model.values.forEach((value) => {
-                if (value instanceof Definition && this.visitableDefinitions.has(value.name)) {
-                    this.visitDefinition(value);
-                }
-            });
-        });
-        this.output.writeLine('}');
+        //     this.output.writeLine('import * as Model from "./model";');
+        //     this.output.writeLine();
+        //     this.output.writeLine('export class Visitor {');
+        //     this.output.writeLine();
+        //     this.output.indentDuring(() => {
+        //         model.values.forEach((value) => {
+        //             if (value instanceof Definition && this.visitableDefinitions.has(value.name)) {
+        //                 this.visitDefinition(value);
+        //             }
+        //         });
+        //     });
+        //     this.output.writeLine('}');
     }
 
     visitDefinition(definition: Definition): void {
