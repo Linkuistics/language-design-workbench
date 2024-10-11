@@ -11,6 +11,6 @@
         "forceConsistentCasingInFileNames": true,
         "types": ["jest", "node"]
     },
-    "include": ["next-src/**/*.ts", "src/**/*.ts", "tests/**/*.ts", "src/triviaSkippingInputStream.ts"],
+    "include": ["next-src/**/*.ts", "src/**/*.ts", "tests/**/*.ts"],
     "exclude": ["node_modules"]
 }
