@@ -30,7 +30,9 @@ type VisitorResult<T> = T | void;
 
 export interface TraverseDelegate {
     visitModel?(model: Model, traverser: Traverser): VisitorResult<Model>;
+
     visitDefinition?(definition: Definition, traverser: Traverser): VisitorResult<Definition>;
+
     visitDeletion?(deletion: Deletion, traverser: Traverser): VisitorResult<Deletion>;
     visitMemberModification?(
         memberModification: MemberModification,
@@ -38,27 +40,23 @@ export interface TraverseDelegate {
     ): VisitorResult<MemberModification>;
     visitMemberDeletion?(memberDeletion: MemberDeletion, traverser: Traverser): VisitorResult<MemberDeletion>;
     visitMemberAddition?(memberAddition: MemberAddition, traverser: Traverser): VisitorResult<MemberAddition>;
+
     visitType?(type: Type, traverser: Traverser): VisitorResult<Type>;
-    visitVoidType?(voidType: VoidType, traverser: Traverser): VisitorResult<VoidType>;
-    visitPrimitiveType?(primitiveType: PrimitiveType, traverser: Traverser): VisitorResult<PrimitiveType>;
-    visitEnumType?(enumType: EnumType, traverser: Traverser): VisitorResult<EnumType>;
-    visitTypeWithStructure?(
-        typeWithStructure: TypeWithStructure,
-        traverser: Traverser
-    ): VisitorResult<TypeWithStructure>;
-    visitNamedTypeReference?(
-        namedTypeReference: NamedTypeReference,
-        traverser: Traverser
-    ): VisitorResult<NamedTypeReference>;
-    visitSumType?(sumType: SumType, traverser: Traverser): VisitorResult<SumType>;
-    visitProductType?(productType: ProductType, traverser: Traverser): VisitorResult<ProductType>;
+    visitVoidType?(voidType: VoidType, traverser: Traverser): VisitorResult<Type>;
+    visitPrimitiveType?(primitiveType: PrimitiveType, traverser: Traverser): VisitorResult<Type>;
+    visitEnumType?(enumType: EnumType, traverser: Traverser): VisitorResult<Type>;
+    visitTypeWithStructure?(typeWithStructure: TypeWithStructure, traverser: Traverser): VisitorResult<Type>;
+    visitNamedTypeReference?(namedTypeReference: NamedTypeReference, traverser: Traverser): VisitorResult<Type>;
+    visitSumType?(sumType: SumType, traverser: Traverser): VisitorResult<Type>;
+    visitProductType?(productType: ProductType, traverser: Traverser): VisitorResult<Type>;
     visitProductMember?(productMember: ProductMember, traverser: Traverser): VisitorResult<ProductMember>;
-    visitGenericType?(genericType: GenericType, traverser: Traverser): VisitorResult<GenericType>;
-    visitTupleType?(tupleType: TupleType, traverser: Traverser): VisitorResult<TupleType>;
-    visitMapType?(mapType: MapType, traverser: Traverser): VisitorResult<MapType>;
-    visitSetType?(setType: SetType, traverser: Traverser): VisitorResult<SetType>;
-    visitSequenceType?(sequenceType: SequenceType, traverser: Traverser): VisitorResult<SequenceType>;
-    visitOptionType?(optionType: OptionType, traverser: Traverser): VisitorResult<OptionType>;
+    visitGenericType?(genericType: GenericType, traverser: Traverser): VisitorResult<Type>;
+    visitTupleType?(tupleType: TupleType, traverser: Traverser): VisitorResult<Type>;
+    visitMapType?(mapType: MapType, traverser: Traverser): VisitorResult<Type>;
+    visitSetType?(setType: SetType, traverser: Traverser): VisitorResult<Type>;
+    visitSequenceType?(sequenceType: SequenceType, traverser: Traverser): VisitorResult<Type>;
+    visitOptionType?(optionType: OptionType, traverser: Traverser): VisitorResult<Type>;
+
     visitTrivia?(trivia: Trivia, traverser: Traverser): VisitorResult<Trivia>;
     visitBlockComment?(blockComment: BlockComment, traverser: Traverser): VisitorResult<BlockComment>;
     visitLineComment?(lineComment: LineComment, traverser: Traverser): VisitorResult<LineComment>;
