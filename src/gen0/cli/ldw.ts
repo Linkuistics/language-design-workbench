@@ -81,7 +81,7 @@ class Registry {
     public async writeOutput(fqn: string, content: string, filename: string): Promise<void> {
         const outputPath = this.resolvePath(fqn, filename);
         fs.writeFileSync(outputPath, content);
-        console.log(`Output written to: ${outputPath}`);
+        // console.log(`Output: ${outputPath}`);
         await this.formatOutput(outputPath);
     }
 
@@ -89,10 +89,10 @@ class Registry {
         const ext = path.extname(filePath);
         if (ext === '.ts' || ext === '.js' || ext === '.json') {
             await execPromise(`npx prettier --write "${filePath}"`);
-            console.log(`Prettier formatting applied to: ${filePath}`);
+            // console.log(`Prettier: ${filePath}`);
         } else if (ext === '.rs') {
             await execPromise(`rustfmt "${filePath}"`);
-            console.log(`Rustfmt formatting applied to: ${filePath}`);
+            // console.log(`Rustfmt: ${filePath}`);
         }
     }
 }
@@ -113,6 +113,88 @@ function handleError(error: unknown): never {
     }
     process.exit(1);
 }
+
+program
+    .command('process-grammar')
+    .description('Parse .grammar source and generate artefacts')
+    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
+    .option('-n, --name <name>', 'Fully qualified name of the grammar')
+    .action(async (options) => {
+        try {
+            if (!options.registry) {
+                throw new Error('Registry file is required');
+            }
+            if (!options.name) {
+                throw new Error('Fully qualified name is required');
+            }
+
+            const registry = new Registry(options.registry);
+
+            const input = registry.readInput(options.name, 'ldw.grammar');
+
+            const typedGrammar = composePasses(
+                new ParsedGrammarFromSource(),
+                new ExtendedGrammarFromParsedGrammar(),
+                new TypedGrammarFromExtendedGrammar()
+            ).transform(input);
+
+            const modelSource = composePasses(new ParsedModelFromTypedGrammar(), new ParsedModelToSource()).transform(
+                typedGrammar
+            );
+            await registry.writeOutput(options.name, modelSource, 'ldw.model');
+
+            // const parserSource = composePasses(new GrammarWithTypesToParserTypescriptSource()).transform(typedGrammar);
+            // await registry.writeOutput(options.name, parserSource, 'parser.ts');
+        } catch (error) {
+            handleError(error);
+        }
+    });
+
+program
+    .command('process-model')
+    .description('Parse .model source and generate artefacts')
+    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
+    .option('-n, --name <name>', 'Fully qualified name of the grammar')
+    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
+    .action(async (options) => {
+        try {
+            if (!options.registry) {
+                throw new Error('Registry file is required');
+            }
+            if (!options.name) {
+                throw new Error('Fully qualified name is required');
+            }
+
+            const registry = new Registry(options.registry);
+
+            const isTypescript = options.language === 'typescript';
+            const input = registry.readInput(options.name, 'ldw.model');
+
+            const parsedModel = new ParsedModelFromSource().transform(input);
+
+            const typesSource = (
+                isTypescript
+                    ? new ParsedModelToTypesTypescriptSource(options.generics)
+                    : new ParsedModelToTypesRustSource()
+            ).transform(parsedModel);
+            const typesFilename = isTypescript ? 'model.ts' : 'model.rs';
+            await registry.writeOutput(options.name, typesSource, typesFilename);
+
+            const visitorSource = (
+                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
+            ).transform(parsedModel);
+            const visitorFilename = isTypescript ? 'visitor.ts' : 'visitor.rs';
+            await registry.writeOutput(options.name, visitorSource, visitorFilename);
+
+            const transformerSource = (
+                isTypescript ? new ParsedModelToTransformerTypescriptSource() : new ParsedModelToTransformerRustSource()
+            ).transform(parsedModel);
+            const transformerFilename = isTypescript ? 'transformer.ts' : 'transformer.rs';
+            await registry.writeOutput(options.name, transformerSource, transformerFilename);
+        } catch (error) {
+            handleError(error);
+        }
+    });
 
 program
     .command('grammar-to-json')
@@ -158,8 +240,8 @@ program
             }
 
             const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.grammar');
 
+            const input = registry.readInput(options.name, 'ldw.grammar');
             const output = composePasses(
                 new ParsedGrammarFromSource(),
                 new ExtendedGrammarFromParsedGrammar(),
@@ -168,7 +250,6 @@ program
                 new ParsedModelFromTypedGrammar(),
                 new ParsedModelToSource()
             ).transform(input);
-
             await registry.writeOutput(options.name, output, 'ldw.model');
         } catch (error) {
             handleError(error);
@@ -190,8 +271,8 @@ program
             }
 
             const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.grammar');
 
+            const input = registry.readInput(options.name, 'ldw.grammar');
             const output = composePasses(
                 new ParsedGrammarFromSource(),
                 new ExtendedGrammarFromParsedGrammar(),
@@ -199,7 +280,6 @@ program
                 // new RemoveAnonymousTypes(),
                 new GrammarWithTypesToParserTypescriptSource()
             ).transform(input);
-
             await registry.writeOutput(options.name, output, 'parser.ts');
         } catch (error) {
             handleError(error);
@@ -269,6 +349,38 @@ program
     });
 
 program
+    .command('model-to-visitor')
+    .description('Parse .model source and produce a visitor module')
+    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
+    .option('-n, --name <name>', 'Fully qualified name of the model')
+    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
+    .action(async (options) => {
+        try {
+            if (!options.registry) {
+                throw new Error('Registry file is required');
+            }
+            if (!options.name) {
+                throw new Error('Fully qualified name is required');
+            }
+
+            const registry = new Registry(options.registry);
+            const input = registry.readInput(options.name, 'ldw.model');
+
+            const isTypescript = options.language === 'typescript';
+
+            const output = composePasses(
+                new ParsedModelFromSource(),
+                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
+            ).transform(input);
+
+            const outputName = isTypescript ? 'visitor.ts' : 'visitor.rs';
+            await registry.writeOutput(options.name, output, outputName);
+        } catch (error) {
+            handleError(error);
+        }
+    });
+
+program
     .command('model-to-transformer')
     .description('Parse .model source and produce a transformer module')
     .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
@@ -294,38 +406,6 @@ program
             ).transform(input);
 
             const outputName = isTypescript ? 'transformer.ts' : 'transformer.rs';
-            await registry.writeOutput(options.name, output, outputName);
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('model-to-visitor')
-    .description('Parse .model source and produce a visitor module')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the model')
-    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, '.model');
-
-            const isTypescript = options.language === 'typescript';
-
-            const output = composePasses(
-                new ParsedModelFromSource(),
-                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
-            ).transform(input);
-
-            const outputName = isTypescript ? 'visitor.ts' : 'visitor.rs';
             await registry.writeOutput(options.name, output, outputName);
         } catch (error) {
             handleError(error);

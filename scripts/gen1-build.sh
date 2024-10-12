@@ -1,31 +1,25 @@
 #!/usr/bin/env zsh
 
-CL=ts-node src/gen0/cli/ldw.ts
-REGISTRY=src/gen0/language-registry.json
+CLI=src/gen0/cli/ldw.ts
+REGISTRY=src/gen1/language-registry.json
+
+echo
+
+echo "Deleting src/gen1"
+rm -rf src/gen1
+
+echo "Copying src/gen0 to src/gen1"
+cp -r src/gen0 src/gen1
+
+echo "Using registry $REGISTRY"
 
 for grammar in ldw::grammar::parsed ldw::model::parsed ; do
-
-    echo
-
-    echo "Generating ldw.grammar.json for $grammar using registry $REGISTRY"
-    $CLI grammar-to-json -r $REGISTRY -n $grammar
-    
-    echo "Generating ldw.model for $grammar using registry $REGISTRY"
-    $CLI grammar-to-model -r $REGISTRY -n $grammar
-
+    echo "    Processing grammar $grammar"
+    ts-node $CLI process-grammar -r $REGISTRY -n $grammar
 done
 
-for model in ldw::grammar::parser ldw::grammar::extended ldw::grammar::typed ldw::model::parsed ; do
-
-    echo
-
-    echo "Generating model.ts for $model using registry $REGISTRY"
-    $CLI model-to-types -l typescript -r $REGISTRY -n $model
-
-    echo "Generating visitor.ts for $model using registry $REGISTRY"
-    $CLI model-to-visitor -l typescript -r $REGISTRY -n $model
-
-    echo "Generating transformer.ts for $model using registry $REGISTRY"
-    $CLI model-to-transformer -l typescript -r $REGISTRY -n $model
+for model in ldw::grammar::parsed ldw::grammar::extended ldw::grammar::typed ldw::model::parsed ; do
+    echo "    Processing model $model"
+    ts-node $CLI process-model -l typescript -r $REGISTRY -n $model
 
 done
