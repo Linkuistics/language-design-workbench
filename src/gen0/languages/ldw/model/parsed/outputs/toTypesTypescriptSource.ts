@@ -85,23 +85,14 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
 
     visitPrimitiveType(primitiveType: PrimitiveType) {
         switch (primitiveType) {
-            case 'boolean':
+            case PrimitiveType.Boolean:
                 this.output.write('boolean');
                 break;
-            case 'char':
-            case 'string':
+            case PrimitiveType.Char:
+            case PrimitiveType.String:
                 this.output.write('string');
                 break;
-            case 'i8':
-            case 'i16':
-            case 'i32':
-            case 'i64':
-            case 'u8':
-            case 'u16':
-            case 'u32':
-            case 'u64':
-            case 'f32':
-            case 'f64':
+            default:
                 this.output.write('number');
                 break;
         }

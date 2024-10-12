@@ -111,7 +111,7 @@ export class StringElement {
 
 export class CharSet {
     constructor(
-        public negated: boolean,
+        public negated: boolean | undefined,
         public startChars: CharSetChar[],
         public endChars: (CharSetChar | undefined)[]
     ) {}

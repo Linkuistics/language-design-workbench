@@ -89,7 +89,7 @@ class Generator extends Visitor {
     }
 
     visitPrimitiveType(primitiveType: PrimitiveType) {
-        this.output.write(primitiveType);
+        this.output.write(primitiveType.value);
     }
 
     visitEnumType(enumType: EnumType) {

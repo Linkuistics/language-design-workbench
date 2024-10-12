@@ -84,7 +84,7 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitPrimitiveType(primitiveType: PrimitiveType) {
-        switch (primitiveType) {
+        switch (primitiveType.value) {
             case 'boolean':
                 this.output.write('boolean');
                 break;

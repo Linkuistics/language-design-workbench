@@ -83,11 +83,11 @@ class Generator extends Visitor {
 
     visitPrimitiveType(primitiveType: PrimitiveType) {
         switch (primitiveType) {
-            case 'string':
+            case PrimitiveType.String:
                 this.output.write('String');
                 break;
             default:
-                this.output.write(primitiveType);
+                this.output.write(primitiveType.value);
                 break;
         }
     }

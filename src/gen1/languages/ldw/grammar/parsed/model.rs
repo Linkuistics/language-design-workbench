@@ -96,7 +96,7 @@ pub struct StringElement {
 }
 
 pub struct CharSet {
-    pub r#negated: boolean,
+    pub r#negated: Option<boolean>,
     pub r#startChars: Vec<CharSetChar>,
     pub r#endChars: Vec<Option<CharSetChar>>,
 }

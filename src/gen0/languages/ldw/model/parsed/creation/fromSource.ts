@@ -194,7 +194,7 @@ export class ModelParser extends Parser {
     }
 
     parsePrimitiveType(): ParseResult<Model.PrimitiveType> {
-        return this.firstAlternative(
+        const result = this.firstAlternative(
             'primitive type',
             () => this.mustConsumeKeyword('boolean'),
             () => this.mustConsumeKeyword('char'),
@@ -209,7 +209,9 @@ export class ModelParser extends Parser {
             () => this.mustConsumeKeyword('u64'),
             () => this.mustConsumeKeyword('f32'),
             () => this.mustConsumeKeyword('f64')
-        ) as ParseResult<Model.PrimitiveType>;
+        );
+        if (!result.success) return result;
+        return this.success(new Model.PrimitiveType(result.value as Model.PrimitiveType['value']));
     }
 
     parseEnumType(): ParseResult<Model.EnumType> {

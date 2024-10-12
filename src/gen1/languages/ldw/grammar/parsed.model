@@ -102,7 +102,7 @@ model ldw::grammar::parsed {
     string_element = { value: string };
     
     char_set = {
-        negated: boolean,
+        negated: option<boolean>,
         start_chars: seq<char_set_char>,
         end_chars: seq<option<char_set_char>>
     };

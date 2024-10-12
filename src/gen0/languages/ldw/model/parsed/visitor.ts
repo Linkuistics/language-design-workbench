@@ -3,12 +3,16 @@ import * as Model from './model';
 export class Visitor {
     visitModel(node: Model.Model): void {
         node.values.forEach((x) => {
-            if (x instanceof Model.Definition) {
-                this.visitDefinition(x);
-            } else if (x instanceof Model.Deletion) {
-                this.visitDeletion(x);
-            } else {
-                this.visitMemberModification(x);
+            switch (x.modelType) {
+                case Model.ModelTypeId.Definition:
+                    this.visitDefinition(x);
+                    break;
+                case Model.ModelTypeId.Deletion:
+                    this.visitDeletion(x);
+                    break;
+                default:
+                    this.visitMemberModification(x);
+                    break;
             }
         });
     }
@@ -21,10 +25,13 @@ export class Visitor {
 
     visitMemberModification(node: Model.MemberModification): void {
         node.values.forEach((x) => {
-            if (x instanceof Model.MemberDeletion) {
-                this.visitMemberDeletion(x);
-            } else {
-                this.visitMemberAddition(x);
+            switch (x.modelType) {
+                case Model.ModelTypeId.MemberDeletion:
+                    this.visitMemberDeletion(x);
+                    break;
+                default:
+                    this.visitMemberAddition(x);
+                    break;
             }
         });
     }
@@ -32,24 +39,39 @@ export class Visitor {
     visitMemberDeletion(node: Model.MemberDeletion): void {}
 
     visitMemberAddition(node: Model.MemberAddition): void {
-        if (node instanceof Model.ProductMember) {
-            this.visitProductMember(node);
-        } else {
-            this.visitType(node);
+        switch (node.value.modelType) {
+            case Model.ModelTypeId.ProductMember:
+                this.visitProductMember(node.value);
+                break;
+            default:
+                this.visitType(node.value);
+                break;
         }
     }
 
     visitType(node: Model.Type): void {
-        if (node instanceof Model.VoidType) {
-            this.visitVoidType(node);
-        } else if (typeof node === 'string') {
-            this.visitPrimitiveType(node as Model.PrimitiveType);
-        } else if (node instanceof Model.EnumType) {
-            this.visitEnumType(node);
-        } else if (node instanceof Model.NamedTypeReference) {
-            this.visitNamedTypeReference(node);
-        } else {
-            this.visitTypeWithStructure(node);
+        switch (node.modelType) {
+            case Model.ModelTypeId.VoidType:
+                this.visitVoidType(node);
+                break;
+            case Model.ModelTypeId.PrimitiveType:
+                this.visitPrimitiveType(node);
+                break;
+            case Model.ModelTypeId.EnumType:
+                this.visitEnumType(node);
+                break;
+            case Model.ModelTypeId.NamedTypeReference:
+                this.visitNamedTypeReference(node);
+                break;
+            case Model.ModelTypeId.SumType:
+            case Model.ModelTypeId.ProductType:
+            case Model.ModelTypeId.TupleType:
+            case Model.ModelTypeId.MapType:
+            case Model.ModelTypeId.SetType:
+            case Model.ModelTypeId.SequenceType:
+            case Model.ModelTypeId.OptionType:
+                this.visitTypeWithStructure(node);
+                break;
         }
     }
 
@@ -60,12 +82,20 @@ export class Visitor {
     visitEnumType(node: Model.EnumType): void {}
 
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
-        if (node instanceof Model.SumType) {
-            this.visitSumType(node);
-        } else if (node instanceof Model.ProductType) {
-            this.visitProductType(node);
-        } else {
-            this.visitGenericType(node);
+        switch (node.modelType) {
+            case Model.ModelTypeId.SumType:
+                this.visitSumType(node);
+                break;
+            case Model.ModelTypeId.ProductType:
+                this.visitProductType(node);
+                break;
+            case Model.ModelTypeId.TupleType:
+            case Model.ModelTypeId.MapType:
+            case Model.ModelTypeId.SetType:
+            case Model.ModelTypeId.SequenceType:
+            case Model.ModelTypeId.OptionType:
+                this.visitGenericType(node);
+                break;
         }
     }
 
@@ -86,16 +116,22 @@ export class Visitor {
     }
 
     visitGenericType(node: Model.GenericType): void {
-        if (node instanceof Model.TupleType) {
-            this.visitTupleType(node);
-        } else if (node instanceof Model.MapType) {
-            this.visitMapType(node);
-        } else if (node instanceof Model.SetType) {
-            this.visitSetType(node);
-        } else if (node instanceof Model.SequenceType) {
-            this.visitSequenceType(node);
-        } else {
-            this.visitOptionType(node);
+        switch (node.modelType) {
+            case Model.ModelTypeId.TupleType:
+                this.visitTupleType(node);
+                break;
+            case Model.ModelTypeId.MapType:
+                this.visitMapType(node);
+                break;
+            case Model.ModelTypeId.SetType:
+                this.visitSetType(node);
+                break;
+            case Model.ModelTypeId.SequenceType:
+                this.visitSequenceType(node);
+                break;
+            case Model.ModelTypeId.OptionType:
+                this.visitOptionType(node);
+                break;
         }
     }
 

@@ -9,6 +9,7 @@ import {
     Model,
     NamedTypeReference,
     OptionType,
+    PrimitiveType,
     ProductMember,
     ProductType,
     SequenceType,
@@ -256,8 +257,10 @@ export function modelsAreEqual(model1: Model, model2: Model, debug: boolean = fa
                                 )
                             );
                         } else {
+                            const vt1 = v.value as Type;
+                            const vt2 = v.value as Type;
                             return checkAndLog(
-                                typesAreEqual(v.value, v2.value, debug),
+                                typesAreEqual(vt1, vt2, debug),
                                 `MemberAddition value mismatch at index ${index}, subindex ${i}`
                             );
                         }
