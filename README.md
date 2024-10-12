@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Language Design Workbench (LDW) is a powerful tool for working with language
+The Language Design Workbench (LDW) is a tool for working with language
 grammars and generating tooling and documentation for them. It allows you to
 define grammars using a specific syntax and generates various TypeScript modules
 to support language processing, parsing, formatting, and testing.

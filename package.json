@@ -1,11 +1,11 @@
 {
-    "name": "metaslang_ebnf",
+    "name": "language-design-workbench",
     "version": "1.0.0",
-    "description": "Metaslang BNF",
+    "description": "Language Design Workbench",
     "main": "src/cli/ldw.ts",
     "scripts": {
-        "ldw": "ts-node src/cli/ldw.ts",
-        "next-ldw": "ts-node next-src/cli/ldw.ts",
+        "ldw": "ts-node src/gen0/cli/ldw.ts",
+        "ldw-gen1": "ts-node src/gen1/cli/ldw.ts",
         "test": "jest"
     },
     "keywords": [],
