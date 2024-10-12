@@ -1,0 +1,2 @@
+model ldw::grammar::typed modifies ldw::grammar::extended {
+}

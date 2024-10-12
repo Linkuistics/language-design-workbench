@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
 
-for model in next-src/languages-meta/**/*.model ; do
+for model in src-gen1/languages/ldw/**/*.model ; do
 
-    dir=$(dirname $(dirname $model))
+    dir=$(dirname $model)/$(basename $model .model)
 
     echo
 

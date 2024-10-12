@@ -1,17 +1,17 @@
 #!/usr/bin/env zsh
 
-rm -rf next-src
-cp -r src next-src
+rm -rf src-gen1
+cp -r src src-gen1
 
-for grammar in next-src/languages-meta/**/*.grammar ; do
+for grammar in src-gen1/languages/ldw/**/*.grammar ; do
 
     echo
 
-    # echo "Processing $grammar => $grammar.json"
-    # ts-node src/cli/ldw.ts grammar-to-json -i $grammar -o $grammar.json
-
-    model=${grammar%.grammar}.model
+    # json=${grammar%.grammar}.model
+    # echo "Generating $json from $(basename $grammar)"
+    # ts-node src/cli/ldw.ts grammar-to-json -i $grammar -o $json
     
+    model=${grammar%.grammar}.model
     echo "Generating $model from $(basename $grammar)"
     ts-node src/cli/ldw.ts grammar-to-model -i $grammar -o $model
 

@@ -1,4 +1,4 @@
-import { ModelBuilder } from '../../../src/languages-meta/model/builder';
+import { ModelBuilder } from '../../../src/languages/ldw/model/parsed/builder';
 import {
     Definition,
     EnumType,
@@ -7,7 +7,7 @@ import {
     ProductType,
     SequenceType,
     SumType
-} from '../../../src/languages-meta/model/model';
+} from '../../../src/languages/ldw/model/parsed/model';
 
 function assertDeepEqual(actual: any, expected: any, message: string) {
     const actualStr = JSON.stringify(actual);

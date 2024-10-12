@@ -1,9 +1,9 @@
 import { ParseError } from '../../../../src/parsing/parseError';
-import { ModelFromSource } from '../../../../src/languages-meta/model/creation/fromSource';
-import { Model } from '../../../../src/languages-meta/model/model';
-import { ModelToSource } from '../../../../src/languages-meta/model/output/toSource';
-import { modelsAreEqual } from '../../../../src/languages-meta/model/util';
-import { IncrementalModelGenerator } from '../../../../src/languages-meta/model/creation/incrementalModalGenerator';
+import { ModelFromSource } from '../../../../src/languages/ldw/model/parsed/creation/fromSource';
+import { Model } from '../../../../src/languages/ldw/model/parsed/model';
+import { ModelToSource } from '../../../../src/languages/ldw/model/parsed/output/toSource';
+import { modelsAreEqual } from '../../../../src/languages/ldw/model/parsed/util';
+import { IncrementalModelGenerator } from '../../../../src/languages/ldw/model/parsed/creation/incrementalModalGenerator';
 
 describe('ToLDWMSource', () => {
     it('should correctly transform and parse back incrementally generated models', () => {
