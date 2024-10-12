@@ -54,7 +54,7 @@ pub enum VersionAnnotationType {
 
 pub type VersionNumber = Vec<VersionSegment>;
 
-pub type VersionSegment = string;
+pub type VersionSegment = String;
 
 pub type RuleBody = ();
 
@@ -92,7 +92,7 @@ pub struct RuleReference {
 }
 
 pub struct StringElement {
-    pub r#value: string,
+    pub r#value: String,
 }
 
 pub struct CharSet {
@@ -101,7 +101,7 @@ pub struct CharSet {
     pub r#endChars: Vec<Option<CharSetChar>>,
 }
 
-pub type CharSetChar = string;
+pub type CharSetChar = String;
 
 pub struct AnyElement {}
 
@@ -109,18 +109,18 @@ pub struct NegativeLookahead {
     pub r#content: (),
 }
 
-pub type Identifier = string;
+pub type Identifier = String;
 
 pub type Trivia = ();
 
 pub struct LineComment {
-    pub r#value: string,
+    pub r#value: String,
 }
 
 pub struct BlockComment {
-    pub r#value: string,
+    pub r#value: String,
 }
 
 pub struct Whitespace {
-    pub r#value: string,
+    pub r#value: String,
 }

@@ -108,22 +108,22 @@ export class NamedTypeReference {
 
 export type Id = Identifier;
 
-export type Identifier = number;
+export type Identifier = string;
 
-export type InitialIdentifierChar = number;
+export type InitialIdentifierChar = string;
 
-export type IdentifierChar = number;
+export type IdentifierChar = string;
 
 export type Trivia = LineComment | BlockComment | Whitespace;
 
 export class Whitespace {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }
 
 export class LineComment {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }
 
 export class BlockComment {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }

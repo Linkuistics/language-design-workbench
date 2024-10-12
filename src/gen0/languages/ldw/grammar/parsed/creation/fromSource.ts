@@ -250,7 +250,7 @@ class GrammarParser extends Parser {
     private parseVersionAnnotationType(): ParseResult<Model.VersionAnnotationType> {
         if (this.consumeString('@enabled')) return this.success(Model.VersionAnnotationType.Enabled);
         if (this.consumeString('@disabled')) return this.success(Model.VersionAnnotationType.Disabled);
-        return this.failure('Invalid version annotation type');
+        return this.failure('Missing version annotation type');
     }
 
     private parseVersionNumber(): ParseResult<Model.VersionNumber> {

@@ -66,7 +66,7 @@ export enum VersionAnnotationType {
 
 export type VersionNumber = VersionSegment[];
 
-export type VersionSegment = number;
+export type VersionSegment = string;
 
 export type RuleBody = ChoiceRule | SequenceRule;
 
@@ -106,18 +106,18 @@ export class RuleReference {
 }
 
 export class StringElement {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }
 
 export class CharSet {
     constructor(
-        public negated: number | undefined,
+        public negated: boolean | undefined,
         public startChars: CharSetChar[],
         public endChars: (CharSetChar | undefined)[]
     ) {}
 }
 
-export type CharSetChar = number;
+export type CharSetChar = string;
 
 export class AnyElement {}
 
@@ -125,18 +125,18 @@ export class NegativeLookahead {
     constructor(public content: CharSet | StringElement) {}
 }
 
-export type Identifier = number;
+export type Identifier = string;
 
 export type Trivia = LineComment | BlockComment | Whitespace;
 
 export class LineComment {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }
 
 export class BlockComment {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }
 
 export class Whitespace {
-    constructor(public value: number) {}
+    constructor(public value: string) {}
 }

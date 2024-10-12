@@ -194,24 +194,20 @@ export class ModelParser extends Parser {
     }
 
     parsePrimitiveType(): ParseResult<Model.PrimitiveType> {
-        const result = this.firstAlternative(
-            'primitive type',
-            () => this.mustConsumeKeyword('boolean'),
-            () => this.mustConsumeKeyword('char'),
-            () => this.mustConsumeKeyword('string'),
-            () => this.mustConsumeKeyword('i8'),
-            () => this.mustConsumeKeyword('i16'),
-            () => this.mustConsumeKeyword('i32'),
-            () => this.mustConsumeKeyword('i64'),
-            () => this.mustConsumeKeyword('u8'),
-            () => this.mustConsumeKeyword('u16'),
-            () => this.mustConsumeKeyword('u32'),
-            () => this.mustConsumeKeyword('u64'),
-            () => this.mustConsumeKeyword('f32'),
-            () => this.mustConsumeKeyword('f64')
-        );
-        if (!result.success) return result;
-        return this.success(new Model.PrimitiveType(result.value as Model.PrimitiveType['value']));
+        if (this.consumeKeyword('string')) return this.success(Model.PrimitiveType.String);
+        if (this.consumeKeyword('boolean')) return this.success(Model.PrimitiveType.Boolean);
+        if (this.consumeKeyword('char')) return this.success(Model.PrimitiveType.Char);
+        if (this.consumeKeyword('i8')) return this.success(Model.PrimitiveType.I8);
+        if (this.consumeKeyword('i16')) return this.success(Model.PrimitiveType.I16);
+        if (this.consumeKeyword('i32')) return this.success(Model.PrimitiveType.I32);
+        if (this.consumeKeyword('i64')) return this.success(Model.PrimitiveType.I64);
+        if (this.consumeKeyword('u8')) return this.success(Model.PrimitiveType.U8);
+        if (this.consumeKeyword('u16')) return this.success(Model.PrimitiveType.U16);
+        if (this.consumeKeyword('u32')) return this.success(Model.PrimitiveType.U32);
+        if (this.consumeKeyword('u64')) return this.success(Model.PrimitiveType.U64);
+        if (this.consumeKeyword('f32')) return this.success(Model.PrimitiveType.F32);
+        if (this.consumeKeyword('f64')) return this.success(Model.PrimitiveType.F64);
+        return this.failure('Missing primitive type');
     }
 
     parseEnumType(): ParseResult<Model.EnumType> {

@@ -98,22 +98,22 @@ pub struct NamedTypeReference {
 
 pub type Id = Identifier;
 
-pub type Identifier = string;
+pub type Identifier = String;
 
-pub type InitialIdentifierChar = string;
+pub type InitialIdentifierChar = String;
 
-pub type IdentifierChar = string;
+pub type IdentifierChar = String;
 
 pub type Trivia = ();
 
 pub struct Whitespace {
-    pub r#value: string,
+    pub r#value: String,
 }
 
 pub struct LineComment {
-    pub r#value: string,
+    pub r#value: String,
 }
 
 pub struct BlockComment {
-    pub r#value: string,
+    pub r#value: String,
 }
