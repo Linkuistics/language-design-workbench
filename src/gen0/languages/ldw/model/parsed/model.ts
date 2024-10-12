@@ -1,5 +1,4 @@
 export enum ModelTypeId {
-    Model = 1,
     Definition,
     Deletion,
     MemberModification,
@@ -23,8 +22,6 @@ export enum ModelTypeId {
 }
 
 export class Model {
-    readonly modelType = ModelTypeId.Model;
-
     constructor(
         public name: Id[],
         public parentName: Id[] | undefined,
