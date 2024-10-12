@@ -16,6 +16,9 @@ import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/res
 import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
 import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
 
+import { Model as ParsedModel } from '../languages/ldw/model/parsed/model';
+import { Model as ResolvedModel } from '../languages/ldw/model/resolved/model';
+
 const execPromise = promisify(exec);
 
 program.version('1.0.0').description('Language Design Workbench CLI');
@@ -77,7 +80,6 @@ class Registry {
     public async writeOutput(fqn: string, content: string, filename: string): Promise<void> {
         const outputPath = this.resolvePath(fqn, filename);
         fs.writeFileSync(outputPath, content);
-        // console.log(`Output: ${outputPath}`);
         await this.formatOutput(outputPath);
     }
 
@@ -85,10 +87,8 @@ class Registry {
         const ext = path.extname(filePath);
         if (ext === '.ts' || ext === '.js' || ext === '.json') {
             await execPromise(`npx prettier --write "${filePath}"`);
-            // console.log(`Prettier: ${filePath}`);
         } else if (ext === '.rs') {
             await execPromise(`rustfmt "${filePath}"`);
-            // console.log(`Rustfmt: ${filePath}`);
         }
     }
 }
@@ -126,17 +126,15 @@ program
 
             const registry = new Registry(options.registry);
 
-            const input = registry.readInput(options.name, 'ldw.grammar');
+            const grammarSource = registry.readInput(options.name, 'ldw.grammar');
 
-            const typedGrammar = composePasses(
+            const modelSource = composePasses(
                 new ParsedGrammarFromSource(),
                 new ExtendedGrammarFromParsedGrammar(),
-                new TypedGrammarFromExtendedGrammar()
-            ).transform(input);
-
-            const modelSource = composePasses(new ParsedModelFromTypedGrammar(), new ParsedModelToSource()).transform(
-                typedGrammar
-            );
+                new TypedGrammarFromExtendedGrammar(),
+                new ParsedModelFromTypedGrammar(),
+                new ParsedModelToSource()
+            ).transform(grammarSource);
             await registry.writeOutput(options.name, modelSource, 'ldw.model');
         } catch (error) {
             handleError(error);
@@ -161,16 +159,22 @@ program
             const registry = new Registry(options.registry);
 
             const isTypescript = options.language === 'typescript';
-            const input = registry.readInput(options.name, 'ldw.model');
+            const modelSource = registry.readInput(options.name, 'ldw.model');
 
-            const parsedModel = composePasses(
+            const passes = composePasses(
                 new ParsedModelFromSource(),
-                new ResolvedModelFromParsedModel()
-            ).transform(input);
+                new ResolvedModelFromParsedModel((fqn: string): ResolvedModel => {
+                    const modelSource = registry.readInput(fqn, 'ldw.model');
+                    return passes.transform(modelSource);
+                })
+            );
+
+            const parsedModel = passes.transform(modelSource);
 
             if (isTypescript) {
                 const typesSource = new ParsedModelToTypesTypescriptSource(options.generics).transform(parsedModel);
                 await registry.writeOutput(options.name, typesSource, 'model.ts');
+
                 const visitorSource = new ParsedModelToVisitorTypescriptSource().transform(parsedModel);
                 await registry.writeOutput(options.name, visitorSource, 'visitor.ts');
             }
