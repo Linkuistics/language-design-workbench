@@ -13,7 +13,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToTransformerTypescriptSource {
+export class ParsedModelToTransformerTypescriptSource {
     transform(model: Model): string {
         const generator = new TopLevelGenerator();
         generator.visitModel(model);

@@ -17,7 +17,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToTypesTypescriptSource extends Visitor {
+export class ParsedModelToTypesTypescriptSource extends Visitor {
     private output: IndentingOutputStream;
 
     constructor(public useGenerics: boolean) {

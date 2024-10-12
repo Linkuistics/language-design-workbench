@@ -13,7 +13,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToTransformerRustSource {
+export class ParsedModelToTransformerRustSource {
     transform(model: Model): string {
         const generator = new TopLevelGenerator();
         generator.visitModel(model);

@@ -4,7 +4,7 @@ import { StringInputStream } from '../../../../../parsing/stringInputStream';
 import * as Model from '../model';
 import { Grammar } from '../model';
 
-export class GrammarFromSource {
+export class ParsedGrammarFromSource {
     transform(input: string): Grammar {
         const inputStream = new StringInputStream(input);
         const parser = new GrammarParser(inputStream, false);

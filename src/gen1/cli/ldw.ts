@@ -1,18 +1,18 @@
 import { program } from 'commander';
 import * as fs from 'fs';
-import { GrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
-import { GrammarExtendedFromGrammar } from '../languages/ldw/grammar/extended//creation/fromGrammar';
-import { GrammarWithTypesFromGrammarExtended } from '../languages/ldw/grammar/typed//creation/fromGrammarExtended';
+import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
+import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
+import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
 import { GrammarWithTypesToParserTypescriptSource } from '../languages/ldw/grammar/typed//outputs/toParserTypescriptSource';
-import { ModelFromGrammarWithTypes } from '../languages/ldw/model/parsed/creation/fromGrammarWithTypes';
-import { ModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
-import { ModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
-import { ModelToTransformerRustSource } from '../languages/ldw/model/parsed/outputs/toTransformerRustSource';
-import { ModelToTransformerTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTransformerTypescriptSource copy';
-import { ModelToTypesRustSource } from '../languages/ldw/model/parsed/outputs/toTypesRustSource';
-import { ModelToTypesTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTypesTypescriptSource';
-import { ModelToVisitorRustSource } from '../languages/ldw/model/parsed/outputs/toVisitorRustSource';
-import { ModelToVisitorTypescriptSource } from '../languages/ldw/model/parsed/outputs/toVisitorTypescriptSource';
+import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
+import { ParsedModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
+import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
+import { ParsedModelToTransformerRustSource } from '../languages/ldw/model/parsed/outputs/toTransformerRustSource';
+import { ParsedModelToTransformerTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTransformerTypescriptSource copy';
+import { ParsedModelToTypesRustSource } from '../languages/ldw/model/parsed/outputs/toTypesRustSource';
+import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTypesTypescriptSource';
+import { ParsedModelToVisitorRustSource } from '../languages/ldw/model/parsed/outputs/toVisitorRustSource';
+import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/parsed/outputs/toVisitorTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parsing/parseError';
 
@@ -28,7 +28,7 @@ program
             const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
 
             const output = JSON.stringify(
-                composePasses(new GrammarFromSource(), new GrammarExtendedFromGrammar()).transform(input),
+                composePasses(new ParsedGrammarFromSource(), new ExtendedGrammarFromParsedGrammar()).transform(input),
                 null,
                 2
             );
@@ -59,12 +59,12 @@ program
             const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
 
             const output = composePasses(
-                new GrammarFromSource(),
-                new GrammarExtendedFromGrammar(),
-                new GrammarWithTypesFromGrammarExtended(),
+                new ParsedGrammarFromSource(),
+                new ExtendedGrammarFromParsedGrammar(),
+                new TypedGrammarFromExtendedGrammar(),
                 // new RemoveAnonymousTypes(),
-                new ModelFromGrammarWithTypes(),
-                new ModelToSource()
+                new ParsedModelFromTypedGrammar(),
+                new ParsedModelToSource()
             ).transform(input);
 
             if (options.output) {
@@ -93,9 +93,9 @@ program
             const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
 
             const output = composePasses(
-                new GrammarFromSource(),
-                new GrammarExtendedFromGrammar(),
-                new GrammarWithTypesFromGrammarExtended(),
+                new ParsedGrammarFromSource(),
+                new ExtendedGrammarFromParsedGrammar(),
+                new TypedGrammarFromExtendedGrammar(),
                 // new RemoveAnonymousTypes(),
                 new GrammarWithTypesToParserTypescriptSource()
             ).transform(input);
@@ -125,7 +125,7 @@ program
         try {
             const input = options.input ? fs.readFileSync(options.input, 'utf-8') : await readStdin();
 
-            const parser = new ModelFromSource();
+            const parser = new ParsedModelFromSource();
             const model = parser.transform(input);
             const output = JSON.stringify(model, null, 2);
 
@@ -159,8 +159,10 @@ program
             const isTypescript = options.language === 'typescript';
 
             const output = composePasses(
-                new ModelFromSource(),
-                isTypescript ? new ModelToTypesTypescriptSource(options.generics) : new ModelToTypesRustSource()
+                new ParsedModelFromSource(),
+                isTypescript
+                    ? new ParsedModelToTypesTypescriptSource(options.generics)
+                    : new ParsedModelToTypesRustSource()
             ).transform(input);
 
             if (options.output) {
@@ -192,8 +194,8 @@ program
             const isTypescript = options.language === 'typescript';
 
             const output = composePasses(
-                new ModelFromSource(),
-                isTypescript ? new ModelToTransformerTypescriptSource() : new ModelToTransformerRustSource()
+                new ParsedModelFromSource(),
+                isTypescript ? new ParsedModelToTransformerTypescriptSource() : new ParsedModelToTransformerRustSource()
             ).transform(input);
 
             if (options.output) {
@@ -225,8 +227,8 @@ program
             const isTypescript = options.language === 'typescript';
 
             const output = composePasses(
-                new ModelFromSource(),
-                isTypescript ? new ModelToVisitorTypescriptSource() : new ModelToVisitorRustSource()
+                new ParsedModelFromSource(),
+                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
             ).transform(input);
 
             if (options.output) {

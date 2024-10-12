@@ -17,7 +17,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToTypesRustSource extends Visitor {
+export class ParsedModelToTypesRustSource extends Visitor {
     transform(model: Model): string {
         const generator = new Generator();
         generator.visitModel(model);

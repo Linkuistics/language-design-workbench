@@ -1,9 +1,9 @@
 import { ParseError } from '../../../../../src/gen0/parsing/parseError';
-import { ModelFromSource } from '../../../../../src/gen0/languages/ldw/model/parsed/creation/fromSource';
+import { ParsedModelFromSource } from '../../../../../src/gen0/languages/ldw/model/parsed/creation/fromSource';
 import { Model } from '../../../../../src/gen0/languages/ldw/model/parsed/model';
-import { ModelToSource } from '../../../../../src/gen0/languages/ldw/model/parsed/outputs/toSource';
+import { ParsedModelToSource } from '../../../../../src/gen0/languages/ldw/model/parsed/outputs/toSource';
 import { modelsAreEqual } from '../../../../../src/gen0/languages/ldw/model/parsed/util';
-import { IncrementalModelGenerator } from '../../../../../src/gen0/languages/ldw/model/parsed/creation/incrementalModalGenerator';
+import { IncrementalModelGenerator } from '../../../../../src/gen0/languages/ldw/model/parsed/creation/incrementalGenerator';
 
 describe('ToLDWMSource', () => {
     it('should correctly transform and parse back incrementally generated models', () => {
@@ -18,8 +18,8 @@ describe('ToLDWMSource', () => {
 });
 
 function testModelTransformation(model: Model, changeDescription: string) {
-    const toLDWMSource = new ModelToSource();
-    const fromLDWMSource = new ModelFromSource();
+    const toLDWMSource = new ParsedModelToSource();
+    const fromLDWMSource = new ParsedModelFromSource();
 
     let ldwmSource: string;
     let parsedModel: Model;

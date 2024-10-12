@@ -1,8 +1,8 @@
-import * as In from '../../../grammar/parsed/model';
+import * as In from '../../parsed/model';
 import * as Out from '../model';
 import { Transformer } from '../transformer';
 
-export class GrammarExtendedFromGrammar extends Transformer {
+export class ExtendedGrammarFromParsedGrammar extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
         return this.transformGrammar(input);
     }

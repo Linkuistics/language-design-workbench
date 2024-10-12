@@ -3,7 +3,7 @@ import { Parser, ParseResult } from '../../../../../parsing/parser';
 import { StringInputStream } from '../../../../../parsing/stringInputStream';
 import * as Model from '../model';
 
-export class ModelFromSource {
+export class ParsedModelFromSource {
     transform(input: string): Model.Model {
         const inputStream = new StringInputStream(input);
         const parser = new ModelParser(inputStream);

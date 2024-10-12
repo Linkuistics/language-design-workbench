@@ -20,7 +20,7 @@ import {
 } from '../model';
 import { Visitor } from '../visitor';
 
-export class ModelToSource {
+export class ParsedModelToSource {
     transform(model: Model): string {
         const generator = new Generator();
         generator.visitModel(model);

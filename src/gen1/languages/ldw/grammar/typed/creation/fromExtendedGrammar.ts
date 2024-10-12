@@ -15,7 +15,7 @@ import { Visitor as ModelVisitor } from '../../../model/parsed/visitor';
 import { Transformer } from '../transformer';
 import { Visitor } from '../visitor';
 
-export class GrammarWithTypesFromGrammarExtended extends Transformer {
+export class TypedGrammarFromExtendedGrammar extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
         return new TransformToGrammarWithTypes().transformGrammar(input);
     }
