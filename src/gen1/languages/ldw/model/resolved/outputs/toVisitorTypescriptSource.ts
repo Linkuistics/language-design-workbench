@@ -27,13 +27,11 @@ class TopLevelGenerator extends Visitor {
     output = new IndentingOutputStream();
 
     collectVisitableDefinitions(model: Model) {
-        model.values.forEach((definition) => {
-            if (definition instanceof Definition) {
-                if (definition.type instanceof ProductType) {
-                    this.visitableDefinitions.set(definition.name, definition);
-                } else if (definition.type instanceof SumType) {
-                    this.visitableDefinitions.set(definition.name, definition);
-                }
+        model.definitions.forEach((definition) => {
+            if (definition.type instanceof ProductType) {
+                this.visitableDefinitions.set(definition.name, definition);
+            } else if (definition.type instanceof SumType) {
+                this.visitableDefinitions.set(definition.name, definition);
             }
         });
 
@@ -41,13 +39,11 @@ class TopLevelGenerator extends Visitor {
         let changes;
         do {
             changes = false;
-            model.values.forEach((definition) => {
-                if (definition instanceof Definition) {
-                    if (definition.type instanceof SequenceType || definition.type instanceof OptionType) {
-                        if (!this.visitableDefinitions.has(definition.name)) {
-                            this.visitableDefinitions.set(definition.name, definition);
-                            changes = true;
-                        }
+            model.definitions.forEach((definition) => {
+                if (definition.type instanceof SequenceType || definition.type instanceof OptionType) {
+                    if (!this.visitableDefinitions.has(definition.name)) {
+                        this.visitableDefinitions.set(definition.name, definition);
+                        changes = true;
                     }
                 }
             });
@@ -55,10 +51,8 @@ class TopLevelGenerator extends Visitor {
     }
 
     visitModel(model: Model): void {
-        model.values.forEach((definition) => {
-            if (definition instanceof Definition) {
-                this.definitions.set(definition.name, definition);
-            }
+        model.definitions.forEach((definition) => {
+            this.definitions.set(definition.name, definition);
         });
         this.collectVisitableDefinitions(model);
 
@@ -67,9 +61,9 @@ class TopLevelGenerator extends Visitor {
         this.output.writeLine('export class Visitor {');
         this.output.writeLine();
         this.output.indentDuring(() => {
-            model.values.forEach((value) => {
-                if (value instanceof Definition && this.visitableDefinitions.has(value.name)) {
-                    this.visitDefinition(value);
+            model.definitions.forEach((definition) => {
+                if (this.visitableDefinitions.has(definition.name)) {
+                    this.visitDefinition(definition);
                 }
             });
         });

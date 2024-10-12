@@ -1,3 +1,3 @@
 import * as Model from './model';
 
-export class Transformer {}
+export class Visitor {}

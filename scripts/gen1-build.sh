@@ -18,7 +18,7 @@ for grammar in ldw::grammar::parsed ldw::model::parsed ; do
     ts-node $CLI process-grammar -r $REGISTRY -n $grammar
 done
 
-for model in ldw::grammar::parsed ldw::grammar::extended ldw::grammar::typed ldw::model::parsed ; do
+for model in ldw::grammar::parsed ldw::grammar::extended ldw::grammar::typed ldw::model::parsed ldw::model::resolved ; do
     echo "    Processing model $model"
     ts-node $CLI process-model -l typescript -r $REGISTRY -n $model
 

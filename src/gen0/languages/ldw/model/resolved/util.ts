@@ -1,14 +1,11 @@
 import {
     Definition,
-    Deletion,
     EnumType,
     MapType,
-    MemberAddition,
-    MemberDeletion,
-    MemberModification,
     Model,
     NamedTypeReference,
     OptionType,
+    PrimitiveType,
     ProductMember,
     ProductType,
     SequenceType,
@@ -33,19 +30,8 @@ export function findFieldName(field: ProductMember): string {
         return field.name;
     }
 
-    // Generate a name based on the field's type
-    const typeName = getTypeName(field.type);
+    const typeName = field.type.constructor.name;
     return `${typeName.toLowerCase()}Field`;
-}
-
-function getTypeName(type: Type): string {
-    if (typeof type === 'string') {
-        return type;
-    } else if ('constructor' in type) {
-        return type.constructor.name;
-    } else {
-        return 'UnknownType';
-    }
 }
 
 export function typesAreEqual(type1: Type, type2: Type, debug: boolean = false): boolean {
@@ -58,7 +44,7 @@ export function typesAreEqual(type1: Type, type2: Type, debug: boolean = false):
 
     // Helper function to get the type name
     const getTypeDiscriminator = (type: Type): string => {
-        if (typeof type === 'string') return 'PrimitiveType';
+        if (type instanceof PrimitiveType) return 'PrimitiveType';
         if (type instanceof VoidType) return 'VoidType';
         if (type instanceof EnumType) return 'EnumType';
         if (type instanceof SumType) return 'SumType';
@@ -158,21 +144,14 @@ export function modelsAreEqual(model1: Model, model2: Model, debug: boolean = fa
         return condition;
     };
 
-    const getValueDiscriminator = (value: Definition | Deletion | MemberModification): string => {
-        if (value instanceof Definition) return 'Definition';
-        if (value instanceof Deletion) return 'Deletion';
-        if (value instanceof MemberModification) return 'MemberModification';
-        return 'Unknown';
-    };
-
     if (!checkAndLog(model1.name === model2.name, `Model name mismatch: ${model1.name} vs ${model2.name}`)) {
         return false;
     }
 
     if (
         !checkAndLog(
-            model1.parentName === model2.parentName,
-            `Model parent name mismatch: ${model1.parentName} vs ${model2.parentName}`
+            model1.parent?.name === model2.parent?.name,
+            `Model parent name mismatch: ${model1.parent?.name} vs ${model2.parent?.name}`
         )
     ) {
         return false;
@@ -180,103 +159,20 @@ export function modelsAreEqual(model1: Model, model2: Model, debug: boolean = fa
 
     if (
         !checkAndLog(
-            model1.values.length === model2.values.length,
-            `Model values length mismatch: ${model1.values.length} vs ${model2.values.length}`
+            model1.definitions.length === model2.definitions.length,
+            `Model definitions length mismatch: ${model1.definitions.length} vs ${model2.definitions.length}`
         )
     ) {
         return false;
     }
 
-    return model1.values.every((value, index) => {
-        const value2 = model2.values[index];
-        const valueDiscriminator1 = getValueDiscriminator(value);
-        const valueDiscriminator2 = getValueDiscriminator(value2);
-
-        if (
-            !checkAndLog(
-                valueDiscriminator1 === valueDiscriminator2,
-                `Value type mismatch at index ${index}: ${valueDiscriminator1} vs ${valueDiscriminator2}`
-            )
-        ) {
-            return false;
-        }
-
-        switch (valueDiscriminator1) {
-            case 'Definition':
-                const def1 = value as Definition;
-                const def2 = value2 as Definition;
-                return (
-                    checkAndLog(
-                        def1.name === def2.name,
-                        `Definition name mismatch at index ${index}: ${def1.name} vs ${def2.name}`
-                    ) &&
-                    checkAndLog(
-                        typesAreEqual(def1.type, def2.type, debug),
-                        `Definition type mismatch at index ${index}`
-                    )
-                );
-            case 'Deletion':
-                const del1 = value as Deletion;
-                const del2 = value2 as Deletion;
-                return checkAndLog(
-                    del1.name === del2.name,
-                    `Deletion name mismatch at index ${index}: ${del1.name} vs ${del2.name}`
-                );
-            case 'MemberModification':
-                const mod1 = value as MemberModification;
-                const mod2 = value2 as MemberModification;
-                if (
-                    !checkAndLog(
-                        mod1.name === mod2.name,
-                        `MemberModification name mismatch at index ${index}: ${mod1.name} vs ${mod2.name}`
-                    )
-                ) {
-                    return false;
-                }
-                if (
-                    !checkAndLog(
-                        mod1.values.length === mod2.values.length,
-                        `MemberModification values length mismatch at index ${index}: ${mod1.values.length} vs ${mod2.values.length}`
-                    )
-                ) {
-                    return false;
-                }
-                return mod1.values.every((v, i) => {
-                    const v2 = mod2.values[i];
-                    if (v instanceof MemberAddition && v2 instanceof MemberAddition) {
-                        if (v.value instanceof ProductMember && v2.value instanceof ProductMember) {
-                            return (
-                                checkAndLog(
-                                    v.value.name === v2.value.name,
-                                    `MemberAddition value name mismatch at index ${index}, subindex ${i}: ${v.value.name} vs ${v2.value.name}`
-                                ) &&
-                                checkAndLog(
-                                    typesAreEqual(v.value.type, v2.value.type, debug),
-                                    `MemberAddition value type mismatch at index ${index}, subindex ${i}`
-                                )
-                            );
-                        } else {
-                            const vt1 = v.value as Type;
-                            const vt2 = v.value as Type;
-                            return checkAndLog(
-                                typesAreEqual(vt1, vt2, debug),
-                                `MemberAddition value mismatch at index ${index}, subindex ${i}`
-                            );
-                        }
-                    } else if (v instanceof MemberDeletion && v2 instanceof MemberDeletion) {
-                        return checkAndLog(
-                            v.name === v2.name,
-                            `MemberDeletion name mismatch at index ${index}, subindex ${i}: ${v.name} vs ${v2.name}`
-                        );
-                    } else {
-                        return checkAndLog(
-                            false,
-                            `Unexpected member modification type at index ${index}, subindex ${i}`
-                        );
-                    }
-                });
-            default:
-                return checkAndLog(false, `Unhandled value type at index ${index}: ${valueDiscriminator1}`);
-        }
+    return model1.definitions.every((def1, index) => {
+        const def2 = model2.definitions[index];
+        return (
+            checkAndLog(
+                def1.name === def2.name,
+                `Definition name mismatch at index ${index}: ${def1.name} vs ${def2.name}`
+            ) && checkAndLog(typesAreEqual(def1.type, def2.type, debug), `Definition type mismatch at index ${index}`)
+        );
     });
 }

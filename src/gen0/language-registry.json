@@ -5,6 +5,7 @@
     "ldw::grammar::extended": "./languages/ldw/grammar/extended",
     "ldw::grammar::typed": "./languages/ldw/grammar/typed",
     "ldw::model::parsed": "./languages/ldw/model/parsed",
+    "ldw::model::resolved": "./languages/ldw/model/resolved",
 
     "public::json": "./languages/public/json",
     "public::sexpr": "./languages/public/sexpr"

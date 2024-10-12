@@ -1,0 +1,13 @@
+model ldw::model::resolved modifies ldw::model::parsed {
+
+    modify Model
+        -= values
+        += definitions: seq<Definition>
+    ;
+    
+    delete Deletion;
+    delete MemberModification;
+    delete MemberDeletion;
+    delete MemberAddition;
+    
+}

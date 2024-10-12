@@ -1,24 +1,20 @@
+import Ajv from 'ajv';
+import { exec } from 'child_process';
 import { program } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
-import Ajv from 'ajv';
-import { exec } from 'child_process';
 import { promisify } from 'util';
 import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
 import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
-import { GrammarWithTypesToParserTypescriptSource } from '../languages/ldw/grammar/typed//outputs/toParserTypescriptSource';
-import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
 import { ParsedModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
+import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
 import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
-import { ParsedModelToTransformerRustSource } from '../languages/ldw/model/parsed/outputs/toTransformerRustSource';
-import { ParsedModelToTransformerTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTransformerTypescriptSource copy';
-import { ParsedModelToTypesRustSource } from '../languages/ldw/model/parsed/outputs/toTypesRustSource';
-import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/parsed/outputs/toTypesTypescriptSource';
-import { ParsedModelToVisitorRustSource } from '../languages/ldw/model/parsed/outputs/toVisitorRustSource';
-import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/parsed/outputs/toVisitorTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parsing/parseError';
+import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/resolved/outputs/toVisitorTypescriptSource';
+import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
+import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
 
 const execPromise = promisify(exec);
 
@@ -142,9 +138,6 @@ program
                 typedGrammar
             );
             await registry.writeOutput(options.name, modelSource, 'ldw.model');
-
-            // const parserSource = composePasses(new GrammarWithTypesToParserTypescriptSource()).transform(typedGrammar);
-            // await registry.writeOutput(options.name, parserSource, 'parser.ts');
         } catch (error) {
             handleError(error);
         }
@@ -170,243 +163,17 @@ program
             const isTypescript = options.language === 'typescript';
             const input = registry.readInput(options.name, 'ldw.model');
 
-            const parsedModel = new ParsedModelFromSource().transform(input);
-
-            const typesSource = (
-                isTypescript
-                    ? new ParsedModelToTypesTypescriptSource(options.generics)
-                    : new ParsedModelToTypesRustSource()
-            ).transform(parsedModel);
-            const typesFilename = isTypescript ? 'model.ts' : 'model.rs';
-            await registry.writeOutput(options.name, typesSource, typesFilename);
-
-            const visitorSource = (
-                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
-            ).transform(parsedModel);
-            const visitorFilename = isTypescript ? 'visitor.ts' : 'visitor.rs';
-            await registry.writeOutput(options.name, visitorSource, visitorFilename);
-
-            const transformerSource = (
-                isTypescript ? new ParsedModelToTransformerTypescriptSource() : new ParsedModelToTransformerRustSource()
-            ).transform(parsedModel);
-            const transformerFilename = isTypescript ? 'transformer.ts' : 'transformer.rs';
-            await registry.writeOutput(options.name, transformerSource, transformerFilename);
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('grammar-to-json')
-    .description('Parse .grammar source and produce .json')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the grammar')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.grammar');
-
-            const output = JSON.stringify(
-                composePasses(new ParsedGrammarFromSource(), new ExtendedGrammarFromParsedGrammar()).transform(input),
-                null,
-                2
-            );
-
-            await registry.writeOutput(options.name, output, 'ldw.grammar.json');
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('grammar-to-model')
-    .description('Parse .grammar source and produce .model source')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the grammar')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-
-            const input = registry.readInput(options.name, 'ldw.grammar');
-            const output = composePasses(
-                new ParsedGrammarFromSource(),
-                new ExtendedGrammarFromParsedGrammar(),
-                new TypedGrammarFromExtendedGrammar(),
-                // new RemoveAnonymousTypes(),
-                new ParsedModelFromTypedGrammar(),
-                new ParsedModelToSource()
-            ).transform(input);
-            await registry.writeOutput(options.name, output, 'ldw.model');
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('grammar-to-parser')
-    .description('Parse .grammar source and produce a parser module')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the grammar')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-
-            const input = registry.readInput(options.name, 'ldw.grammar');
-            const output = composePasses(
-                new ParsedGrammarFromSource(),
-                new ExtendedGrammarFromParsedGrammar(),
-                new TypedGrammarFromExtendedGrammar(),
-                // new RemoveAnonymousTypes(),
-                new GrammarWithTypesToParserTypescriptSource()
-            ).transform(input);
-            await registry.writeOutput(options.name, output, 'parser.ts');
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('model-to-json')
-    .description('Parse .model source and produce .json')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the model')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const modelSource = registry.readInput(options.name, 'ldw.model');
-
-            const parser = new ParsedModelFromSource();
-            const model = parser.transform(modelSource);
-            const output = JSON.stringify(model, null, 2);
-
-            await registry.writeOutput(options.name, output, 'ldw.model.json');
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('model-to-types')
-    .description('Parse .model source and produce a type module')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the model')
-    .option('-g, --generics', 'Use generics for typescript', false)
-    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.model');
-
-            const isTypescript = options.language === 'typescript';
-
-            const output = composePasses(
+            const parsedModel = composePasses(
                 new ParsedModelFromSource(),
-                isTypescript
-                    ? new ParsedModelToTypesTypescriptSource(options.generics)
-                    : new ParsedModelToTypesRustSource()
+                new ResolvedModelFromParsedModel()
             ).transform(input);
 
-            const outputName = isTypescript ? 'model.ts' : 'model.rs';
-            await registry.writeOutput(options.name, output, outputName);
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('model-to-visitor')
-    .description('Parse .model source and produce a visitor module')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the model')
-    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
+            if (isTypescript) {
+                const typesSource = new ParsedModelToTypesTypescriptSource(options.generics).transform(parsedModel);
+                await registry.writeOutput(options.name, typesSource, 'model.ts');
+                const visitorSource = new ParsedModelToVisitorTypescriptSource().transform(parsedModel);
+                await registry.writeOutput(options.name, visitorSource, 'visitor.ts');
             }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.model');
-
-            const isTypescript = options.language === 'typescript';
-
-            const output = composePasses(
-                new ParsedModelFromSource(),
-                isTypescript ? new ParsedModelToVisitorTypescriptSource() : new ParsedModelToVisitorRustSource()
-            ).transform(input);
-
-            const outputName = isTypescript ? 'visitor.ts' : 'visitor.rs';
-            await registry.writeOutput(options.name, output, outputName);
-        } catch (error) {
-            handleError(error);
-        }
-    });
-
-program
-    .command('model-to-transformer')
-    .description('Parse .model source and produce a transformer module')
-    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
-    .option('-n, --name <name>', 'Fully qualified name of the model')
-    .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
-    .action(async (options) => {
-        try {
-            if (!options.registry) {
-                throw new Error('Registry file is required');
-            }
-            if (!options.name) {
-                throw new Error('Fully qualified name is required');
-            }
-
-            const registry = new Registry(options.registry);
-            const input = registry.readInput(options.name, 'ldw.model');
-
-            const isTypescript = options.language === 'typescript';
-
-            const output = composePasses(
-                new ParsedModelFromSource(),
-                isTypescript ? new ParsedModelToTransformerTypescriptSource() : new ParsedModelToTransformerRustSource()
-            ).transform(input);
-
-            const outputName = isTypescript ? 'transformer.ts' : 'transformer.rs';
-            await registry.writeOutput(options.name, output, outputName);
         } catch (error) {
             handleError(error);
         }

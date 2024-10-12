@@ -9,7 +9,6 @@ import {
     Model,
     NamedTypeReference,
     OptionType,
-    PrimitiveType,
     ProductMember,
     ProductType,
     SequenceType,

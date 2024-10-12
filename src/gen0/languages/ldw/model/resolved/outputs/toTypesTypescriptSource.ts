@@ -35,14 +35,6 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
         return this.output.toString().trim();
     }
 
-    visitDeletion(): void {
-        // TODO: new model without this
-    }
-
-    visitMemberModification(): void {
-        // TODO: new model without this
-    }
-
     visitDefinition(definition: Definition) {
         if (definition.type instanceof ProductType) {
             this.output.writeLine(`export class ${pascalCase(definition.name)} {`);

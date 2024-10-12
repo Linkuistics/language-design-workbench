@@ -10,14 +10,14 @@ import {
     NamedTypeReference,
     OptionType,
     PrimitiveType,
+    ProductMember,
     ProductType,
     SequenceType,
     SetType,
     SumType,
     TupleType,
     Type,
-    VoidType,
-    ProductMember
+    VoidType
 } from '../model';
 
 function generateRandomString(length: number = 5): string {
@@ -58,19 +58,19 @@ function generateComplexType(depth: number = 0): Type {
 
 function generatePrimitiveType(): PrimitiveType {
     const primitives: PrimitiveType[] = [
-        'boolean',
-        'char',
-        'string',
-        'u8',
-        'u16',
-        'u32',
-        'u64',
-        'i8',
-        'i16',
-        'i32',
-        'i64',
-        'f32',
-        'f64'
+        PrimitiveType.Boolean,
+        PrimitiveType.Char,
+        PrimitiveType.String,
+        PrimitiveType.I8,
+        PrimitiveType.I16,
+        PrimitiveType.I32,
+        PrimitiveType.I64,
+        PrimitiveType.U8,
+        PrimitiveType.U16,
+        PrimitiveType.U32,
+        PrimitiveType.U64,
+        PrimitiveType.F32,
+        PrimitiveType.F64
     ];
     return primitives[Math.floor(Math.random() * primitives.length)];
 }
