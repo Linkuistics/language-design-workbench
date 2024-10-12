@@ -4,6 +4,6 @@ pub struct EnumRule {
 
 pub struct SeparatedByRule {
     pub r#element: RuleElement,
-    pub r#separator: String,
+    pub r#separator: string,
     pub r#minCount: u8,
 }

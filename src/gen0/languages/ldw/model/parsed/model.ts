@@ -1,4 +1,4 @@
-export enum ModelTypeId {
+export enum ModelType {
     Definition,
     Deletion,
     MemberModification,
@@ -30,7 +30,7 @@ export class Model {
 }
 
 export class Definition {
-    readonly modelType = ModelTypeId.Definition;
+    readonly modelType = ModelType.Definition;
 
     constructor(
         public name: Id,
@@ -38,20 +38,20 @@ export class Definition {
     ) {}
 }
 export function isDefinition(value: Definition | Deletion | MemberModification): value is Definition {
-    return value.modelType === ModelTypeId.Definition;
+    return value.modelType === ModelType.Definition;
 }
 
 export class Deletion {
-    readonly modelType = ModelTypeId.Deletion;
+    readonly modelType = ModelType.Deletion;
 
     constructor(public name: Id) {}
 }
 export function isDeletion(value: Definition | Deletion | MemberModification): value is Deletion {
-    return value.modelType === ModelTypeId.Deletion;
+    return value.modelType === ModelType.Deletion;
 }
 
 export class MemberModification {
-    readonly modelType = ModelTypeId.MemberModification;
+    readonly modelType = ModelType.MemberModification;
 
     constructor(
         public name: Id,
@@ -59,25 +59,25 @@ export class MemberModification {
     ) {}
 }
 export function isMemberModification(value: Definition | Deletion | MemberModification): value is MemberModification {
-    return value.modelType === ModelTypeId.MemberModification;
+    return value.modelType === ModelType.MemberModification;
 }
 
 export class MemberDeletion {
-    readonly modelType = ModelTypeId.MemberDeletion;
+    readonly modelType = ModelType.MemberDeletion;
 
     constructor(public name: Id) {}
 }
 export function isMemberDeletion(value: MemberDeletion | MemberAddition): value is MemberDeletion {
-    return value.modelType === ModelTypeId.MemberDeletion;
+    return value.modelType === ModelType.MemberDeletion;
 }
 
 export class MemberAddition {
-    readonly modelType = ModelTypeId.MemberAddition;
+    readonly modelType = ModelType.MemberAddition;
 
     constructor(public value: Type | ProductMember) {}
 }
 export function isMemberAddition(value: MemberDeletion | MemberAddition): value is MemberAddition {
-    return value.modelType === ModelTypeId.MemberAddition;
+    return value.modelType === ModelType.MemberAddition;
 }
 
 export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
@@ -85,17 +85,17 @@ export function isType(
     value: VoidType | EnumType | NamedTypeReference | PrimitiveType | TypeWithStructure
 ): value is Type {
     switch (value.modelType) {
-        case ModelTypeId.VoidType:
-        case ModelTypeId.PrimitiveType:
-        case ModelTypeId.EnumType:
-        case ModelTypeId.NamedTypeReference:
-        case ModelTypeId.SumType:
-        case ModelTypeId.ProductType:
-        case ModelTypeId.TupleType:
-        case ModelTypeId.MapType:
-        case ModelTypeId.SetType:
-        case ModelTypeId.SequenceType:
-        case ModelTypeId.OptionType:
+        case ModelType.VoidType:
+        case ModelType.PrimitiveType:
+        case ModelType.EnumType:
+        case ModelType.NamedTypeReference:
+        case ModelType.SumType:
+        case ModelType.ProductType:
+        case ModelType.TupleType:
+        case ModelType.MapType:
+        case ModelType.SetType:
+        case ModelType.SequenceType:
+        case ModelType.OptionType:
             return true;
         default:
             return false;
@@ -103,14 +103,14 @@ export function isType(
 }
 
 export class VoidType {
-    readonly modelType = ModelTypeId.VoidType;
+    readonly modelType = ModelType.VoidType;
 }
 export function isVoidType(value: Type): value is VoidType {
-    return value.modelType === ModelTypeId.VoidType;
+    return value.modelType === ModelType.VoidType;
 }
 
 export class PrimitiveType {
-    readonly modelType = ModelTypeId.PrimitiveType;
+    readonly modelType = ModelType.PrimitiveType;
 
     static String: PrimitiveType = new PrimitiveType('string');
     static Boolean: PrimitiveType = new PrimitiveType('boolean');
@@ -144,27 +144,27 @@ export class PrimitiveType {
     ) {}
 }
 export function isPrimitiveType(value: Type): value is PrimitiveType {
-    return value.modelType === ModelTypeId.PrimitiveType;
+    return value.modelType === ModelType.PrimitiveType;
 }
 
 export class EnumType {
-    readonly modelType = ModelTypeId.EnumType;
+    readonly modelType = ModelType.EnumType;
     constructor(public members: Id[]) {}
 }
 export function isEnumType(value: Type): value is EnumType {
-    return value.modelType === ModelTypeId.EnumType;
+    return value.modelType === ModelType.EnumType;
 }
 
 export type TypeWithStructure = SumType | ProductType | GenericType;
 export function isTypeWithStructure(value: Type): value is TypeWithStructure {
     switch (value.modelType) {
-        case ModelTypeId.SumType:
-        case ModelTypeId.ProductType:
-        case ModelTypeId.TupleType:
-        case ModelTypeId.MapType:
-        case ModelTypeId.SetType:
-        case ModelTypeId.SequenceType:
-        case ModelTypeId.OptionType:
+        case ModelType.SumType:
+        case ModelType.ProductType:
+        case ModelType.TupleType:
+        case ModelType.MapType:
+        case ModelType.SetType:
+        case ModelType.SequenceType:
+        case ModelType.OptionType:
             return true;
         default:
             return false;
@@ -172,25 +172,25 @@ export function isTypeWithStructure(value: Type): value is TypeWithStructure {
 }
 
 export class SumType {
-    readonly modelType = ModelTypeId.SumType;
+    readonly modelType = ModelType.SumType;
 
     constructor(public members: Type[]) {}
 }
 export function isSumType(value: Type): value is SumType {
-    return value.modelType === ModelTypeId.SumType;
+    return value.modelType === ModelType.SumType;
 }
 
 export class ProductType {
-    readonly modelType = ModelTypeId.ProductType;
+    readonly modelType = ModelType.ProductType;
 
     constructor(public members: ProductMember[]) {}
 }
 export function isProductType(value: Type): value is ProductType {
-    return value.modelType === ModelTypeId.ProductType;
+    return value.modelType === ModelType.ProductType;
 }
 
 export class ProductMember {
-    readonly modelType = ModelTypeId.ProductMember;
+    readonly modelType = ModelType.ProductMember;
 
     constructor(
         public name: Id,
@@ -198,17 +198,17 @@ export class ProductMember {
     ) {}
 }
 export function isProductMember(value: any): value is ProductMember {
-    return value.modelType === ModelTypeId.ProductMember;
+    return value.modelType === ModelType.ProductMember;
 }
 
 export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;
 export function isGenericType(value: Type): value is GenericType {
     switch (value.modelType) {
-        case ModelTypeId.TupleType:
-        case ModelTypeId.MapType:
-        case ModelTypeId.SetType:
-        case ModelTypeId.SequenceType:
-        case ModelTypeId.OptionType:
+        case ModelType.TupleType:
+        case ModelType.MapType:
+        case ModelType.SetType:
+        case ModelType.SequenceType:
+        case ModelType.OptionType:
             return true;
         default:
             return false;
@@ -216,16 +216,16 @@ export function isGenericType(value: Type): value is GenericType {
 }
 
 export class TupleType {
-    readonly modelType = ModelTypeId.TupleType;
+    readonly modelType = ModelType.TupleType;
 
     constructor(public members: Type[]) {}
 }
 export function isTupleType(value: Type): value is TupleType {
-    return value.modelType === ModelTypeId.TupleType;
+    return value.modelType === ModelType.TupleType;
 }
 
 export class MapType {
-    readonly modelType = ModelTypeId.MapType;
+    readonly modelType = ModelType.MapType;
 
     constructor(
         public keyType: Type,
@@ -233,43 +233,43 @@ export class MapType {
     ) {}
 }
 export function isMapType(value: Type): value is MapType {
-    return value.modelType === ModelTypeId.MapType;
+    return value.modelType === ModelType.MapType;
 }
 
 export class SetType {
-    readonly modelType = ModelTypeId.SetType;
+    readonly modelType = ModelType.SetType;
 
     constructor(public keyType: Type) {}
 }
 export function isSetType(value: Type): value is SetType {
-    return value.modelType === ModelTypeId.SetType;
+    return value.modelType === ModelType.SetType;
 }
 
 export class SequenceType {
-    readonly modelType = ModelTypeId.SequenceType;
+    readonly modelType = ModelType.SequenceType;
 
     constructor(public elementType: Type) {}
 }
 export function isSequenceType(value: Type): value is SequenceType {
-    return value.modelType === ModelTypeId.SequenceType;
+    return value.modelType === ModelType.SequenceType;
 }
 
 export class OptionType {
-    readonly modelType = ModelTypeId.OptionType;
+    readonly modelType = ModelType.OptionType;
 
     constructor(public type: Type) {}
 }
 export function isOptionType(value: Type): value is OptionType {
-    return value.modelType === ModelTypeId.OptionType;
+    return value.modelType === ModelType.OptionType;
 }
 
 export class NamedTypeReference {
-    readonly modelType = ModelTypeId.NamedTypeReference;
+    readonly modelType = ModelType.NamedTypeReference;
 
     constructor(public names: Id[]) {}
 }
 export function isNamedTypeReference(value: Type): value is NamedTypeReference {
-    return value.modelType === ModelTypeId.NamedTypeReference;
+    return value.modelType === ModelType.NamedTypeReference;
 }
 
 export type Id = string;
@@ -277,28 +277,28 @@ export type Id = string;
 export type Trivia = LineComment | BlockComment | Whitespace;
 
 export class BlockComment {
-    readonly modelType = ModelTypeId.BlockComment;
+    readonly modelType = ModelType.BlockComment;
 
     constructor(public value: string) {}
 }
 export function isBlockComment(value: Trivia): value is BlockComment {
-    return value.modelType === ModelTypeId.BlockComment;
+    return value.modelType === ModelType.BlockComment;
 }
 
 export class LineComment {
-    readonly modelType = ModelTypeId.LineComment;
+    readonly modelType = ModelType.LineComment;
 
     constructor(public value: string) {}
 }
 export function isLineComment(value: Trivia): value is LineComment {
-    return value.modelType === ModelTypeId.LineComment;
+    return value.modelType === ModelType.LineComment;
 }
 
 export class Whitespace {
-    readonly modelType = ModelTypeId.Whitespace;
+    readonly modelType = ModelType.Whitespace;
 
     constructor(public value: string) {}
 }
 export function isWhitespace(value: Trivia): value is Whitespace {
-    return value.modelType === ModelTypeId.Whitespace;
+    return value.modelType === ModelType.Whitespace;
 }

@@ -1,11 +1,11 @@
 export class EnumRule {
-    constructor(public members: { name: string; value: string }[]) {}
+    constructor(public members: { name: number; value: number }[]) {}
 }
 
 export class SeparatedByRule {
     constructor(
         public element: RuleElement,
-        public separator: string,
+        public separator: number,
         public minCount: number
     ) {}
 }
