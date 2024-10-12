@@ -12,6 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "ajv": "^8.17.1",
         "commander": "12.1.0",
         "literal-case": "1.0.0",
         "pluralize": "8.0.0"

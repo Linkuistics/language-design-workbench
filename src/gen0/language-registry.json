@@ -1,0 +1,8 @@
+{
+    "$schema": "./registry-schema.json",
+
+    "ldw::grammar::parsed": "./languages/ldw/grammar/parsed",
+    "ldw::grammar::extended": "./languages/ldw/grammar/extended",
+    "ldw::grammar::typed": "./languages/ldw/grammar/typed",
+    "ldw::model::parsed": "./languages/ldw/model/parsed"
+}

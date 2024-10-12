@@ -1,47 +1,31 @@
 #!/usr/bin/env zsh
 
-for grammar in src/gen1/languages/ldw/**/*.grammar ; do
+CL=ts-node src/gen0/cli/ldw.ts
+REGISTRY=src/gen0/language-registry.json
+
+for grammar in ldw::grammar::parsed ldw::model::parsed ; do
 
     echo
 
-    # json=${grammar%.grammar}.model
-    # echo "Generating $json from $(basename $grammar)"
-    # ts-node src/gen0/cli/ldw.ts grammar-to-json -i $grammar -o $json
+    echo "Generating ldw.grammar.json for $grammar using registry $REGISTRY"
+    $CLI grammar-to-json -r $REGISTRY -n $grammar
     
-    model=${grammar%.grammar}.model
-    echo "Generating $model from $(basename $grammar)"
-    ts-node src/gen0/cli/ldw.ts grammar-to-model -i $grammar -o $model
+    echo "Generating ldw.model for $grammar using registry $REGISTRY"
+    $CLI grammar-to-model -r $REGISTRY -n $grammar
 
 done
 
-for model in src/gen1/languages/ldw/**/*.model ; do
-
-    dir=$(dirname $model)/$(basename $model .model)
+for model in ldw::grammar::parser ldw::grammar::extended ldw::grammar::typed ldw::model::parsed ; do
 
     echo
 
-    echo "Generating $dir/model.ts"
-    ts-node src/gen0/cli/ldw.ts model-to-types -l typescript -i $model -o $dir/model.ts
-    prettier -w $dir/model.ts
+    echo "Generating model.ts for $model using registry $REGISTRY"
+    $CLI model-to-types -l typescript -r $REGISTRY -n $model
 
-    echo "Generating $dir/model.rs"
-    ts-node src/gen0/cli/ldw.ts model-to-types -l rust -i $model -o $dir/model.rs
-    rustfmt $dir/model.rs
+    echo "Generating visitor.ts for $model using registry $REGISTRY"
+    $CLI model-to-visitor -l typescript -r $REGISTRY -n $model
 
-    echo "Generating $dir/visitor.ts"
-    ts-node src/gen0/cli/ldw.ts model-to-visitor -l typescript -i $model -o $dir/visitor.ts
-    prettier -w $dir/visitor.ts
-
-    echo "Generating $dir/visitor.rs"
-    ts-node src/gen0/cli/ldw.ts model-to-visitor -l rust -i $model -o $dir/visitor.rs
-    rustfmt $dir/visitor.rs
-
-    echo "Generating $dir/transformer.ts"
-    ts-node src/gen0/cli/ldw.ts model-to-transformer -l typescript -i $model -o $dir/transformer.ts
-    prettier -w $dir/transformer.ts
-
-    echo "Generating $dir/transformer.rs"
-    ts-node src/gen0/cli/ldw.ts model-to-transformer -l rust -i $model -o $dir/transformer.rs
-    rustfmt $dir/transformer.rs
+    echo "Generating transformer.ts for $model using registry $REGISTRY"
+    $CLI model-to-transformer -l typescript -r $REGISTRY -n $model
 
 done
