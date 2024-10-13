@@ -1,12 +1,6 @@
-export class Model {
-    constructor(
-        public name: Fqn,
-        public parentName: Fqn | undefined,
-        public values: (Deletion | MemberModification | Definition)[]
-    ) {}
+export class BlockComment {
+    constructor(public value: string) {}
 }
-
-export type Fqn = Id[];
 
 export class Definition {
     constructor(
@@ -19,6 +13,41 @@ export class Deletion {
     constructor(public name: Id) {}
 }
 
+export class EnumType {
+    constructor(public members: StringElement[]) {}
+}
+
+export type Fqn = Id[];
+
+export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;
+
+export type Id = Identifier;
+
+export type Identifier = string;
+
+export type IdentifierChar = string;
+
+export type InitialIdentifierChar = string;
+
+export class LineComment {
+    constructor(public value: string) {}
+}
+
+export class MapType {
+    constructor(
+        public keyType: Type,
+        public valueType: Type
+    ) {}
+}
+
+export class MemberAddition {
+    constructor(public value: ProductMember | Type) {}
+}
+
+export class MemberDeletion {
+    constructor(public name: Id) {}
+}
+
 export class MemberModification {
     constructor(
         public name: Id,
@@ -26,17 +55,21 @@ export class MemberModification {
     ) {}
 }
 
-export class MemberDeletion {
-    constructor(public name: Id) {}
+export class Model {
+    constructor(
+        public name: Fqn,
+        public parentName: Fqn | undefined,
+        public values: (Deletion | MemberModification | Definition)[]
+    ) {}
 }
 
-export class MemberAddition {
-    constructor(public value: ProductMember | Type) {}
+export class NamedTypeReference {
+    constructor(public fqn: Fqn) {}
 }
 
-export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
-
-export class VoidType {}
+export class OptionType {
+    constructor(public type: Type) {}
+}
 
 export enum PrimitiveType {
     Boolean = 1,
@@ -54,22 +87,6 @@ export enum PrimitiveType {
     F64 = 13
 }
 
-export class EnumType {
-    constructor(public members: StringElement[]) {}
-}
-
-export type StringElement = Id;
-
-export type TypeWithStructure = SumType | ProductType | GenericType;
-
-export class SumType {
-    constructor(public members: Type[]) {}
-}
-
-export class ProductType {
-    constructor(public members: ProductMember[]) {}
-}
-
 export class ProductMember {
     constructor(
         public name: Id,
@@ -77,53 +94,36 @@ export class ProductMember {
     ) {}
 }
 
-export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;
-
-export class TupleType {
-    constructor(public members: Type[]) {}
-}
-
-export class MapType {
-    constructor(
-        public keyType: Type,
-        public valueType: Type
-    ) {}
-}
-
-export class SetType {
-    constructor(public keyType: Type) {}
+export class ProductType {
+    constructor(public members: ProductMember[]) {}
 }
 
 export class SequenceType {
     constructor(public elementType: Type) {}
 }
 
-export class OptionType {
-    constructor(public type: Type) {}
+export class SetType {
+    constructor(public keyType: Type) {}
 }
 
-export class NamedTypeReference {
-    constructor(public fqn: Fqn) {}
+export type StringElement = Id;
+
+export class SumType {
+    constructor(public members: Type[]) {}
 }
-
-export type Id = Identifier;
-
-export type Identifier = string;
-
-export type InitialIdentifierChar = string;
-
-export type IdentifierChar = string;
 
 export type Trivia = LineComment | BlockComment | Whitespace;
 
+export class TupleType {
+    constructor(public members: Type[]) {}
+}
+
+export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
+
+export type TypeWithStructure = SumType | ProductType | GenericType;
+
+export class VoidType {}
+
 export class Whitespace {
-    constructor(public value: string) {}
-}
-
-export class LineComment {
-    constructor(public value: string) {}
-}
-
-export class BlockComment {
     constructor(public value: string) {}
 }

@@ -10,13 +10,12 @@ import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/
 import { ParsedModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
 import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
 import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
+import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
+import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
+import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/resolved/outputs/toVisitorTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parsing/parseError';
-import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/resolved/outputs/toVisitorTypescriptSource';
-import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
-import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
 
-import { Model as ParsedModel } from '../languages/ldw/model/parsed/model';
 import { Model as ResolvedModel } from '../languages/ldw/model/resolved/model';
 
 const execPromise = promisify(exec);
