@@ -1,9 +1,4 @@
 export enum Discriminator {
-    Definition,
-    Deletion,
-    MemberModification,
-    MemberAddition,
-    MemberDeletion,
     VoidType,
     EnumType,
     SumType,
@@ -24,60 +19,17 @@ export enum Discriminator {
 export class Model {
     constructor(
         public name: Id[],
-        public parentName: Id[] | undefined,
-        public values: (Definition | Deletion | MemberModification)[]
+        public parent: Model | undefined,
+        public definitions: Definition[]
     ) {}
 }
 
 export class Definition {
-    readonly discriminator = Discriminator.Definition;
-
     constructor(
         public name: Id,
-        public type: Type
+        public type: Type,
+        public isDiscriminated: boolean
     ) {}
-}
-export function isDefinition(value: Definition | Deletion | MemberModification): value is Definition {
-    return value.discriminator === Discriminator.Definition;
-}
-
-export class Deletion {
-    readonly discriminator = Discriminator.Deletion;
-
-    constructor(public name: Id) {}
-}
-export function isDeletion(value: Definition | Deletion | MemberModification): value is Deletion {
-    return value.discriminator === Discriminator.Deletion;
-}
-
-export class MemberModification {
-    readonly discriminator = Discriminator.MemberModification;
-
-    constructor(
-        public name: Id,
-        public values: (MemberDeletion | MemberAddition)[]
-    ) {}
-}
-export function isMemberModification(value: Definition | Deletion | MemberModification): value is MemberModification {
-    return value.discriminator === Discriminator.MemberModification;
-}
-
-export class MemberDeletion {
-    readonly discriminator = Discriminator.MemberDeletion;
-
-    constructor(public name: Id) {}
-}
-export function isMemberDeletion(value: MemberDeletion | MemberAddition): value is MemberDeletion {
-    return value.discriminator === Discriminator.MemberDeletion;
-}
-
-export class MemberAddition {
-    readonly discriminator = Discriminator.MemberAddition;
-
-    constructor(public value: Type | ProductMember) {}
-}
-export function isMemberAddition(value: MemberDeletion | MemberAddition): value is MemberAddition {
-    return value.discriminator === Discriminator.MemberAddition;
 }
 
 export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;

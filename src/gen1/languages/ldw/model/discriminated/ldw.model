@@ -1,0 +1,7 @@
+model ldw::model::discriminated modifies ldw::model::resolved {
+
+    modify Definition
+        += isDiscriminated: boolean
+    ;
+    
+}

@@ -3,11 +3,11 @@ import * as Model from './model';
 export class Visitor {
     visitModel(node: Model.Model): void {
         node.values.forEach((x) => {
-            switch (x.modelType) {
-                case Model.ModelType.Definition:
+            switch (x.discriminator) {
+                case Model.Discriminator.Definition:
                     this.visitDefinition(x);
                     break;
-                case Model.ModelType.Deletion:
+                case Model.Discriminator.Deletion:
                     this.visitDeletion(x);
                     break;
                 default:
@@ -25,8 +25,8 @@ export class Visitor {
 
     visitMemberModification(node: Model.MemberModification): void {
         node.values.forEach((x) => {
-            switch (x.modelType) {
-                case Model.ModelType.MemberDeletion:
+            switch (x.discriminator) {
+                case Model.Discriminator.MemberDeletion:
                     this.visitMemberDeletion(x);
                     break;
                 default:
@@ -39,8 +39,8 @@ export class Visitor {
     visitMemberDeletion(node: Model.MemberDeletion): void {}
 
     visitMemberAddition(node: Model.MemberAddition): void {
-        switch (node.value.modelType) {
-            case Model.ModelType.ProductMember:
+        switch (node.value.discriminator) {
+            case Model.Discriminator.ProductMember:
                 this.visitProductMember(node.value);
                 break;
             default:
@@ -50,26 +50,26 @@ export class Visitor {
     }
 
     visitType(node: Model.Type): void {
-        switch (node.modelType) {
-            case Model.ModelType.VoidType:
+        switch (node.discriminator) {
+            case Model.Discriminator.VoidType:
                 this.visitVoidType(node);
                 break;
-            case Model.ModelType.PrimitiveType:
+            case Model.Discriminator.PrimitiveType:
                 this.visitPrimitiveType(node);
                 break;
-            case Model.ModelType.EnumType:
+            case Model.Discriminator.EnumType:
                 this.visitEnumType(node);
                 break;
-            case Model.ModelType.NamedTypeReference:
+            case Model.Discriminator.NamedTypeReference:
                 this.visitNamedTypeReference(node);
                 break;
-            case Model.ModelType.SumType:
-            case Model.ModelType.ProductType:
-            case Model.ModelType.TupleType:
-            case Model.ModelType.MapType:
-            case Model.ModelType.SetType:
-            case Model.ModelType.SequenceType:
-            case Model.ModelType.OptionType:
+            case Model.Discriminator.SumType:
+            case Model.Discriminator.ProductType:
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
                 this.visitTypeWithStructure(node);
                 break;
         }
@@ -82,18 +82,18 @@ export class Visitor {
     visitEnumType(node: Model.EnumType): void {}
 
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
-        switch (node.modelType) {
-            case Model.ModelType.SumType:
+        switch (node.discriminator) {
+            case Model.Discriminator.SumType:
                 this.visitSumType(node);
                 break;
-            case Model.ModelType.ProductType:
+            case Model.Discriminator.ProductType:
                 this.visitProductType(node);
                 break;
-            case Model.ModelType.TupleType:
-            case Model.ModelType.MapType:
-            case Model.ModelType.SetType:
-            case Model.ModelType.SequenceType:
-            case Model.ModelType.OptionType:
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
                 this.visitGenericType(node);
                 break;
         }
@@ -116,20 +116,20 @@ export class Visitor {
     }
 
     visitGenericType(node: Model.GenericType): void {
-        switch (node.modelType) {
-            case Model.ModelType.TupleType:
+        switch (node.discriminator) {
+            case Model.Discriminator.TupleType:
                 this.visitTupleType(node);
                 break;
-            case Model.ModelType.MapType:
+            case Model.Discriminator.MapType:
                 this.visitMapType(node);
                 break;
-            case Model.ModelType.SetType:
+            case Model.Discriminator.SetType:
                 this.visitSetType(node);
                 break;
-            case Model.ModelType.SequenceType:
+            case Model.Discriminator.SequenceType:
                 this.visitSequenceType(node);
                 break;
-            case Model.ModelType.OptionType:
+            case Model.Discriminator.OptionType:
                 this.visitOptionType(node);
                 break;
         }

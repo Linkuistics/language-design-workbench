@@ -1,4 +1,4 @@
-export enum ModelType {
+export enum Discriminator {
     VoidType,
     EnumType,
     SumType,
@@ -35,18 +35,18 @@ export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | Nam
 export function isType(
     value: VoidType | EnumType | NamedTypeReference | PrimitiveType | TypeWithStructure
 ): value is Type {
-    switch (value.modelType) {
-        case ModelType.VoidType:
-        case ModelType.PrimitiveType:
-        case ModelType.EnumType:
-        case ModelType.NamedTypeReference:
-        case ModelType.SumType:
-        case ModelType.ProductType:
-        case ModelType.TupleType:
-        case ModelType.MapType:
-        case ModelType.SetType:
-        case ModelType.SequenceType:
-        case ModelType.OptionType:
+    switch (value.discriminator) {
+        case Discriminator.VoidType:
+        case Discriminator.PrimitiveType:
+        case Discriminator.EnumType:
+        case Discriminator.NamedTypeReference:
+        case Discriminator.SumType:
+        case Discriminator.ProductType:
+        case Discriminator.TupleType:
+        case Discriminator.MapType:
+        case Discriminator.SetType:
+        case Discriminator.SequenceType:
+        case Discriminator.OptionType:
             return true;
         default:
             return false;
@@ -54,14 +54,14 @@ export function isType(
 }
 
 export class VoidType {
-    readonly modelType = ModelType.VoidType;
+    readonly discriminator = Discriminator.VoidType;
 }
 export function isVoidType(value: Type): value is VoidType {
-    return value.modelType === ModelType.VoidType;
+    return value.discriminator === Discriminator.VoidType;
 }
 
 export class PrimitiveType {
-    readonly modelType = ModelType.PrimitiveType;
+    readonly discriminator = Discriminator.PrimitiveType;
 
     static String: PrimitiveType = new PrimitiveType('string');
     static Boolean: PrimitiveType = new PrimitiveType('boolean');
@@ -95,27 +95,27 @@ export class PrimitiveType {
     ) {}
 }
 export function isPrimitiveType(value: Type): value is PrimitiveType {
-    return value.modelType === ModelType.PrimitiveType;
+    return value.discriminator === Discriminator.PrimitiveType;
 }
 
 export class EnumType {
-    readonly modelType = ModelType.EnumType;
+    readonly discriminator = Discriminator.EnumType;
     constructor(public members: Id[]) {}
 }
 export function isEnumType(value: Type): value is EnumType {
-    return value.modelType === ModelType.EnumType;
+    return value.discriminator === Discriminator.EnumType;
 }
 
 export type TypeWithStructure = SumType | ProductType | GenericType;
 export function isTypeWithStructure(value: Type): value is TypeWithStructure {
-    switch (value.modelType) {
-        case ModelType.SumType:
-        case ModelType.ProductType:
-        case ModelType.TupleType:
-        case ModelType.MapType:
-        case ModelType.SetType:
-        case ModelType.SequenceType:
-        case ModelType.OptionType:
+    switch (value.discriminator) {
+        case Discriminator.SumType:
+        case Discriminator.ProductType:
+        case Discriminator.TupleType:
+        case Discriminator.MapType:
+        case Discriminator.SetType:
+        case Discriminator.SequenceType:
+        case Discriminator.OptionType:
             return true;
         default:
             return false;
@@ -123,25 +123,25 @@ export function isTypeWithStructure(value: Type): value is TypeWithStructure {
 }
 
 export class SumType {
-    readonly modelType = ModelType.SumType;
+    readonly discriminator = Discriminator.SumType;
 
     constructor(public members: Type[]) {}
 }
 export function isSumType(value: Type): value is SumType {
-    return value.modelType === ModelType.SumType;
+    return value.discriminator === Discriminator.SumType;
 }
 
 export class ProductType {
-    readonly modelType = ModelType.ProductType;
+    readonly discriminator = Discriminator.ProductType;
 
     constructor(public members: ProductMember[]) {}
 }
 export function isProductType(value: Type): value is ProductType {
-    return value.modelType === ModelType.ProductType;
+    return value.discriminator === Discriminator.ProductType;
 }
 
 export class ProductMember {
-    readonly modelType = ModelType.ProductMember;
+    readonly discriminator = Discriminator.ProductMember;
 
     constructor(
         public name: Id,
@@ -149,17 +149,17 @@ export class ProductMember {
     ) {}
 }
 export function isProductMember(value: any): value is ProductMember {
-    return value.modelType === ModelType.ProductMember;
+    return value.discriminator === Discriminator.ProductMember;
 }
 
 export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;
 export function isGenericType(value: Type): value is GenericType {
-    switch (value.modelType) {
-        case ModelType.TupleType:
-        case ModelType.MapType:
-        case ModelType.SetType:
-        case ModelType.SequenceType:
-        case ModelType.OptionType:
+    switch (value.discriminator) {
+        case Discriminator.TupleType:
+        case Discriminator.MapType:
+        case Discriminator.SetType:
+        case Discriminator.SequenceType:
+        case Discriminator.OptionType:
             return true;
         default:
             return false;
@@ -167,16 +167,16 @@ export function isGenericType(value: Type): value is GenericType {
 }
 
 export class TupleType {
-    readonly modelType = ModelType.TupleType;
+    readonly discriminator = Discriminator.TupleType;
 
     constructor(public members: Type[]) {}
 }
 export function isTupleType(value: Type): value is TupleType {
-    return value.modelType === ModelType.TupleType;
+    return value.discriminator === Discriminator.TupleType;
 }
 
 export class MapType {
-    readonly modelType = ModelType.MapType;
+    readonly discriminator = Discriminator.MapType;
 
     constructor(
         public keyType: Type,
@@ -184,43 +184,43 @@ export class MapType {
     ) {}
 }
 export function isMapType(value: Type): value is MapType {
-    return value.modelType === ModelType.MapType;
+    return value.discriminator === Discriminator.MapType;
 }
 
 export class SetType {
-    readonly modelType = ModelType.SetType;
+    readonly discriminator = Discriminator.SetType;
 
     constructor(public keyType: Type) {}
 }
 export function isSetType(value: Type): value is SetType {
-    return value.modelType === ModelType.SetType;
+    return value.discriminator === Discriminator.SetType;
 }
 
 export class SequenceType {
-    readonly modelType = ModelType.SequenceType;
+    readonly discriminator = Discriminator.SequenceType;
 
     constructor(public elementType: Type) {}
 }
 export function isSequenceType(value: Type): value is SequenceType {
-    return value.modelType === ModelType.SequenceType;
+    return value.discriminator === Discriminator.SequenceType;
 }
 
 export class OptionType {
-    readonly modelType = ModelType.OptionType;
+    readonly discriminator = Discriminator.OptionType;
 
     constructor(public type: Type) {}
 }
 export function isOptionType(value: Type): value is OptionType {
-    return value.modelType === ModelType.OptionType;
+    return value.discriminator === Discriminator.OptionType;
 }
 
 export class NamedTypeReference {
-    readonly modelType = ModelType.NamedTypeReference;
+    readonly discriminator = Discriminator.NamedTypeReference;
 
     constructor(public names: Id[]) {}
 }
 export function isNamedTypeReference(value: Type): value is NamedTypeReference {
-    return value.modelType === ModelType.NamedTypeReference;
+    return value.discriminator === Discriminator.NamedTypeReference;
 }
 
 export type Id = string;
@@ -228,28 +228,28 @@ export type Id = string;
 export type Trivia = LineComment | BlockComment | Whitespace;
 
 export class BlockComment {
-    readonly modelType = ModelType.BlockComment;
+    readonly discriminator = Discriminator.BlockComment;
 
     constructor(public value: string) {}
 }
 export function isBlockComment(value: Trivia): value is BlockComment {
-    return value.modelType === ModelType.BlockComment;
+    return value.discriminator === Discriminator.BlockComment;
 }
 
 export class LineComment {
-    readonly modelType = ModelType.LineComment;
+    readonly discriminator = Discriminator.LineComment;
 
     constructor(public value: string) {}
 }
 export function isLineComment(value: Trivia): value is LineComment {
-    return value.modelType === ModelType.LineComment;
+    return value.discriminator === Discriminator.LineComment;
 }
 
 export class Whitespace {
-    readonly modelType = ModelType.Whitespace;
+    readonly discriminator = Discriminator.Whitespace;
 
     constructor(public value: string) {}
 }
 export function isWhitespace(value: Trivia): value is Whitespace {
-    return value.modelType === ModelType.Whitespace;
+    return value.discriminator === Discriminator.Whitespace;
 }

@@ -19,29 +19,31 @@ export class ResolvedModelFromParsedModel extends Transformer {
 
         if (input.parentName) {
             parent = this.transform(this.resolver(input.parentName.join('::')));
+            // TODO: we can purge the grandparent.
             for (const definition of parent.definitions) {
                 definitions.set(definition.name, definition);
             }
         }
 
+        // TODO: flatten this code
         for (const value of input.values) {
-            switch (value.modelType) {
-                case In.ModelType.Definition:
+            switch (value.discriminator) {
+                case In.Discriminator.Definition:
                     definitions.set(value.name, this.transformDefinition(value));
                     break;
-                case In.ModelType.Deletion:
+                case In.Discriminator.Deletion:
                     definitions.delete(value.name);
                     break;
-                case In.ModelType.MemberModification:
+                case In.Discriminator.MemberModification:
                     let definition = definitions.get(value.name)!;
                     for (const modification of value.values) {
-                        switch (modification.modelType) {
-                            case In.ModelType.MemberAddition:
+                        switch (modification.discriminator) {
+                            case In.Discriminator.MemberAddition:
                                 const addition = modification.value;
-                                switch (addition.modelType) {
-                                    case In.ModelType.ProductMember:
-                                        switch (definition.type.modelType) {
-                                            case Out.ModelType.ProductType:
+                                switch (addition.discriminator) {
+                                    case In.Discriminator.ProductMember:
+                                        switch (definition.type.discriminator) {
+                                            case Out.Discriminator.ProductType:
                                                 definition.type.members = definition.type.members.filter(
                                                     (m) => m.name !== addition.name
                                                 );
@@ -53,8 +55,8 @@ export class ResolvedModelFromParsedModel extends Transformer {
                                         break;
                                     default:
                                         // In.ModelType.Type
-                                        switch (definition.type.modelType) {
-                                            case Out.ModelType.SumType:
+                                        switch (definition.type.discriminator) {
+                                            case Out.Discriminator.SumType:
                                                 // TODO: Check that it is not duplicated
                                                 definition.type.members.push(this.transformType(addition));
                                                 break;
@@ -66,12 +68,12 @@ export class ResolvedModelFromParsedModel extends Transformer {
                                 break;
                             default:
                                 // In.ModelType.MemberDeletion
-                                switch (definition.type.modelType) {
-                                    case Out.ModelType.SumType:
+                                switch (definition.type.discriminator) {
+                                    case Out.Discriminator.SumType:
                                         const priorLength = definition.type.members.length;
                                         definition.type.members = definition.type.members.filter(
                                             (m) =>
-                                                m.modelType === Out.ModelType.NamedTypeReference &&
+                                                m.discriminator === Out.Discriminator.NamedTypeReference &&
                                                 m.names.length == 1 &&
                                                 m.names[0] !== modification.name
                                         );
@@ -79,7 +81,7 @@ export class ResolvedModelFromParsedModel extends Transformer {
                                             throw new Error('Could not delete member from sum type');
                                         }
                                         break;
-                                    case Out.ModelType.ProductType:
+                                    case Out.Discriminator.ProductType:
                                         definition.type.members = definition.type.members.filter(
                                             (m) => m.name !== modification.name
                                         );

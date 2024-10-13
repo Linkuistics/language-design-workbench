@@ -7,13 +7,14 @@ import { promisify } from 'util';
 import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
 import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
+import { DiscriminatedModelFromResolvedModel } from '../languages/ldw/model/discriminated/creation/fromResolvedModel';
+import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/discriminated/outputs/toTypesTypescriptSource';
+import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/discriminated/outputs/toVisitorTypescriptSource';
 import { ParsedModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
 import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
 import { Model as ParsedModel } from '../languages/ldw/model/parsed/model';
 import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
 import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
-import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
-import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/resolved/outputs/toVisitorTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parsing/parseError';
 
@@ -164,15 +165,18 @@ program
                 new ResolvedModelFromParsedModel((fqn: string): ParsedModel => {
                     const modelSource = registry.readInput(fqn, 'ldw.model');
                     return new ParsedModelFromSource().transform(modelSource);
-                })
+                }),
+                new DiscriminatedModelFromResolvedModel()
             );
-            const parsedModel = passes.transform(modelSource);
+            const discriminatedModel = passes.transform(modelSource);
 
             if (isTypescript) {
-                const typesSource = new ParsedModelToTypesTypescriptSource(options.generics).transform(parsedModel);
+                const typesSource = new ParsedModelToTypesTypescriptSource(options.generics).transform(
+                    discriminatedModel
+                );
                 await registry.writeOutput(options.name, typesSource, 'model.ts');
 
-                const visitorSource = new ParsedModelToVisitorTypescriptSource().transform(parsedModel);
+                const visitorSource = new ParsedModelToVisitorTypescriptSource().transform(discriminatedModel);
                 await registry.writeOutput(options.name, visitorSource, 'visitor.ts');
             }
         } catch (error) {
