@@ -9,14 +9,13 @@ import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creatio
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
 import { ParsedModelFromSource } from '../languages/ldw/model/parsed/creation/fromSource';
 import { ParsedModelFromTypedGrammar } from '../languages/ldw/model/parsed/creation/fromTypedGrammar';
+import { Model as ParsedModel } from '../languages/ldw/model/parsed/model';
 import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
 import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
 import { ParsedModelToTypesTypescriptSource } from '../languages/ldw/model/resolved/outputs/toTypesTypescriptSource';
 import { ParsedModelToVisitorTypescriptSource } from '../languages/ldw/model/resolved/outputs/toVisitorTypescriptSource';
 import { composePasses } from '../nanopass/combinators';
 import { ParseError } from '../parsing/parseError';
-
-import { Model as ResolvedModel } from '../languages/ldw/model/resolved/model';
 
 const execPromise = promisify(exec);
 
@@ -162,12 +161,11 @@ program
 
             const passes = composePasses(
                 new ParsedModelFromSource(),
-                new ResolvedModelFromParsedModel((fqn: string): ResolvedModel => {
+                new ResolvedModelFromParsedModel((fqn: string): ParsedModel => {
                     const modelSource = registry.readInput(fqn, 'ldw.model');
-                    return passes.transform(modelSource);
+                    return new ParsedModelFromSource().transform(modelSource);
                 })
             );
-
             const parsedModel = passes.transform(modelSource);
 
             if (isTypescript) {

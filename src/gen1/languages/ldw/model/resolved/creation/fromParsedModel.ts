@@ -3,7 +3,7 @@ import * as Out from '../model';
 import { Transformer } from '../transformer';
 
 export class ResolvedModelFromParsedModel extends Transformer {
-    constructor(public resolver: (fqn: string) => Out.Model) {
+    constructor(public resolver: (fqn: string) => In.Model) {
         super();
     }
 
@@ -18,7 +18,7 @@ export class ResolvedModelFromParsedModel extends Transformer {
         let parent = undefined;
 
         if (input.parentName) {
-            parent = this.resolver(input.parentName.join('::'));
+            parent = this.transform(this.resolver(input.parentName.join('::')));
             for (const definition of parent.definitions) {
                 definitions.set(definition.name, definition);
             }
