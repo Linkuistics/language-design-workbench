@@ -1,7 +1,8 @@
 model ldw::model::discriminated modifies ldw::model::resolved {
 
     modify Definition
-        += isDiscriminated: boolean
+        += discriminationPeers: option<set<string>>
+        += discriminationMembers: option<set<string>>
     ;
     
 }

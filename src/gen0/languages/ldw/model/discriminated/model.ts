@@ -1,26 +1,25 @@
 export enum Discriminator {
-    VoidType,
-    EnumType,
-    SumType,
-    ProductType,
-    ProductMember,
-    TupleType,
-    MapType,
-    SetType,
-    SequenceType,
-    OptionType,
-    NamedTypeReference,
     BlockComment,
+    EnumType,
     LineComment,
-    Whitespace,
-    PrimitiveType
+    MapType,
+    NamedTypeReference,
+    OptionType,
+    PrimitiveType,
+    ProductType,
+    SequenceType,
+    SetType,
+    SumType,
+    TupleType,
+    VoidType,
+    Whitespace
 }
 
 export class Model {
     constructor(
         public name: Id[],
         public parent: Model | undefined,
-        public definitions: Definition[]
+        public definitions: Map<string, Definition>
     ) {}
 }
 
@@ -28,31 +27,12 @@ export class Definition {
     constructor(
         public name: Id,
         public type: Type,
-        public isDiscriminated: boolean
+        public discriminationPeers: Set<string> | undefined,
+        public discriminationMembers: Set<string> | undefined
     ) {}
 }
 
 export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
-export function isType(
-    value: VoidType | EnumType | NamedTypeReference | PrimitiveType | TypeWithStructure
-): value is Type {
-    switch (value.discriminator) {
-        case Discriminator.VoidType:
-        case Discriminator.PrimitiveType:
-        case Discriminator.EnumType:
-        case Discriminator.NamedTypeReference:
-        case Discriminator.SumType:
-        case Discriminator.ProductType:
-        case Discriminator.TupleType:
-        case Discriminator.MapType:
-        case Discriminator.SetType:
-        case Discriminator.SequenceType:
-        case Discriminator.OptionType:
-            return true;
-        default:
-            return false;
-    }
-}
 
 export class VoidType {
     readonly discriminator = Discriminator.VoidType;
@@ -61,39 +41,40 @@ export function isVoidType(value: Type): value is VoidType {
     return value.discriminator === Discriminator.VoidType;
 }
 
+export enum PrimitiveTypeEnum {
+    'boolean',
+    'char',
+    'string',
+    'i8',
+    'i16',
+    'i32',
+    'i64',
+    'u8',
+    'u16',
+    'u32',
+    'u64',
+    'f32',
+    'f64'
+}
+
 export class PrimitiveType {
     readonly discriminator = Discriminator.PrimitiveType;
 
-    static String: PrimitiveType = new PrimitiveType('string');
-    static Boolean: PrimitiveType = new PrimitiveType('boolean');
-    static Char: PrimitiveType = new PrimitiveType('char');
-    static I8: PrimitiveType = new PrimitiveType('i8');
-    static I16: PrimitiveType = new PrimitiveType('i16');
-    static I32: PrimitiveType = new PrimitiveType('i32');
-    static I64: PrimitiveType = new PrimitiveType('i64');
-    static U8: PrimitiveType = new PrimitiveType('u8');
-    static U16: PrimitiveType = new PrimitiveType('u16');
-    static U32: PrimitiveType = new PrimitiveType('u32');
-    static U64: PrimitiveType = new PrimitiveType('u64');
-    static F32: PrimitiveType = new PrimitiveType('f32');
-    static F64: PrimitiveType = new PrimitiveType('f64');
+    static String: PrimitiveType = new PrimitiveType('string' as unknown as PrimitiveTypeEnum);
+    static Boolean: PrimitiveType = new PrimitiveType('boolean' as unknown as PrimitiveTypeEnum);
+    static Char: PrimitiveType = new PrimitiveType('char' as unknown as PrimitiveTypeEnum);
+    static I8: PrimitiveType = new PrimitiveType('i8' as unknown as PrimitiveTypeEnum);
+    static I16: PrimitiveType = new PrimitiveType('i16' as unknown as PrimitiveTypeEnum);
+    static I32: PrimitiveType = new PrimitiveType('i32' as unknown as PrimitiveTypeEnum);
+    static I64: PrimitiveType = new PrimitiveType('i64' as unknown as PrimitiveTypeEnum);
+    static U8: PrimitiveType = new PrimitiveType('u8' as unknown as PrimitiveTypeEnum);
+    static U16: PrimitiveType = new PrimitiveType('u16' as unknown as PrimitiveTypeEnum);
+    static U32: PrimitiveType = new PrimitiveType('u32' as unknown as PrimitiveTypeEnum);
+    static U64: PrimitiveType = new PrimitiveType('u64' as unknown as PrimitiveTypeEnum);
+    static F32: PrimitiveType = new PrimitiveType('f32' as unknown as PrimitiveTypeEnum);
+    static F64: PrimitiveType = new PrimitiveType('f64' as unknown as PrimitiveTypeEnum);
 
-    constructor(
-        readonly value:
-            | 'boolean'
-            | 'char'
-            | 'string'
-            | 'i8'
-            | 'i16'
-            | 'i32'
-            | 'i64'
-            | 'u8'
-            | 'u16'
-            | 'u32'
-            | 'u64'
-            | 'f32'
-            | 'f64'
-    ) {}
+    private constructor(public readonly value: PrimitiveTypeEnum) {}
 }
 export function isPrimitiveType(value: Type): value is PrimitiveType {
     return value.discriminator === Discriminator.PrimitiveType;
@@ -142,15 +123,10 @@ export function isProductType(value: Type): value is ProductType {
 }
 
 export class ProductMember {
-    readonly discriminator = Discriminator.ProductMember;
-
     constructor(
         public name: Id,
         public type: Type
     ) {}
-}
-export function isProductMember(value: any): value is ProductMember {
-    return value.discriminator === Discriminator.ProductMember;
 }
 
 export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;

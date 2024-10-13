@@ -89,7 +89,47 @@ class Generator extends Visitor {
     }
 
     visitPrimitiveType(primitiveType: PrimitiveType) {
-        this.output.write(primitiveType.value);
+        switch (primitiveType) {
+            case PrimitiveType.Boolean:
+                this.output.write('boolean');
+                break;
+            case PrimitiveType.Char:
+                this.output.write('char');
+                break;
+            case PrimitiveType.String:
+                this.output.write('string');
+                break;
+            case PrimitiveType.I8:
+                this.output.write('i8');
+                break;
+            case PrimitiveType.I16:
+                this.output.write('i16');
+                break;
+            case PrimitiveType.I32:
+                this.output.write('i32');
+                break;
+            case PrimitiveType.I64:
+                this.output.write('i64');
+                break;
+            case PrimitiveType.U8:
+                this.output.write('u8');
+                break;
+            case PrimitiveType.U16:
+                this.output.write('u16');
+                break;
+            case PrimitiveType.U32:
+                this.output.write('u32');
+                break;
+            case PrimitiveType.U64:
+                this.output.write('u64');
+                break;
+            case PrimitiveType.F32:
+                this.output.write('f32');
+                break;
+            case PrimitiveType.F64:
+                this.output.write('f64');
+                break;
+        }
     }
 
     visitEnumType(enumType: EnumType) {

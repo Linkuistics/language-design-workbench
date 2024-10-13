@@ -2,7 +2,7 @@ model ldw::model::resolved modifies ldw::model::parsed {
 
     modify Model
         -= values
-        += definitions: seq<Definition>
+        += definitions: map<string, Definition>
     ;
     
     delete Deletion;

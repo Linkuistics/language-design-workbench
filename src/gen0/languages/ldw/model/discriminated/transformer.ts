@@ -3,15 +3,15 @@ import * as Out from './model';
 
 export class Transformer {
     transformModel(input: In.Model): Out.Model {
-        return new Out.Model(
-            input.name,
-            input.parent && this.transformModel(input.parent),
-            input.definitions.map((d) => this.transformDefinition(d))
-        );
+        const definitions = new Map<string, Out.Definition>();
+        input.definitions.forEach((definition) => {
+            definitions.set(definition.name, this.transformDefinition(definition));
+        });
+        return new Out.Model(input.name, input.parent && this.transformModel(input.parent), definitions);
     }
 
     transformDefinition(input: In.Definition): Out.Definition {
-        return new Out.Definition(input.name, this.transformType(input.type), false);
+        return new Out.Definition(input.name, this.transformType(input.type), undefined, undefined);
     }
 
     transformType(input: In.Type): Out.Type {

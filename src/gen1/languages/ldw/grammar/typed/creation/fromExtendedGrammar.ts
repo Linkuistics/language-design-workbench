@@ -62,7 +62,7 @@ class TransformToGrammarWithTypes extends Transformer {
                 body,
                 input.annotation,
                 input.versionAnnotations,
-                new ProductType([new ProductMember('value', new PrimitiveType('string'))])
+                new ProductType([new ProductMember('value', PrimitiveType.String)])
             );
         }
 
@@ -76,7 +76,7 @@ class TransformToGrammarWithTypes extends Transformer {
                     for (let i = counts.length - 1; i >= 0; i--) {
                         if (counts[i] === Out.Count.Optional) {
                             if (
-                                field.type === new PrimitiveType('boolean') ||
+                                field.type === PrimitiveType.Boolean ||
                                 field.type instanceof SequenceType ||
                                 field.type instanceof OptionType
                             ) {
@@ -216,7 +216,7 @@ class TransformToGrammarWithTypes extends Transformer {
             input.negated,
             input.startChars,
             input.endChars,
-            this.forceFieldName ? new Out.Field(new PrimitiveType('string'), this.explicitFieldName, true) : undefined
+            this.forceFieldName ? new Out.Field(PrimitiveType.String, this.explicitFieldName, true) : undefined
         );
     }
 
@@ -234,13 +234,13 @@ class TransformToGrammarWithTypes extends Transformer {
     transformStringElement(input: In.StringElement): Out.StringElement {
         return new Out.StringElement(
             input.value,
-            this.forceFieldName ? new Out.Field(new PrimitiveType('boolean'), this.explicitFieldName, true) : undefined
+            this.forceFieldName ? new Out.Field(PrimitiveType.Boolean, this.explicitFieldName, true) : undefined
         );
     }
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {
         return new Out.AnyElement(
-            this.forceFieldName ? new Out.Field(new PrimitiveType('string'), this.explicitFieldName, true) : undefined
+            this.forceFieldName ? new Out.Field(PrimitiveType.String, this.explicitFieldName, true) : undefined
         );
     }
 }

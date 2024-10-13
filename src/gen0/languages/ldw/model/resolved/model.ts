@@ -1,26 +1,25 @@
 export enum Discriminator {
-    VoidType,
-    EnumType,
-    SumType,
-    ProductType,
-    ProductMember,
-    TupleType,
-    MapType,
-    SetType,
-    SequenceType,
-    OptionType,
-    NamedTypeReference,
     BlockComment,
+    EnumType,
     LineComment,
-    Whitespace,
-    PrimitiveType
+    MapType,
+    NamedTypeReference,
+    OptionType,
+    PrimitiveType,
+    ProductType,
+    SequenceType,
+    SetType,
+    SumType,
+    TupleType,
+    VoidType,
+    Whitespace
 }
 
 export class Model {
     constructor(
         public name: Id[],
         public parent: Model | undefined,
-        public definitions: Definition[]
+        public definitions: Map<string, Definition>
     ) {}
 }
 
@@ -141,15 +140,10 @@ export function isProductType(value: Type): value is ProductType {
 }
 
 export class ProductMember {
-    readonly discriminator = Discriminator.ProductMember;
-
     constructor(
         public name: Id,
         public type: Type
     ) {}
-}
-export function isProductMember(value: any): value is ProductMember {
-    return value.discriminator === Discriminator.ProductMember;
 }
 
 export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;

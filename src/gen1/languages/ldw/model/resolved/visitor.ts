@@ -1,96 +1,15 @@
 import * as Model from './model';
 
 export class Visitor {
-    visitBlockComment(node: Model.BlockComment): void {}
-
-    visitDefinition(node: Model.Definition): void {
-        this.visitType(node.type);
+    visitModel(node: Model.Model): void {
+        this.visitFqn(node.name);
+        this.visitDefinition(node.definitions);
     }
-
-    visitEnumType(node: Model.EnumType): void {}
 
     visitFqn(node: Model.Fqn): void {}
 
-    visitGenericType(node: Model.GenericType): void {
-        if (node instanceof Model.TupleType) {
-            this.visitTupleType(node);
-        }
-        if (node instanceof Model.MapType) {
-            this.visitMapType(node);
-        }
-        if (node instanceof Model.SetType) {
-            this.visitSetType(node);
-        }
-        if (node instanceof Model.SequenceType) {
-            this.visitSequenceType(node);
-        }
-        if (node instanceof Model.OptionType) {
-            this.visitOptionType(node);
-        }
-    }
-
-    visitLineComment(node: Model.LineComment): void {}
-
-    visitMapType(node: Model.MapType): void {
-        this.visitType(node.keyType);
-        this.visitType(node.valueType);
-    }
-
-    visitModel(node: Model.Model): void {
-        this.visitFqn(node.name);
-        node.definitions.forEach((x) => {
-            this.visitDefinition(x);
-        });
-    }
-
-    visitNamedTypeReference(node: Model.NamedTypeReference): void {
-        this.visitFqn(node.fqn);
-    }
-
-    visitOptionType(node: Model.OptionType): void {
+    visitDefinition(node: Model.Definition): void {
         this.visitType(node.type);
-    }
-
-    visitProductMember(node: Model.ProductMember): void {
-        this.visitType(node.type);
-    }
-
-    visitProductType(node: Model.ProductType): void {
-        node.members.forEach((x) => {
-            this.visitProductMember(x);
-        });
-    }
-
-    visitSequenceType(node: Model.SequenceType): void {
-        this.visitType(node.elementType);
-    }
-
-    visitSetType(node: Model.SetType): void {
-        this.visitType(node.keyType);
-    }
-
-    visitSumType(node: Model.SumType): void {
-        node.members.forEach((x) => {
-            this.visitType(x);
-        });
-    }
-
-    visitTrivia(node: Model.Trivia): void {
-        if (node instanceof Model.LineComment) {
-            this.visitLineComment(node);
-        }
-        if (node instanceof Model.BlockComment) {
-            this.visitBlockComment(node);
-        }
-        if (node instanceof Model.Whitespace) {
-            this.visitWhitespace(node);
-        }
-    }
-
-    visitTupleType(node: Model.TupleType): void {
-        node.members.forEach((x) => {
-            this.visitType(x);
-        });
     }
 
     visitType(node: Model.Type): void {
@@ -126,6 +45,10 @@ export class Visitor {
         }
     }
 
+    visitVoidType(node: Model.VoidType): void {}
+
+    visitEnumType(node: Model.EnumType): void {}
+
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
         if (node instanceof Model.SumType) {
             this.visitSumType(node);
@@ -150,7 +73,82 @@ export class Visitor {
         }
     }
 
-    visitVoidType(node: Model.VoidType): void {}
+    visitSumType(node: Model.SumType): void {
+        node.members.forEach((x) => {
+            this.visitType(x);
+        });
+    }
+
+    visitProductType(node: Model.ProductType): void {
+        node.members.forEach((x) => {
+            this.visitProductMember(x);
+        });
+    }
+
+    visitProductMember(node: Model.ProductMember): void {
+        this.visitType(node.type);
+    }
+
+    visitGenericType(node: Model.GenericType): void {
+        if (node instanceof Model.TupleType) {
+            this.visitTupleType(node);
+        }
+        if (node instanceof Model.MapType) {
+            this.visitMapType(node);
+        }
+        if (node instanceof Model.SetType) {
+            this.visitSetType(node);
+        }
+        if (node instanceof Model.SequenceType) {
+            this.visitSequenceType(node);
+        }
+        if (node instanceof Model.OptionType) {
+            this.visitOptionType(node);
+        }
+    }
+
+    visitTupleType(node: Model.TupleType): void {
+        node.members.forEach((x) => {
+            this.visitType(x);
+        });
+    }
+
+    visitMapType(node: Model.MapType): void {
+        this.visitType(node.keyType);
+        this.visitType(node.valueType);
+    }
+
+    visitSetType(node: Model.SetType): void {
+        this.visitType(node.keyType);
+    }
+
+    visitSequenceType(node: Model.SequenceType): void {
+        this.visitType(node.elementType);
+    }
+
+    visitOptionType(node: Model.OptionType): void {
+        this.visitType(node.type);
+    }
+
+    visitNamedTypeReference(node: Model.NamedTypeReference): void {
+        this.visitFqn(node.fqn);
+    }
+
+    visitTrivia(node: Model.Trivia): void {
+        if (node instanceof Model.LineComment) {
+            this.visitLineComment(node);
+        }
+        if (node instanceof Model.BlockComment) {
+            this.visitBlockComment(node);
+        }
+        if (node instanceof Model.Whitespace) {
+            this.visitWhitespace(node);
+        }
+    }
 
     visitWhitespace(node: Model.Whitespace): void {}
+
+    visitLineComment(node: Model.LineComment): void {}
+
+    visitBlockComment(node: Model.BlockComment): void {}
 }

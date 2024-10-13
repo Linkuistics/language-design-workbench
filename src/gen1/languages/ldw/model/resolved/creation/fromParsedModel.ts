@@ -20,8 +20,8 @@ export class ResolvedModelFromParsedModel extends Transformer {
         if (input.parentName) {
             parent = this.transform(this.resolver(input.parentName.join('::')));
             // TODO: we can purge the grandparent.
-            for (const definition of parent.definitions) {
-                definitions.set(definition.name, definition);
+            for (const [name, definition] of parent.definitions) {
+                definitions.set(name, definition);
             }
         }
 
@@ -99,10 +99,6 @@ export class ResolvedModelFromParsedModel extends Transformer {
             }
         }
 
-        return new Out.Model(
-            input.name,
-            parent,
-            [...definitions.values()].sort((a, b) => a.name.localeCompare(b.name))
-        );
+        return new Out.Model(input.name, parent, definitions);
     }
 }
