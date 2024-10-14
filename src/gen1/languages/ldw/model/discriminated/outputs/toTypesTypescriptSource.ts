@@ -67,16 +67,28 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
                     this.output.writeLine(`readonly discriminator = Discriminator.${pascalCase(definition.name)};`);
                     this.output.writeLine();
                 }
+                productType.members.forEach((member) => {
+                    this.output.write(`public ${camelCase(member.name)}: `);
+                    this.visitType(member.type);
+                    this.output.writeLine(';');
+                });
+                this.output.writeLine();
                 if (productType.members.length > 0) {
-                    this.output.writeLine('constructor(');
+                    this.output.writeLine('constructor(init: {');
                     this.output.indentDuring(() => {
                         this.output.join(productType.members, ',\n', (member) => {
-                            this.output.write(`public ${camelCase(member.name)}: `);
+                            this.output.write(`${camelCase(member.name)}: `);
                             this.visitType(member.type);
                         });
                         this.output.writeLine();
                     });
-                    this.output.writeLine(') {}');
+                    this.output.writeLine('}) {');
+                    this.output.indentDuring(() => {
+                        productType.members.forEach((member) => {
+                            this.output.writeLine(`this.${camelCase(member.name)} = init.${camelCase(member.name)};`);
+                        });
+                    });
+                    this.output.writeLine('}');
                 }
             });
             this.output.writeLine('}');
@@ -266,6 +278,6 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
-        this.output.write(pascalCase(namedTypeReference.names[namedTypeReference.names.length - 1]));
+        this.output.write(pascalCase(namedTypeReference.fqn[namedTypeReference.fqn.length - 1]));
     }
 }

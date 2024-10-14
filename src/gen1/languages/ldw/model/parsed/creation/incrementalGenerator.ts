@@ -222,7 +222,7 @@ export class IncrementalModelGenerator implements IterableIterator<{ model: Mode
         if (type instanceof OptionType) return `option<${this.typeToString(type.type)}>`;
         if (type instanceof TupleType) return `tuple<${type.members.map(this.typeToString).join(' ')}>`;
         if (type instanceof EnumType) return `{ ${type.members.map((m) => `"${m}"`).join(' | ')} }`;
-        if (type instanceof NamedTypeReference) return type.names.join('::');
+        if (type instanceof NamedTypeReference) return type.fqn.join('::');
         return 'unknown';
     };
 }

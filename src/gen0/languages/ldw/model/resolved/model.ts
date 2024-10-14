@@ -16,18 +16,27 @@ export enum Discriminator {
 }
 
 export class Model {
-    constructor(
-        public name: Id[],
-        public parent: Model | undefined,
-        public definitions: Map<string, Definition>
-    ) {}
+    public name: Fqn;
+    public parent: Model | undefined;
+    public definitions: Map<string, Definition>;
+
+    constructor(init: { name: Fqn; parent: Model | undefined; definitions: Map<string, Definition> }) {
+        this.name = init.name;
+        this.parent = init.parent;
+        this.definitions = init.definitions;
+    }
 }
 
+export type Fqn = Id[];
+
 export class Definition {
-    constructor(
-        public name: Id,
-        public type: Type
-    ) {}
+    public name: Id;
+    public type: Type;
+
+    constructor(init: { name: Id; type: Type }) {
+        this.name = init.name;
+        this.type = init.type;
+    }
 }
 
 export type Type = VoidType | PrimitiveType | EnumType | TypeWithStructure | NamedTypeReference;
@@ -99,7 +108,11 @@ export function isPrimitiveType(value: Type): value is PrimitiveType {
 
 export class EnumType {
     readonly discriminator = Discriminator.EnumType;
-    constructor(public members: Id[]) {}
+    public members: Id[];
+
+    constructor(init: { members: Id[] }) {
+        this.members = init.members;
+    }
 }
 export function isEnumType(value: Type): value is EnumType {
     return value.discriminator === Discriminator.EnumType;
@@ -123,8 +136,11 @@ export function isTypeWithStructure(value: Type): value is TypeWithStructure {
 
 export class SumType {
     readonly discriminator = Discriminator.SumType;
+    public members: Type[];
 
-    constructor(public members: Type[]) {}
+    constructor(init: { members: Type[] }) {
+        this.members = init.members;
+    }
 }
 export function isSumType(value: Type): value is SumType {
     return value.discriminator === Discriminator.SumType;
@@ -132,18 +148,24 @@ export function isSumType(value: Type): value is SumType {
 
 export class ProductType {
     readonly discriminator = Discriminator.ProductType;
+    public members: ProductMember[];
 
-    constructor(public members: ProductMember[]) {}
+    constructor(init: { members: ProductMember[] }) {
+        this.members = init.members;
+    }
 }
 export function isProductType(value: Type): value is ProductType {
     return value.discriminator === Discriminator.ProductType;
 }
 
 export class ProductMember {
-    constructor(
-        public name: Id,
-        public type: Type
-    ) {}
+    public name: Id;
+    public type: Type;
+
+    constructor(init: { name: Id; type: Type }) {
+        this.name = init.name;
+        this.type = init.type;
+    }
 }
 
 export type GenericType = TupleType | MapType | SetType | SequenceType | OptionType;
@@ -162,8 +184,11 @@ export function isGenericType(value: Type): value is GenericType {
 
 export class TupleType {
     readonly discriminator = Discriminator.TupleType;
+    public members: Type[];
 
-    constructor(public members: Type[]) {}
+    constructor(init: { members: Type[] }) {
+        this.members = init.members;
+    }
 }
 export function isTupleType(value: Type): value is TupleType {
     return value.discriminator === Discriminator.TupleType;
@@ -171,11 +196,13 @@ export function isTupleType(value: Type): value is TupleType {
 
 export class MapType {
     readonly discriminator = Discriminator.MapType;
+    public keyType: Type;
+    public valueType: Type;
 
-    constructor(
-        public keyType: Type,
-        public valueType: Type
-    ) {}
+    constructor(init: { keyType: Type; valueType: Type }) {
+        this.keyType = init.keyType;
+        this.valueType = init.valueType;
+    }
 }
 export function isMapType(value: Type): value is MapType {
     return value.discriminator === Discriminator.MapType;
@@ -183,8 +210,11 @@ export function isMapType(value: Type): value is MapType {
 
 export class SetType {
     readonly discriminator = Discriminator.SetType;
+    public keyType: Type;
 
-    constructor(public keyType: Type) {}
+    constructor(init: { keyType: Type }) {
+        this.keyType = init.keyType;
+    }
 }
 export function isSetType(value: Type): value is SetType {
     return value.discriminator === Discriminator.SetType;
@@ -192,8 +222,11 @@ export function isSetType(value: Type): value is SetType {
 
 export class SequenceType {
     readonly discriminator = Discriminator.SequenceType;
+    public elementType: Type;
 
-    constructor(public elementType: Type) {}
+    constructor(init: { elementType: Type }) {
+        this.elementType = init.elementType;
+    }
 }
 export function isSequenceType(value: Type): value is SequenceType {
     return value.discriminator === Discriminator.SequenceType;
@@ -201,8 +234,11 @@ export function isSequenceType(value: Type): value is SequenceType {
 
 export class OptionType {
     readonly discriminator = Discriminator.OptionType;
+    public type: Type;
 
-    constructor(public type: Type) {}
+    constructor(init: { type: Type }) {
+        this.type = init.type;
+    }
 }
 export function isOptionType(value: Type): value is OptionType {
     return value.discriminator === Discriminator.OptionType;
@@ -210,8 +246,11 @@ export function isOptionType(value: Type): value is OptionType {
 
 export class NamedTypeReference {
     readonly discriminator = Discriminator.NamedTypeReference;
+    public fqn: Fqn;
 
-    constructor(public names: Id[]) {}
+    constructor(init: { fqn: Fqn }) {
+        this.fqn = init.fqn;
+    }
 }
 export function isNamedTypeReference(value: Type): value is NamedTypeReference {
     return value.discriminator === Discriminator.NamedTypeReference;

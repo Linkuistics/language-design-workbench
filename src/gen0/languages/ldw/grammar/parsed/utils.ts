@@ -4,7 +4,7 @@ import { ChoiceRule, CountedRuleElement, RuleReference, SequenceRule, StringElem
 export function choiceRuleAsEnumType(choiceRule: ChoiceRule): EnumType | undefined {
     const enumMembers = choiceRule.choices.map(toEnumMember);
     if (enumMembers.every((name) => name !== undefined)) {
-        return new EnumType(Array.from(new Set(enumMembers)));
+        return new EnumType({ members: Array.from(new Set(enumMembers)) });
     }
     return undefined;
 }
@@ -23,7 +23,7 @@ export function toEnumMember(rule: SequenceRule): string | undefined {
 export function choiceRuleAsSimpleSumType(alternativeRules: ChoiceRule): SumType | undefined {
     const sumElements = alternativeRules.choices.map(toSimpleSumElement);
     if (sumElements.every((ty) => ty !== undefined)) {
-        return new SumType(sumElements);
+        return new SumType({ members: sumElements });
     }
     return undefined;
 }
@@ -42,7 +42,7 @@ export function toSimpleSumElement(rule: SequenceRule): Type | undefined {
     if (!(element instanceof CountedRuleElement)) return undefined;
     let cre = element.countableRuleElement;
     if (!(cre instanceof RuleReference)) return undefined;
-    return new NamedTypeReference([cre.names[cre.names.length - 1]]);
+    return new NamedTypeReference({ fqn: [cre.names[cre.names.length - 1]] });
 }
 
 export class Counter {

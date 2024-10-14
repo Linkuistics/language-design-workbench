@@ -3,11 +3,11 @@ import * as Out from './model';
 
 export class Transformer {
     transformGrammar(input: In.Grammar): Out.Grammar {
-        return new Out.Grammar(
-            input.name,
-            input.rules.map((r) => this.transformRule(r)),
-            input.prattRules.map((r) => this.transformPrattRule(r))
-        );
+        return new Out.Grammar({
+            names: input.names,
+            rules: input.rules.map((r) => this.transformRule(r)),
+            prattRules: input.prattRules.map((r) => this.transformPrattRule(r))
+        });
     }
 
     transformRuleBody(input: In.RuleBody): Out.RuleBody {
@@ -41,54 +41,72 @@ export class Transformer {
     }
 
     transformRule(input: In.Rule): Out.Rule {
-        return new Out.Rule(input.name, this.transformRuleBody(input.body), input.annotation, input.versionAnnotations);
+        return new Out.Rule({
+            name: input.name,
+            body: this.transformRuleBody(input.body),
+            annotation: input.annotation,
+            versionAnnotations: input.versionAnnotations
+        });
     }
 
     transformPrattRule(input: In.PrattRule): Out.PrattRule {
-        return new Out.PrattRule(
-            input.name,
-            input.operators.map((o) => this.transformPrattOperator(o)),
-            this.transformPrattPrimary(input.primary),
-            input.versionAnnotations
-        );
+        return new Out.PrattRule({
+            name: input.name,
+            operators: input.operators.map((o) => this.transformPrattOperator(o)),
+            primary: this.transformPrattPrimary(input.primary),
+            versionAnnotations: input.versionAnnotations
+        });
     }
 
     transformPrattOperator(input: In.PrattOperator): Out.PrattOperator {
-        return new Out.PrattOperator(
-            input.type,
-            input.name,
-            this.transformRuleBody(input.body),
-            input.versionAnnotations
-        );
+        return new Out.PrattOperator({
+            type: input.type,
+            name: input.name,
+            body: this.transformRuleBody(input.body),
+            versionAnnotations: input.versionAnnotations
+        });
     }
 
     transformPrattPrimary(input: In.PrattPrimary): Out.PrattPrimary {
-        return new Out.PrattPrimary(input.name, this.transformRuleBody(input.body));
+        return new Out.PrattPrimary({
+            name: input.name,
+            body: this.transformRuleBody(input.body)
+        });
     }
 
     transformSequenceRule(input: In.SequenceRule): Out.SequenceRule {
-        return new Out.SequenceRule(input.elements.map((e) => this.transformRuleElement(e)));
+        return new Out.SequenceRule({
+            elements: input.elements.map((e) => this.transformRuleElement(e))
+        });
     }
 
     transformChoiceRule(input: In.ChoiceRule): Out.RuleBody {
-        return new Out.ChoiceRule(input.choices.map((a) => this.transformSequenceRule(a)));
+        return new Out.ChoiceRule({
+            choices: input.choices.map((a) => this.transformSequenceRule(a))
+        });
     }
 
     transformCountedRuleElement(input: In.CountedRuleElement): Out.CountedRuleElement {
-        return new Out.CountedRuleElement(
-            this.transformCountableRuleElement(input.countableRuleElement),
-            input.label,
-            input.count,
-            input.versionAnnotations
-        );
+        return new Out.CountedRuleElement({
+            countableRuleElement: this.transformCountableRuleElement(input.countableRuleElement),
+            label: input.label,
+            count: input.count,
+            versionAnnotations: input.versionAnnotations
+        });
     }
 
     transformCharSet(input: In.CharSet): Out.CharSet {
-        return new Out.CharSet(input.negated, input.startChars, input.endChars);
+        return new Out.CharSet({
+            negated: input.negated,
+            startChars: input.startChars,
+            endChars: input.endChars
+        });
     }
 
     transformNegativeLookahead(input: In.NegativeLookahead): Out.NegativeLookahead {
-        return new Out.NegativeLookahead(this.transformNegativeLookaheadContent(input.content));
+        return new Out.NegativeLookahead({
+            content: this.transformNegativeLookaheadContent(input.content)
+        });
     }
 
     transformNegativeLookaheadContent(input: In.CharSet | In.StringElement): Out.CharSet | Out.StringElement {
@@ -100,11 +118,15 @@ export class Transformer {
     }
 
     transformRuleReference(input: In.RuleReference): Out.RuleReference {
-        return new Out.RuleReference(input.names);
+        return new Out.RuleReference({
+            names: input.names
+        });
     }
 
     transformStringElement(input: In.StringElement): Out.StringElement {
-        return new Out.StringElement(input.value);
+        return new Out.StringElement({
+            value: input.value
+        });
     }
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {

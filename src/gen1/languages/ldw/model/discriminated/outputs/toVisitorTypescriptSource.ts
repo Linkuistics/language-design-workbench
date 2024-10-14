@@ -82,14 +82,14 @@ class TopLevelGenerator extends Visitor {
     visitSumType(sumType: SumType): void {
         sumType.members.forEach((member) => {
             if (member instanceof NamedTypeReference) {
-                const name = member.names[member.names.length - 1];
+                const name = member.fqn[member.fqn.length - 1];
                 this.generateDispatcher(member, `this.visit${pascalCase(name)}(node);`);
             }
         });
     }
 
     generateDispatcher(type: NamedTypeReference, body: string) {
-        const name = type.names[type.names.length - 1];
+        const name = type.fqn[type.fqn.length - 1];
         const definition = this.visitableDefinitions.get(name);
         if (!definition) return;
         if (definition.type instanceof ProductType) {
@@ -120,7 +120,7 @@ class TopLevelGenerator extends Visitor {
     visitSequenceType(sequenceType: SequenceType): void | SequenceType {
         if (
             sequenceType.elementType instanceof NamedTypeReference &&
-            this.visitableDefinitions.has(sequenceType.elementType.names[sequenceType.elementType.names.length - 1])
+            this.visitableDefinitions.has(sequenceType.elementType.fqn[sequenceType.elementType.fqn.length - 1])
         ) {
             this.output.writeLine(`${pluralize(this.valueName)}.forEach(x => {`);
             let oldValueName = this.valueName;
@@ -134,7 +134,7 @@ class TopLevelGenerator extends Visitor {
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference): void | NamedTypeReference {
-        const name = namedTypeReference.names[namedTypeReference.names.length - 1];
+        const name = namedTypeReference.fqn[namedTypeReference.fqn.length - 1];
         if (this.visitableDefinitions.has(name)) {
             this.output.writeLine(`this.visit${pascalCase(name)}(${this.valueName});`);
         }

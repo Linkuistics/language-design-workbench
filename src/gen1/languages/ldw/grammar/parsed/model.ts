@@ -13,20 +13,34 @@ export enum Discriminator {
 }
 
 export class Grammar {
-    constructor(
-        public names: Name[],
-        public rules: Rule[],
-        public prattRules: PrattRule[]
-    ) {}
+    public names: Name[];
+    public rules: Rule[];
+    public prattRules: PrattRule[];
+
+    constructor(init: { names: Name[]; rules: Rule[]; prattRules: PrattRule[] }) {
+        this.names = init.names;
+        this.rules = init.rules;
+        this.prattRules = init.prattRules;
+    }
 }
 
 export class Rule {
-    constructor(
-        public name: Name,
-        public annotation: RuleAnnotation | undefined,
-        public versionAnnotations: VersionAnnotation[],
-        public body: RuleBody
-    ) {}
+    public name: Name;
+    public annotation: RuleAnnotation | undefined;
+    public versionAnnotations: VersionAnnotation[];
+    public body: RuleBody;
+
+    constructor(init: {
+        name: Name;
+        annotation: RuleAnnotation | undefined;
+        versionAnnotations: VersionAnnotation[];
+        body: RuleBody;
+    }) {
+        this.name = init.name;
+        this.annotation = init.annotation;
+        this.versionAnnotations = init.versionAnnotations;
+        this.body = init.body;
+    }
 }
 
 export enum RuleAnnotationEnum {
@@ -41,28 +55,51 @@ export class RuleAnnotation {
 }
 
 export class PrattRule {
-    constructor(
-        public name: Name,
-        public versionAnnotations: VersionAnnotation[],
-        public operators: PrattOperator[],
-        public primary: PrattPrimary
-    ) {}
+    public name: Name;
+    public versionAnnotations: VersionAnnotation[];
+    public operators: PrattOperator[];
+    public primary: PrattPrimary;
+
+    constructor(init: {
+        name: Name;
+        versionAnnotations: VersionAnnotation[];
+        operators: PrattOperator[];
+        primary: PrattPrimary;
+    }) {
+        this.name = init.name;
+        this.versionAnnotations = init.versionAnnotations;
+        this.operators = init.operators;
+        this.primary = init.primary;
+    }
 }
 
 export class PrattOperator {
-    constructor(
-        public type: PrattOperatorType,
-        public name: Name,
-        public versionAnnotations: VersionAnnotation[],
-        public body: RuleBody
-    ) {}
+    public type: PrattOperatorType;
+    public name: Name;
+    public versionAnnotations: VersionAnnotation[];
+    public body: RuleBody;
+
+    constructor(init: {
+        type: PrattOperatorType;
+        name: Name;
+        versionAnnotations: VersionAnnotation[];
+        body: RuleBody;
+    }) {
+        this.type = init.type;
+        this.name = init.name;
+        this.versionAnnotations = init.versionAnnotations;
+        this.body = init.body;
+    }
 }
 
 export class PrattPrimary {
-    constructor(
-        public name: Name,
-        public body: RuleBody
-    ) {}
+    public name: Name;
+    public body: RuleBody;
+
+    constructor(init: { name: Name; body: RuleBody }) {
+        this.name = init.name;
+        this.body = init.body;
+    }
 }
 
 export enum PrattOperatorTypeEnum {
@@ -81,10 +118,13 @@ export class PrattOperatorType {
 }
 
 export class VersionAnnotation {
-    constructor(
-        public type: VersionAnnotationType,
-        public version: VersionNumber
-    ) {}
+    public type: VersionAnnotationType;
+    public version: VersionNumber;
+
+    constructor(init: { type: VersionAnnotationType; version: VersionNumber }) {
+        this.type = init.type;
+        this.version = init.version;
+    }
 }
 
 export enum VersionAnnotationTypeEnum {
@@ -118,7 +158,11 @@ export function isRuleBody(
 export class ChoiceRule {
     readonly discriminator = Discriminator.ChoiceRule;
 
-    constructor(public choices: SequenceRule[]) {}
+    public choices: SequenceRule[];
+
+    constructor(init: { choices: SequenceRule[] }) {
+        this.choices = init.choices;
+    }
 }
 export function isChoiceRule(
     value: ChoiceRule | SequenceRule | RuleReference | StringElement | CharSet | AnyElement
@@ -129,7 +173,11 @@ export function isChoiceRule(
 export class SequenceRule {
     readonly discriminator = Discriminator.SequenceRule;
 
-    constructor(public elements: RuleElement[]) {}
+    public elements: RuleElement[];
+
+    constructor(init: { elements: RuleElement[] }) {
+        this.elements = init.elements;
+    }
 }
 export function isSequenceRule(
     value: ChoiceRule | SequenceRule | RuleReference | StringElement | CharSet | AnyElement
@@ -142,12 +190,22 @@ export type RuleElement = CountedRuleElement | NegativeLookahead;
 export class CountedRuleElement {
     readonly discriminator = Discriminator.CountedRuleElement;
 
-    constructor(
-        public label: Label | undefined,
-        public countableRuleElement: CountableRuleElement,
-        public count: Count | undefined,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+    public label: Label | undefined;
+    public countableRuleElement: CountableRuleElement;
+    public count: Count | undefined;
+    public versionAnnotations: VersionAnnotation[];
+
+    constructor(init: {
+        label: Label | undefined;
+        countableRuleElement: CountableRuleElement;
+        count: Count | undefined;
+        versionAnnotations: VersionAnnotation[];
+    }) {
+        this.label = init.label;
+        this.countableRuleElement = init.countableRuleElement;
+        this.count = init.count;
+        this.versionAnnotations = init.versionAnnotations;
+    }
 }
 export function isCountedRuleElement(value: CountedRuleElement | NegativeLookahead): value is CountedRuleElement {
     return value.discriminator === Discriminator.CountedRuleElement;
@@ -175,7 +233,11 @@ export type Name = Identifier;
 export class RuleReference {
     readonly discriminator = Discriminator.RuleReference;
 
-    constructor(public names: Name[]) {}
+    public names: Name[];
+
+    constructor(init: { names: Name[] }) {
+        this.names = init.names;
+    }
 }
 export function isRuleReference(
     value: RuleReference | StringElement | CharSet | AnyElement | ChoiceRule | SequenceRule
@@ -186,7 +248,11 @@ export function isRuleReference(
 export class StringElement {
     readonly discriminator = Discriminator.StringElement;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isStringElement(
     value: RuleReference | StringElement | CharSet | AnyElement | ChoiceRule | SequenceRule
@@ -197,11 +263,15 @@ export function isStringElement(
 export class CharSet {
     readonly discriminator = Discriminator.CharSet;
 
-    constructor(
-        public negated: boolean,
-        public startChars: CharSetChar[],
-        public endChars: (CharSetChar | undefined)[]
-    ) {}
+    public negated: boolean;
+    public startChars: CharSetChar[];
+    public endChars: (CharSetChar | undefined)[];
+
+    constructor(init: { negated: boolean; startChars: CharSetChar[]; endChars: (CharSetChar | undefined)[] }) {
+        this.negated = init.negated;
+        this.startChars = init.startChars;
+        this.endChars = init.endChars;
+    }
 }
 export function isCharSet(
     value: RuleReference | StringElement | CharSet | AnyElement | ChoiceRule | SequenceRule
@@ -223,7 +293,11 @@ export function isAnyElement(
 export class NegativeLookahead {
     readonly discriminator = Discriminator.NegativeLookahead;
 
-    constructor(public content: CharSet | StringElement) {}
+    public content: CharSet | StringElement;
+
+    constructor(init: { content: CharSet | StringElement }) {
+        this.content = init.content;
+    }
 }
 export function isNegativeLookahead(value: CountedRuleElement | NegativeLookahead): value is NegativeLookahead {
     return value.discriminator === Discriminator.NegativeLookahead;
@@ -236,7 +310,11 @@ export type Trivia = LineComment | BlockComment | Whitespace;
 export class LineComment {
     readonly discriminator = Discriminator.LineComment;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isLineComment(value: LineComment | BlockComment | Whitespace): value is LineComment {
     return value.discriminator === Discriminator.LineComment;
@@ -245,7 +323,11 @@ export function isLineComment(value: LineComment | BlockComment | Whitespace): v
 export class BlockComment {
     readonly discriminator = Discriminator.BlockComment;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isBlockComment(value: LineComment | BlockComment | Whitespace): value is BlockComment {
     return value.discriminator === Discriminator.BlockComment;
@@ -254,7 +336,11 @@ export function isBlockComment(value: LineComment | BlockComment | Whitespace): 
 export class Whitespace {
     readonly discriminator = Discriminator.Whitespace;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isWhitespace(value: LineComment | BlockComment | Whitespace): value is Whitespace {
     return value.discriminator === Discriminator.Whitespace;

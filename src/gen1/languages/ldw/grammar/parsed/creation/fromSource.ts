@@ -69,7 +69,7 @@ class GrammarParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.Grammar(name, rules, prattRules));
+            return this.success(new Model.Grammar({ names: name, rules, prattRules }));
         });
     }
 
@@ -102,7 +102,7 @@ class GrammarParser extends Parser {
             const semicolon = this.mustConsumeString(';');
             if (!semicolon.success) return semicolon;
 
-            return this.success(new Model.Rule(name, annotation, versionAnnotations, body));
+            return this.success(new Model.Rule({ name, annotation, versionAnnotations, body }));
         });
     }
 
@@ -144,7 +144,7 @@ class GrammarParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.PrattRule(name, versionAnnotations, operators, primary));
+            return this.success(new Model.PrattRule({ name, versionAnnotations, operators, primary }));
         });
     }
 
@@ -177,7 +177,7 @@ class GrammarParser extends Parser {
             const semicolon = this.mustConsumeString(';');
             if (!semicolon.success) return semicolon;
 
-            return this.success(new Model.PrattOperator(type, name, versionAnnotations, body));
+            return this.success(new Model.PrattOperator({ type, name, versionAnnotations, body }));
         });
     }
 
@@ -203,7 +203,7 @@ class GrammarParser extends Parser {
             const semicolon = this.mustConsumeString(';');
             if (!semicolon.success) return semicolon;
 
-            return this.success(new Model.PrattPrimary(name, body));
+            return this.success(new Model.PrattPrimary({ name, body }));
         });
     }
 
@@ -243,7 +243,7 @@ class GrammarParser extends Parser {
             if (!versionResult.success) return versionResult;
             version = versionResult.value;
 
-            return this.success(new Model.VersionAnnotation(type, version));
+            return this.success(new Model.VersionAnnotation({ type, version }));
         });
     }
 
@@ -296,8 +296,8 @@ class GrammarParser extends Parser {
 
             if (!otherAlternativesResult.success) return otherAlternativesResult;
 
-            const alternatives = [firstAlternativeResult.value, ...otherAlternativesResult.value];
-            return this.success(new Model.ChoiceRule(alternatives));
+            const choices = [firstAlternativeResult.value, ...otherAlternativesResult.value];
+            return this.success(new Model.ChoiceRule({ choices }));
         });
     }
 
@@ -305,7 +305,7 @@ class GrammarParser extends Parser {
         return this.withContext('rule_element_sequence', () => {
             const elementsResult = this.oneOrMore(() => this.parseRuleElement());
             if (!elementsResult.success) return elementsResult;
-            return this.success(new Model.SequenceRule(elementsResult.value));
+            return this.success(new Model.SequenceRule({ elements: elementsResult.value }));
         });
     }
 
@@ -341,7 +341,7 @@ class GrammarParser extends Parser {
         if (!versionAnnotationsResult.success) return versionAnnotationsResult;
         versionAnnotations = versionAnnotationsResult.value;
 
-        return this.success(new Model.CountedRuleElement(label, countableRuleElement, count, versionAnnotations));
+        return this.success(new Model.CountedRuleElement({ label, countableRuleElement, count, versionAnnotations }));
     }
 
     private parseCountableRuleElement(): ParseResult<Model.CountableRuleElement> {
@@ -352,7 +352,7 @@ class GrammarParser extends Parser {
                 () => {
                     const stringResult = this.parseString();
                     if (stringResult.success) {
-                        return this.success(new Model.StringElement(stringResult.value));
+                        return this.success(new Model.StringElement({ value: stringResult.value }));
                     }
                     return stringResult;
                 },
@@ -388,7 +388,7 @@ class GrammarParser extends Parser {
             if (!otherNamesResult.success) return otherNamesResult;
 
             const names = [firstNameResult.value, ...otherNamesResult.value];
-            return this.success(new Model.RuleReference(names));
+            return this.success(new Model.RuleReference({ names }));
         });
     }
 
@@ -466,7 +466,7 @@ class GrammarParser extends Parser {
             const closeBracket = this.mustConsumeString(']');
             if (!closeBracket.success) return closeBracket;
 
-            return this.success(new Model.CharSet(negated, startChars, endChars));
+            return this.success(new Model.CharSet({ negated, startChars, endChars }));
         });
     }
 
@@ -496,14 +496,14 @@ class GrammarParser extends Parser {
                 () => {
                     const stringResult = this.parseString();
                     if (stringResult.success) {
-                        return this.success(new Model.StringElement(stringResult.value));
+                        return this.success(new Model.StringElement({ value: stringResult.value }));
                     }
                     return stringResult;
                 }
             );
             if (!content.success) return content;
 
-            return this.success(new Model.NegativeLookahead(content.value));
+            return this.success(new Model.NegativeLookahead({ content: content.value }));
         });
     }
 

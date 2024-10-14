@@ -22,11 +22,19 @@ export enum Discriminator {
 }
 
 export class Model {
-    constructor(
-        public name: Fqn,
-        public parentName: Fqn | undefined,
-        public values: (Deletion | MemberModification | Definition)[]
-    ) {}
+    public name: Fqn;
+    public parentName: Fqn | undefined;
+    public values: (Deletion | MemberModification | Definition)[];
+
+    constructor(init: {
+        name: Fqn;
+        parentName: Fqn | undefined;
+        values: (Deletion | MemberModification | Definition)[];
+    }) {
+        this.name = init.name;
+        this.parentName = init.parentName;
+        this.values = init.values;
+    }
 }
 
 export type Fqn = Id[];
@@ -34,10 +42,13 @@ export type Fqn = Id[];
 export class Definition {
     readonly discriminator = Discriminator.Definition;
 
-    constructor(
-        public name: Id,
-        public type: Type
-    ) {}
+    public name: Id;
+    public type: Type;
+
+    constructor(init: { name: Id; type: Type }) {
+        this.name = init.name;
+        this.type = init.type;
+    }
 }
 export function isDefinition(value: Deletion | MemberModification | Definition): value is Definition {
     return value.discriminator === Discriminator.Definition;
@@ -46,7 +57,11 @@ export function isDefinition(value: Deletion | MemberModification | Definition):
 export class Deletion {
     readonly discriminator = Discriminator.Deletion;
 
-    constructor(public name: Id) {}
+    public name: Id;
+
+    constructor(init: { name: Id }) {
+        this.name = init.name;
+    }
 }
 export function isDeletion(value: Deletion | MemberModification | Definition): value is Deletion {
     return value.discriminator === Discriminator.Deletion;
@@ -55,10 +70,13 @@ export function isDeletion(value: Deletion | MemberModification | Definition): v
 export class MemberModification {
     readonly discriminator = Discriminator.MemberModification;
 
-    constructor(
-        public name: Id,
-        public values: (MemberDeletion | MemberAddition)[]
-    ) {}
+    public name: Id;
+    public values: (MemberDeletion | MemberAddition)[];
+
+    constructor(init: { name: Id; values: (MemberDeletion | MemberAddition)[] }) {
+        this.name = init.name;
+        this.values = init.values;
+    }
 }
 export function isMemberModification(value: Deletion | MemberModification | Definition): value is MemberModification {
     return value.discriminator === Discriminator.MemberModification;
@@ -67,7 +85,11 @@ export function isMemberModification(value: Deletion | MemberModification | Defi
 export class MemberDeletion {
     readonly discriminator = Discriminator.MemberDeletion;
 
-    constructor(public name: Id) {}
+    public name: Id;
+
+    constructor(init: { name: Id }) {
+        this.name = init.name;
+    }
 }
 export function isMemberDeletion(value: MemberDeletion | MemberAddition): value is MemberDeletion {
     return value.discriminator === Discriminator.MemberDeletion;
@@ -76,7 +98,11 @@ export function isMemberDeletion(value: MemberDeletion | MemberAddition): value 
 export class MemberAddition {
     readonly discriminator = Discriminator.MemberAddition;
 
-    constructor(public value: ProductMember | Type) {}
+    public value: ProductMember | Type;
+
+    constructor(init: { value: ProductMember | Type }) {
+        this.value = init.value;
+    }
 }
 export function isMemberAddition(value: MemberDeletion | MemberAddition): value is MemberAddition {
     return value.discriminator === Discriminator.MemberAddition;
@@ -192,7 +218,11 @@ export function isPrimitiveType(
 export class EnumType {
     readonly discriminator = Discriminator.EnumType;
 
-    constructor(public members: StringElement[]) {}
+    public members: StringElement[];
+
+    constructor(init: { members: StringElement[] }) {
+        this.members = init.members;
+    }
 }
 export function isEnumType(
     value:
@@ -247,7 +277,11 @@ export function isTypeWithStructure(
 export class SumType {
     readonly discriminator = Discriminator.SumType;
 
-    constructor(public members: Type[]) {}
+    public members: Type[];
+
+    constructor(init: { members: Type[] }) {
+        this.members = init.members;
+    }
 }
 export function isSumType(
     value:
@@ -270,7 +304,11 @@ export function isSumType(
 export class ProductType {
     readonly discriminator = Discriminator.ProductType;
 
-    constructor(public members: ProductMember[]) {}
+    public members: ProductMember[];
+
+    constructor(init: { members: ProductMember[] }) {
+        this.members = init.members;
+    }
 }
 export function isProductType(
     value:
@@ -293,10 +331,13 @@ export function isProductType(
 export class ProductMember {
     readonly discriminator = Discriminator.ProductMember;
 
-    constructor(
-        public name: Id,
-        public type: Type
-    ) {}
+    public name: Id;
+    public type: Type;
+
+    constructor(init: { name: Id; type: Type }) {
+        this.name = init.name;
+        this.type = init.type;
+    }
 }
 export function isProductMember(
     value:
@@ -347,7 +388,11 @@ export function isGenericType(
 export class TupleType {
     readonly discriminator = Discriminator.TupleType;
 
-    constructor(public members: Type[]) {}
+    public members: Type[];
+
+    constructor(init: { members: Type[] }) {
+        this.members = init.members;
+    }
 }
 export function isTupleType(
     value:
@@ -370,10 +415,13 @@ export function isTupleType(
 export class MapType {
     readonly discriminator = Discriminator.MapType;
 
-    constructor(
-        public keyType: Type,
-        public valueType: Type
-    ) {}
+    public keyType: Type;
+    public valueType: Type;
+
+    constructor(init: { keyType: Type; valueType: Type }) {
+        this.keyType = init.keyType;
+        this.valueType = init.valueType;
+    }
 }
 export function isMapType(
     value:
@@ -396,7 +444,11 @@ export function isMapType(
 export class SetType {
     readonly discriminator = Discriminator.SetType;
 
-    constructor(public keyType: Type) {}
+    public keyType: Type;
+
+    constructor(init: { keyType: Type }) {
+        this.keyType = init.keyType;
+    }
 }
 export function isSetType(
     value:
@@ -419,7 +471,11 @@ export function isSetType(
 export class SequenceType {
     readonly discriminator = Discriminator.SequenceType;
 
-    constructor(public elementType: Type) {}
+    public elementType: Type;
+
+    constructor(init: { elementType: Type }) {
+        this.elementType = init.elementType;
+    }
 }
 export function isSequenceType(
     value:
@@ -442,7 +498,11 @@ export function isSequenceType(
 export class OptionType {
     readonly discriminator = Discriminator.OptionType;
 
-    constructor(public type: Type) {}
+    public type: Type;
+
+    constructor(init: { type: Type }) {
+        this.type = init.type;
+    }
 }
 export function isOptionType(
     value:
@@ -465,7 +525,11 @@ export function isOptionType(
 export class NamedTypeReference {
     readonly discriminator = Discriminator.NamedTypeReference;
 
-    constructor(public fqn: Fqn) {}
+    public fqn: Fqn;
+
+    constructor(init: { fqn: Fqn }) {
+        this.fqn = init.fqn;
+    }
 }
 export function isNamedTypeReference(
     value:
@@ -498,7 +562,11 @@ export type Trivia = LineComment | BlockComment | Whitespace;
 export class Whitespace {
     readonly discriminator = Discriminator.Whitespace;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isWhitespace(value: LineComment | BlockComment | Whitespace): value is Whitespace {
     return value.discriminator === Discriminator.Whitespace;
@@ -507,7 +575,11 @@ export function isWhitespace(value: LineComment | BlockComment | Whitespace): va
 export class LineComment {
     readonly discriminator = Discriminator.LineComment;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isLineComment(value: LineComment | BlockComment | Whitespace): value is LineComment {
     return value.discriminator === Discriminator.LineComment;
@@ -516,7 +588,11 @@ export function isLineComment(value: LineComment | BlockComment | Whitespace): v
 export class BlockComment {
     readonly discriminator = Discriminator.BlockComment;
 
-    constructor(public value: string) {}
+    public value: string;
+
+    constructor(init: { value: string }) {
+        this.value = init.value;
+    }
 }
 export function isBlockComment(value: LineComment | BlockComment | Whitespace): value is BlockComment {
     return value.discriminator === Discriminator.BlockComment;

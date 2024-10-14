@@ -7,11 +7,20 @@ export class Transformer {
         input.definitions.forEach((definition) => {
             definitions.set(definition.name, this.transformDefinition(definition));
         });
-        return new Out.Model(input.name, input.parent && this.transformModel(input.parent), definitions);
+        return new Out.Model({
+            name: input.name,
+            parent: input.parent && this.transformModel(input.parent),
+            definitions: definitions
+        });
     }
 
     transformDefinition(input: In.Definition): Out.Definition {
-        return new Out.Definition(input.name, this.transformType(input.type), undefined, undefined);
+        return new Out.Definition({
+            name: input.name,
+            type: this.transformType(input.type),
+            discriminationPeers: undefined,
+            discriminationMembers: undefined
+        });
     }
 
     transformType(input: In.Type): Out.Type {
@@ -78,42 +87,45 @@ export class Transformer {
     }
 
     transformEnumType(input: In.EnumType): Out.EnumType {
-        return new Out.EnumType(input.members);
+        return new Out.EnumType({ members: input.members });
     }
 
     transformNamedTypeReference(input: In.NamedTypeReference): Out.NamedTypeReference {
-        return new Out.NamedTypeReference(input.names);
+        return new Out.NamedTypeReference({ fqn: input.fqn });
     }
 
     transformSumType(input: In.SumType): Out.SumType {
-        return new Out.SumType(input.members.map((m) => this.transformType(m)));
+        return new Out.SumType({ members: input.members.map((m) => this.transformType(m)) });
     }
 
     transformProductType(input: In.ProductType): Out.ProductType {
-        return new Out.ProductType(input.members.map((m) => this.transformProductMember(m)));
+        return new Out.ProductType({ members: input.members.map((m) => this.transformProductMember(m)) });
     }
 
     transformProductMember(input: In.ProductMember): Out.ProductMember {
-        return new Out.ProductMember(input.name, this.transformType(input.type));
+        return new Out.ProductMember({ name: input.name, type: this.transformType(input.type) });
     }
 
     transformTupleType(input: In.TupleType): Out.TupleType {
-        return new Out.TupleType(input.members.map((m) => this.transformType(m)));
+        return new Out.TupleType({ members: input.members.map((m) => this.transformType(m)) });
     }
 
     transformMapType(input: In.MapType): Out.MapType {
-        return new Out.MapType(this.transformType(input.keyType), this.transformType(input.valueType));
+        return new Out.MapType({
+            keyType: this.transformType(input.keyType),
+            valueType: this.transformType(input.valueType)
+        });
     }
 
     transformSetType(input: In.SetType): Out.SetType {
-        return new Out.SetType(this.transformType(input.keyType));
+        return new Out.SetType({ keyType: this.transformType(input.keyType) });
     }
 
     transformSequenceType(input: In.SequenceType): Out.SequenceType {
-        return new Out.SequenceType(this.transformType(input.elementType));
+        return new Out.SequenceType({ elementType: this.transformType(input.elementType) });
     }
 
     transformOptionType(input: In.OptionType): Out.OptionType {
-        return new Out.OptionType(this.transformType(input.type));
+        return new Out.OptionType({ type: this.transformType(input.type) });
     }
 }

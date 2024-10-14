@@ -37,7 +37,7 @@ export class ExtendedGrammarFromParsedGrammar extends Transformer {
             return undefined;
         });
         if (enumMembers.every((m) => m !== undefined)) {
-            return new Out.EnumRule(enumMembers);
+            return new Out.EnumRule({ members: enumMembers });
         }
 
         return super.transformChoiceRule(input);
@@ -72,11 +72,11 @@ export class ExtendedGrammarFromParsedGrammar extends Transformer {
 
             if (!areSameRuleReference(firstReference, secondReference)) continue;
 
-            firstReference.countableRuleElement = new Out.SeparatedByRule(
-                secondReference,
-                separatorStringElement.countableRuleElement.value,
-                repeatingPair.count === Out.Count.OneOrMore ? 1 : 0
-            );
+            firstReference.countableRuleElement = new Out.SeparatedByRule({
+                element: secondReference,
+                separator: separatorStringElement.countableRuleElement.value,
+                minCount: repeatingPair.count === Out.Count.OneOrMore ? 1 : 0
+            });
             firstReference.label = undefined;
             result.elements.splice(i, 1);
             i--;

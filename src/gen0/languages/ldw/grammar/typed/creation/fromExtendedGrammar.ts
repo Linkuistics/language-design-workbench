@@ -34,7 +34,7 @@ class TransformToGrammarWithTypes extends Transformer {
             visitSumType(type: SumType) {
                 for (const member of type.members) {
                     if (member instanceof NamedTypeReference) {
-                        sumMembers.add(member.names[member.names.length - 1]);
+                        sumMembers.add(member.fqn[member.fqn.length - 1]);
                     }
                 }
                 super.visitSumType(type);
@@ -57,13 +57,13 @@ class TransformToGrammarWithTypes extends Transformer {
         if (input.annotation === In.RuleAnnotation.Atomic) {
             // Default Transformer will just map the types
             const body = new Transformer().transformRuleBody(input.body);
-            return new Out.Rule(
-                input.name,
-                body,
-                input.annotation,
-                input.versionAnnotations,
-                new ProductType([new ProductMember('value', PrimitiveType.String)])
-            );
+            return new Out.Rule({
+                name: input.name,
+                body: body,
+                annotation: input.annotation,
+                versionAnnotations: input.versionAnnotations,
+                type: new ProductType({ members: [new ProductMember({ name: 'value', type: PrimitiveType.String })] })
+            });
         }
 
         const body = this.transformRuleBody(input.body);
@@ -82,10 +82,10 @@ class TransformToGrammarWithTypes extends Transformer {
                             ) {
                                 // No change
                             } else {
-                                field.type = new OptionType(field.type);
+                                field.type = new OptionType({ type: field.type });
                             }
                         } else {
-                            field.type = new SequenceType(field.type);
+                            field.type = new SequenceType({ elementType: field.type });
                         }
                     }
                 }
@@ -133,11 +133,11 @@ class TransformToGrammarWithTypes extends Transformer {
             const theBaseType = baseType(fields[0].type);
             let theNewType;
             if (fields.every((f) => typesAreEqual(baseType(f.type), theBaseType))) {
-                theNewType = new SequenceType(theBaseType);
+                theNewType = new SequenceType({ elementType: theBaseType });
             } else if (fields.every((f) => f instanceof SequenceType)) {
-                theNewType = new SequenceType(new SumType(fields.map((f) => f.type)));
+                theNewType = new SequenceType({ elementType: new SumType({ members: fields.map((f) => f.type) }) });
             } else {
-                theNewType = new SumType(fields.map((f) => f.type));
+                theNewType = new SumType({ members: fields.map((f) => f.type) });
             }
             for (const field of fields) {
                 field.type = theNewType;
@@ -158,17 +158,23 @@ class TransformToGrammarWithTypes extends Transformer {
         }
 
         if (ruleType === undefined) {
-            ruleType = new ProductType(
-                uniqueFields
+            ruleType = new ProductType({
+                members: uniqueFields
                     .filter((f) => f.name != undefined)
                     .map((f) => {
                         const name = f.type instanceof SequenceType ? pluralize(f.name!) : f.name!;
-                        return new ProductMember(name, f.type);
+                        return new ProductMember({ name, type: f.type });
                     })
-            );
+            });
         }
 
-        return new Out.Rule(input.name, body, input.annotation, input.versionAnnotations, ruleType);
+        return new Out.Rule({
+            name: input.name,
+            body: body,
+            annotation: input.annotation,
+            versionAnnotations: input.versionAnnotations,
+            type: ruleType
+        });
     }
 
     explicitFieldName: string | undefined;
@@ -203,45 +209,55 @@ class TransformToGrammarWithTypes extends Transformer {
     }
 
     transformEnumRule(input: In.EnumRule): Out.EnumRule {
-        return new Out.EnumRule(
-            input.members,
-            this.forceFieldName
-                ? new Out.Field(new EnumType(input.members.map((m) => m.name)), this.explicitFieldName, true)
-                : new Out.Field(new EnumType(input.members.map((m) => m.name)))
-        );
+        return new Out.EnumRule({
+            members: input.members,
+            field: this.forceFieldName
+                ? new Out.Field({
+                      type: new EnumType({ members: input.members.map((m) => m.name) }),
+                      name: this.explicitFieldName,
+                      isExplicit: true
+                  })
+                : new Out.Field({ type: new EnumType({ members: input.members.map((m) => m.name) }) })
+        });
     }
 
     transformCharSet(input: In.CharSet): Out.CharSet {
-        return new Out.CharSet(
-            input.negated,
-            input.startChars,
-            input.endChars,
-            this.forceFieldName ? new Out.Field(PrimitiveType.String, this.explicitFieldName, true) : undefined
-        );
+        return new Out.CharSet({
+            negated: input.negated,
+            startChars: input.startChars,
+            endChars: input.endChars,
+            field: this.forceFieldName
+                ? new Out.Field({ type: PrimitiveType.String, name: this.explicitFieldName, isExplicit: true })
+                : undefined
+        });
     }
 
     transformRuleReference(input: In.RuleReference): Out.RuleReference {
-        return new Out.RuleReference(
-            input.names,
-            new Out.Field(
-                new NamedTypeReference(input.names),
-                this.explicitFieldName ?? input.names[input.names.length - 1],
-                this.explicitFieldName !== undefined
-            )
-        );
+        return new Out.RuleReference({
+            names: input.names,
+            field: new Out.Field({
+                type: new NamedTypeReference({ fqn: input.names }),
+                name: this.explicitFieldName ?? input.names[input.names.length - 1],
+                isExplicit: this.explicitFieldName !== undefined
+            })
+        });
     }
 
     transformStringElement(input: In.StringElement): Out.StringElement {
-        return new Out.StringElement(
-            input.value,
-            this.forceFieldName ? new Out.Field(PrimitiveType.Boolean, this.explicitFieldName, true) : undefined
-        );
+        return new Out.StringElement({
+            value: input.value,
+            field: this.forceFieldName
+                ? new Out.Field({ type: PrimitiveType.Boolean, name: this.explicitFieldName, isExplicit: true })
+                : undefined
+        });
     }
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {
-        return new Out.AnyElement(
-            this.forceFieldName ? new Out.Field(PrimitiveType.String, this.explicitFieldName, true) : undefined
-        );
+        return new Out.AnyElement({
+            field: this.forceFieldName
+                ? new Out.Field({ type: PrimitiveType.String, name: this.explicitFieldName, isExplicit: true })
+                : undefined
+        });
     }
 }
 
@@ -265,7 +281,9 @@ class CollectFields extends Visitor {
             )
         ) {
             // convert F = seq<A> | F = seq<B> to F = seq<A | B>
-            const newType = new SequenceType(new SumType(choicesFields.map((fields) => baseType(fields[0].type))));
+            const newType = new SequenceType({
+                elementType: new SumType({ members: choicesFields.map((fields) => baseType(fields[0].type)) })
+            });
             for (const fields of choicesFields) {
                 fields[0].type = newType;
             }

@@ -139,9 +139,8 @@ export function typesAreEqual(type1: Type, type2: Type, debug: boolean = false):
             );
         case 'NamedTypeReference':
             return checkAndLog(
-                JSON.stringify((type1 as NamedTypeReference).names) ===
-                    JSON.stringify((type2 as NamedTypeReference).names),
-                `Named type reference mismatch: ${JSON.stringify((type1 as NamedTypeReference).names)} vs ${JSON.stringify((type2 as NamedTypeReference).names)}`
+                JSON.stringify((type1 as NamedTypeReference).fqn) === JSON.stringify((type2 as NamedTypeReference).fqn),
+                `Named type reference mismatch: ${JSON.stringify((type1 as NamedTypeReference).fqn)} vs ${JSON.stringify((type2 as NamedTypeReference).fqn)}`
             );
         default:
             checkAndLog(false, `Unhandled type comparison: ${typeDiscriminator1}`);

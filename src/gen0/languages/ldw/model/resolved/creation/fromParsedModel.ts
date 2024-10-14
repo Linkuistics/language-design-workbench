@@ -74,8 +74,8 @@ export class ResolvedModelFromParsedModel extends Transformer {
                                         definition.type.members = definition.type.members.filter(
                                             (m) =>
                                                 m.discriminator === Out.Discriminator.NamedTypeReference &&
-                                                m.names.length == 1 &&
-                                                m.names[0] !== modification.name
+                                                m.fqn.length == 1 &&
+                                                m.fqn[0] !== modification.name
                                         );
                                         if (priorLength === definition.type.members.length) {
                                             throw new Error('Could not delete member from sum type');
@@ -99,6 +99,6 @@ export class ResolvedModelFromParsedModel extends Transformer {
             }
         }
 
-        return new Out.Model(input.name, parent, definitions);
+        return new Out.Model({ name: input.name, parent, definitions });
     }
 }

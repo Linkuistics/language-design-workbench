@@ -30,78 +30,141 @@ export {
 } from '../parsed/model';
 
 export class Grammar {
-    constructor(
-        public name: Name[],
-        public rules: Rule[],
-        public prattRules: PrattRule[]
-    ) {}
+    public names: Name[];
+    public rules: Rule[];
+    public prattRules: PrattRule[];
+
+    constructor(init: { names: Name[]; rules: Rule[]; prattRules: PrattRule[] }) {
+        this.names = init.names;
+        this.rules = init.rules;
+        this.prattRules = init.prattRules;
+    }
 }
 
 export class Rule {
-    constructor(
-        public name: Name,
-        public body: RuleBody,
-        public annotation: RuleAnnotation | undefined,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+    public name: Name;
+    public body: RuleBody;
+    public annotation: RuleAnnotation | undefined;
+    public versionAnnotations: VersionAnnotation[];
+
+    constructor(init: {
+        name: Name;
+        body: RuleBody;
+        annotation: RuleAnnotation | undefined;
+        versionAnnotations: VersionAnnotation[];
+    }) {
+        this.name = init.name;
+        this.body = init.body;
+        this.annotation = init.annotation;
+        this.versionAnnotations = init.versionAnnotations;
+    }
 }
 
 export class PrattRule {
-    constructor(
-        public name: Name,
-        public operators: PrattOperator[],
-        public primary: PrattPrimary,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+    public name: Name;
+    public operators: PrattOperator[];
+    public primary: PrattPrimary;
+    public versionAnnotations: VersionAnnotation[];
+
+    constructor(init: {
+        name: Name;
+        operators: PrattOperator[];
+        primary: PrattPrimary;
+        versionAnnotations: VersionAnnotation[];
+    }) {
+        this.name = init.name;
+        this.operators = init.operators;
+        this.primary = init.primary;
+        this.versionAnnotations = init.versionAnnotations;
+    }
 }
 
 export class PrattOperator {
-    constructor(
-        public type: PrattOperatorType,
-        public name: Name,
-        public body: RuleBody,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+    public type: PrattOperatorType;
+    public name: Name;
+    public body: RuleBody;
+    public versionAnnotations: VersionAnnotation[];
+
+    constructor(init: {
+        type: PrattOperatorType;
+        name: Name;
+        body: RuleBody;
+        versionAnnotations: VersionAnnotation[];
+    }) {
+        this.type = init.type;
+        this.name = init.name;
+        this.body = init.body;
+        this.versionAnnotations = init.versionAnnotations;
+    }
 }
 
 export class PrattPrimary {
-    constructor(
-        public name: Name,
-        public body: RuleBody
-    ) {}
+    public name: Name;
+    public body: RuleBody;
+
+    constructor(init: { name: Name; body: RuleBody }) {
+        this.name = init.name;
+        this.body = init.body;
+    }
 }
 
 export type RuleBody = SequenceRule | ChoiceRule | EnumRule | SeparatedByRule;
 
 export class ChoiceRule {
-    constructor(public choices: SequenceRule[]) {}
+    public choices: SequenceRule[];
+
+    constructor(init: { choices: SequenceRule[] }) {
+        this.choices = init.choices;
+    }
 }
 
 export class EnumRule {
-    constructor(public members: { name: string; value: string }[]) {}
+    public members: { name: string; value: string }[];
+
+    constructor(init: { members: { name: string; value: string }[] }) {
+        this.members = init.members;
+    }
 }
 
 export class SequenceRule {
-    constructor(public elements: RuleElement[]) {}
+    public elements: RuleElement[];
+
+    constructor(init: { elements: RuleElement[] }) {
+        this.elements = init.elements;
+    }
 }
 
 export class SeparatedByRule {
-    constructor(
-        public element: RuleElement,
-        public separator: string,
-        public minCount: number = 0
-    ) {}
+    public element: RuleElement;
+    public separator: string;
+    public minCount: number;
+
+    constructor(init: { element: RuleElement; separator: string; minCount?: number }) {
+        this.element = init.element;
+        this.separator = init.separator;
+        this.minCount = init.minCount ?? 0;
+    }
 }
 
 export type RuleElement = CountedRuleElement | NegativeLookahead;
 
 export class CountedRuleElement {
-    constructor(
-        public countableRuleElement: CountableRuleElement,
-        public label: Label | undefined,
-        public count: Count | undefined,
-        public versionAnnotations: VersionAnnotation[]
-    ) {}
+    public countableRuleElement: CountableRuleElement;
+    public label: Label | undefined;
+    public count: Count | undefined;
+    public versionAnnotations: VersionAnnotation[];
+
+    constructor(init: {
+        countableRuleElement: CountableRuleElement;
+        label?: Label;
+        count?: Count;
+        versionAnnotations: VersionAnnotation[];
+    }) {
+        this.countableRuleElement = init.countableRuleElement;
+        this.label = init.label;
+        this.count = init.count;
+        this.versionAnnotations = init.versionAnnotations;
+    }
 }
 
 export type CountableRuleElement = RuleReference | StringElement | CharSet | AnyElement | RuleBody;

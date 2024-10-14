@@ -3,10 +3,14 @@ import { Grammar } from '../../../grammar/typed/model';
 
 export class ParsedModelFromTypedGrammar {
     transform(input: Grammar): Model {
-        return new Model(input.name, undefined, [
-            ...input.rules.map((r) => new Definition(r.name, r.type)),
-            // ...input.prattRules.map(r => new Definition(r.name, r.type)),
-            ...input.definitions
-        ]);
+        return new Model({
+            name: input.name,
+            parentName: undefined,
+            values: [
+                ...input.rules.map((r) => new Definition({ name: r.name, type: r.type })),
+                // ...input.prattRules.map(r => new Definition(r.name)),
+                ...input.definitions
+            ]
+        });
     }
 }

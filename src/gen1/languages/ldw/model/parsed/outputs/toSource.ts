@@ -213,6 +213,6 @@ class Generator extends Visitor {
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
-        this.output.write(namedTypeReference.names.join('::'));
+        this.output.write(namedTypeReference.fqn.join('::'));
     }
 }

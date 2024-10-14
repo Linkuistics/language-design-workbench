@@ -51,10 +51,10 @@ class AnalyseSumTypes extends Visitor {
                 throw new Error('Not yet implemented: sum type discriminators on non-named types');
             }
 
-            if (member.names.length !== 1) {
+            if (member.fqn.length !== 1) {
                 throw new Error('Not yet implemented: sum type discriminators on foreign types');
             }
-            const name = member.names[0];
+            const name = member.fqn[0];
             const definition = this.definitions.get(name)!;
             if (!definition) {
                 throw new Error(`Discriminated type ${name} not found`);

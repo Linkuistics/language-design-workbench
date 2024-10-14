@@ -75,7 +75,7 @@ export class ModelParser extends Parser {
                 if (!semicolon.success) return semicolon;
             }
 
-            return this.success(new Model.Model(name, parentName, values));
+            return this.success(new Model.Model({ name, parentName, values }));
         });
     }
 
@@ -95,7 +95,7 @@ export class ModelParser extends Parser {
             if (!typeResult.success) return typeResult;
             type = typeResult.value;
 
-            return this.success(new Model.Definition(name, type));
+            return this.success(new Model.Definition({ name, type }));
         });
     }
 
@@ -136,7 +136,7 @@ export class ModelParser extends Parser {
                 return element;
             });
 
-            return this.success(new Model.MemberModification(name, values));
+            return this.success(new Model.MemberModification({ name, values }));
         });
     }
 
@@ -230,7 +230,7 @@ export class ModelParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.EnumType(members));
+            return this.success(new Model.EnumType({ members }));
         });
     }
 
@@ -281,7 +281,7 @@ export class ModelParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.SumType(members));
+            return this.success(new Model.SumType({ members }));
         });
     }
 
@@ -305,7 +305,7 @@ export class ModelParser extends Parser {
             const closeBrace = this.mustConsumeString('}');
             if (!closeBrace.success) return closeBrace;
 
-            return this.success(new Model.ProductType(members));
+            return this.success(new Model.ProductType({ members }));
         });
     }
 
@@ -325,7 +325,7 @@ export class ModelParser extends Parser {
             if (!typeResult.success) return typeResult;
             type = typeResult.value;
 
-            return this.success(new Model.ProductMember(name, type));
+            return this.success(new Model.ProductMember({ name, type }));
         });
     }
 
@@ -362,7 +362,7 @@ export class ModelParser extends Parser {
             const closeAngle = this.mustConsumeString('>');
             if (!closeAngle.success) return closeAngle;
 
-            return this.success(new Model.TupleType(members));
+            return this.success(new Model.TupleType({ members }));
         });
     }
 
@@ -388,7 +388,7 @@ export class ModelParser extends Parser {
             const closeAngle = this.mustConsumeString('>');
             if (!closeAngle.success) return closeAngle;
 
-            return this.success(new Model.MapType(keyType, valueType));
+            return this.success(new Model.MapType({ keyType, valueType }));
         });
     }
 
@@ -406,7 +406,7 @@ export class ModelParser extends Parser {
             const closeAngle = this.mustConsumeString('>');
             if (!closeAngle.success) return closeAngle;
 
-            return this.success(new Model.SetType(keyType));
+            return this.success(new Model.SetType({ keyType }));
         });
     }
 
@@ -424,7 +424,7 @@ export class ModelParser extends Parser {
             const closeAngle = this.mustConsumeString('>');
             if (!closeAngle.success) return closeAngle;
 
-            return this.success(new Model.SequenceType(elementType));
+            return this.success(new Model.SequenceType({ elementType }));
         });
     }
 
@@ -442,7 +442,7 @@ export class ModelParser extends Parser {
             const closeAngle = this.mustConsumeString('>');
             if (!closeAngle.success) return closeAngle;
 
-            return this.success(new Model.OptionType(type));
+            return this.success(new Model.OptionType({ type }));
         });
     }
 
@@ -460,7 +460,7 @@ export class ModelParser extends Parser {
                 names.push(nameResult.value);
             }
 
-            return this.success(new Model.NamedTypeReference(names));
+            return this.success(new Model.NamedTypeReference({ fqn: names }));
         });
     }
 
