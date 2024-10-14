@@ -28,7 +28,7 @@ export class Model {
 
     constructor(init: {
         name: Fqn;
-        parentName: Fqn | undefined;
+        parentName?: Fqn | undefined;
         values: (Deletion | MemberModification | Definition)[];
     }) {
         this.name = init.name;

@@ -1,0 +1,15 @@
+{
+    "$schema": "../nanopass/registry-schema.json",
+
+    "ldw::grammar::parsed": "./ldw/grammar/parsed",
+    "ldw::grammar::extended": "./ldw/grammar/extended",
+    "ldw::grammar::typed": "./ldw/grammar/typed",
+
+    "ldw::model::parsed": "./ldw/model/parsed",
+    "ldw::model::resolved": "./ldw/model/resolved",
+    "ldw::model::discriminated": "./ldw/model/discriminated",
+
+    "public::json": "./public/json",
+    "public::sexpr": "./public/sexpr",
+    "public::wit": "./public/sexpr"
+}

@@ -4,7 +4,7 @@ import * as Out from './model';
 export class Transformer {
     transformGrammar(input: In.Grammar): Out.Grammar {
         return new Out.Grammar({
-            name: input.names,
+            names: input.names,
             rules: input.rules.map((r) => this.transformRule(r)),
             prattRules: input.prattRules.map((r) => this.transformPrattRule(r)),
             definitions: []

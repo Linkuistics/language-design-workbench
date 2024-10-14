@@ -6,7 +6,7 @@ model ldw::grammar::extended modifies ldw::grammar::parsed {
     ;
 
     enum_rule = {
-        members: seq<{ name: string, value: string }>
+        members: seq<string>
     };
 
     separated_by_rule = {

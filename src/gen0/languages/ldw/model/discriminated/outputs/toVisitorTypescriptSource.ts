@@ -3,6 +3,7 @@ import pluralize from 'pluralize';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
 import {
     Definition,
+    MapType,
     Model,
     NamedTypeReference,
     OptionType,
@@ -127,6 +128,22 @@ class TopLevelGenerator extends Visitor {
             this.valueName = 'x';
             this.output.indentDuring(() => {
                 this.visitType(sequenceType.elementType);
+            });
+            this.valueName = oldValueName;
+            this.output.writeLine(`})`);
+        }
+    }
+
+    visitMapType(mapType: MapType): void | MapType {
+        if (
+            mapType.valueType instanceof NamedTypeReference &&
+            this.visitableDefinitions.has(mapType.valueType.fqn[mapType.valueType.fqn.length - 1])
+        ) {
+            this.output.writeLine(`${pluralize(this.valueName)}.forEach(x => {`);
+            let oldValueName = this.valueName;
+            this.valueName = 'x';
+            this.output.indentDuring(() => {
+                this.visitType(mapType.valueType);
             });
             this.valueName = oldValueName;
             this.output.writeLine(`})`);

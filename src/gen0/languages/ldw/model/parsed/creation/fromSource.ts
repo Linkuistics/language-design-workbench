@@ -110,7 +110,7 @@ export class ModelParser extends Parser {
             if (!nameResult.success) return nameResult;
             name = nameResult.value;
 
-            return this.success(new Model.Deletion(name));
+            return this.success(new Model.Deletion({ name }));
         });
     }
 
@@ -151,7 +151,7 @@ export class ModelParser extends Parser {
             if (!nameResult.success) return nameResult;
             name = nameResult.value;
 
-            return this.success(new Model.MemberDeletion(name));
+            return this.success(new Model.MemberDeletion({ name }));
         });
     }
 
@@ -170,7 +170,7 @@ export class ModelParser extends Parser {
             if (!valueResult.success) return valueResult;
             value = valueResult.value;
 
-            return this.success(new Model.MemberAddition(value));
+            return this.success(new Model.MemberAddition({ value }));
         });
     }
 

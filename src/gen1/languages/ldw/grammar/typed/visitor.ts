@@ -154,4 +154,6 @@ export class Visitor {
     visitSeparatedByRule(node: Model.SeparatedByRule): void {
         this.visitRuleElement(node.element);
     }
+
+    visitField(node: Model.Field): void {}
 }

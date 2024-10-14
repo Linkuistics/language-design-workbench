@@ -213,11 +213,11 @@ class TransformToGrammarWithTypes extends Transformer {
             members: input.members,
             field: this.forceFieldName
                 ? new Out.Field({
-                      type: new EnumType({ members: input.members.map((m) => m.name) }),
+                      type: new EnumType({ members: input.members }),
                       name: this.explicitFieldName,
                       isExplicit: true
                   })
-                : new Out.Field({ type: new EnumType({ members: input.members.map((m) => m.name) }) })
+                : new Out.Field({ type: new EnumType({ members: input.members }), name: undefined, isExplicit: false })
         });
     }
 

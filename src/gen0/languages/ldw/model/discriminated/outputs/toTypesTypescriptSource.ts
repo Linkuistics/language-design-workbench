@@ -1,9 +1,11 @@
 import { camelCase, pascalCase } from 'literal-case';
+import { Registry } from '../../../../../nanopass/registry';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
 import {
     Definition,
     Discriminator,
     EnumType,
+    Fqn,
     MapType,
     Model,
     NamedTypeReference,
@@ -21,7 +23,10 @@ import { Visitor } from '../visitor';
 export class ParsedModelToTypesTypescriptSource extends Visitor {
     private output: IndentingOutputStream;
 
-    constructor(public useGenerics: boolean) {
+    constructor(
+        public registry: Registry,
+        public useGenerics: boolean
+    ) {
         super();
         this.output = new IndentingOutputStream();
     }
@@ -32,6 +37,27 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitModel(node: Model): void {
+        const foreignReferences = new Map<string, string>();
+        new (class extends Visitor {
+            visitNamedTypeReference(node: NamedTypeReference): void {
+                if (node.fqn.length > 1) {
+                    const namespace = pascalCase(node.fqn.slice(0, -1).join('_'));
+                    const module = node.fqn.slice(0, -1).join('::');
+                    foreignReferences.set(namespace, module);
+                }
+            }
+        })().visitModel(node);
+
+        const modelFQN = node.name.join('::');
+        for (const [namespace, module] of foreignReferences) {
+            const modulePath = this.registry.relativePathToModule(modelFQN, module);
+            this.output.writeLine(`import * as ${namespace} from '${modulePath}/model';`);
+        }
+
+        if (foreignReferences.size > 0) {
+            this.output.writeLine();
+        }
+
         if (this.useGenerics) {
             this.output.writeLine('type Option<T> = T | undefined;');
             this.output.writeLine();
@@ -77,7 +103,8 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
                     this.output.writeLine('constructor(init: {');
                     this.output.indentDuring(() => {
                         this.output.join(productType.members, ',\n', (member) => {
-                            this.output.write(`${camelCase(member.name)}: `);
+                            const opt = member.type.discriminator === Discriminator.OptionType ? '?' : '';
+                            this.output.write(`${camelCase(member.name)}${opt}: `);
                             this.visitType(member.type);
                         });
                         this.output.writeLine();
@@ -278,6 +305,11 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
-        this.output.write(pascalCase(namedTypeReference.fqn[namedTypeReference.fqn.length - 1]));
+        if (namedTypeReference.fqn.length > 1) {
+            const namespace = pascalCase(namedTypeReference.fqn.slice(0, -1).join('_'));
+            this.output.write(`${namespace}.`);
+        }
+        const typeName = pascalCase(namedTypeReference.fqn[namedTypeReference.fqn.length - 1]);
+        this.output.write(typeName);
     }
 }

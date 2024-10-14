@@ -1,9 +1,4 @@
-import Ajv from 'ajv';
-import { exec } from 'child_process';
 import { program } from 'commander';
-import * as fs from 'fs';
-import * as path from 'path';
-import { promisify } from 'util';
 import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
 import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
@@ -16,14 +11,10 @@ import { Model as ParsedModel } from '../languages/ldw/model/parsed/model';
 import { ParsedModelToSource } from '../languages/ldw/model/parsed/outputs/toSource';
 import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/creation/fromParsedModel';
 import { composePasses } from '../nanopass/combinators';
+import { Registry } from '../nanopass/registry';
 import { ParseError } from '../parsing/parseError';
 
-const execPromise = promisify(exec);
-
 program.version('1.0.0').description('Language Design Workbench CLI');
-
-const ajv = new Ajv();
-const SCHEMA_PATH = path.join(__dirname, '..', 'registry-schema.json');
 
 class IOError extends Error {
     constructor(message: string) {
@@ -36,59 +27,6 @@ class ValidationError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'ValidationError';
-    }
-}
-
-class Registry {
-    private registry: Record<string, string>;
-    private registryDir: string;
-
-    constructor(registryPath: string) {
-        const registrySource = fs.readFileSync(registryPath, 'utf-8');
-        try {
-            this.registry = JSON.parse(registrySource);
-        } catch (error) {
-            throw new SyntaxError(`Failed to parse registry JSON: ${(error as Error).message}`);
-        }
-
-        this.validateRegistry();
-        this.registryDir = path.dirname(registryPath);
-    }
-
-    private validateRegistry(): void {
-        const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf-8'));
-        const validate = ajv.compile(schema);
-        if (!validate(this.registry)) {
-            throw new ValidationError(`Registry validation failed: ${ajv.errorsText(validate.errors)}`);
-        }
-    }
-
-    public resolvePath(fqn: string, filename: string): string {
-        if (!this.registry[fqn]) {
-            throw new Error(`Module path "${fqn}" not found in registry`);
-        }
-
-        return path.resolve(this.registryDir, this.registry[fqn], `${filename}`);
-    }
-
-    public readInput(fqn: string, filename: string): string {
-        const filePath = this.resolvePath(fqn, filename);
-        return fs.readFileSync(filePath, 'utf-8');
-    }
-
-    public async writeOutput(fqn: string, content: string, filename: string): Promise<void> {
-        const outputPath = this.resolvePath(fqn, filename);
-        fs.writeFileSync(outputPath, content);
-        await this.formatOutput(outputPath);
-    }
-
-    private async formatOutput(filePath: string): Promise<void> {
-        const ext = path.extname(filePath);
-        if (ext === '.ts' || ext === '.js' || ext === '.json') {
-            await execPromise(`npx prettier --write "${filePath}"`);
-        } else if (ext === '.rs') {
-            await execPromise(`rustfmt "${filePath}"`);
-        }
     }
 }
 
@@ -171,7 +109,7 @@ program
             const discriminatedModel = passes.transform(modelSource);
 
             if (isTypescript) {
-                const typesSource = new ParsedModelToTypesTypescriptSource(options.generics).transform(
+                const typesSource = new ParsedModelToTypesTypescriptSource(registry, options.generics).transform(
                     discriminatedModel
                 );
                 await registry.writeOutput(options.name, typesSource, 'model.ts');

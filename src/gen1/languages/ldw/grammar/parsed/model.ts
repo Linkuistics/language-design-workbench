@@ -32,7 +32,7 @@ export class Rule {
 
     constructor(init: {
         name: Name;
-        annotation: RuleAnnotation | undefined;
+        annotation?: RuleAnnotation | undefined;
         versionAnnotations: VersionAnnotation[];
         body: RuleBody;
     }) {
@@ -196,9 +196,9 @@ export class CountedRuleElement {
     public versionAnnotations: VersionAnnotation[];
 
     constructor(init: {
-        label: Label | undefined;
+        label?: Label | undefined;
         countableRuleElement: CountableRuleElement;
-        count: Count | undefined;
+        count?: Count | undefined;
         versionAnnotations: VersionAnnotation[];
     }) {
         this.label = init.label;

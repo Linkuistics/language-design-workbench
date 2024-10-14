@@ -3,7 +3,9 @@ import * as Model from './model';
 export class Visitor {
     visitModel(node: Model.Model): void {
         this.visitFqn(node.name);
-        this.visitDefinition(node.definitions);
+        node.definitions.forEach((x) => {
+            this.visitDefinition(x);
+        });
     }
 
     visitFqn(node: Model.Fqn): void {}

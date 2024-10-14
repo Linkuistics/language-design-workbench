@@ -4,7 +4,7 @@ import { Grammar } from '../../../grammar/typed/model';
 export class ParsedModelFromTypedGrammar {
     transform(input: Grammar): Model {
         return new Model({
-            name: input.name,
+            name: input.names,
             parentName: undefined,
             values: [
                 ...input.rules.map((r) => new Definition({ name: r.name, type: r.type })),

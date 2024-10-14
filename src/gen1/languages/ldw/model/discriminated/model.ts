@@ -20,7 +20,7 @@ export class Model {
     public parent: Model | undefined;
     public definitions: Map<string, Definition>;
 
-    constructor(init: { name: Fqn; parent: Model | undefined; definitions: Map<string, Definition> }) {
+    constructor(init: { name: Fqn; parent?: Model | undefined; definitions: Map<string, Definition> }) {
         this.name = init.name;
         this.parent = init.parent;
         this.definitions = init.definitions;
@@ -38,8 +38,8 @@ export class Definition {
     constructor(init: {
         name: Id;
         type: Type;
-        discriminationPeers: Set<string> | undefined;
-        discriminationMembers: Set<string> | undefined;
+        discriminationPeers?: Set<string> | undefined;
+        discriminationMembers?: Set<string> | undefined;
     }) {
         this.name = init.name;
         this.type = init.type;

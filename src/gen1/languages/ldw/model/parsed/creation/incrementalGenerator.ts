@@ -38,19 +38,21 @@ function generateComplexType(depth: number = 0): Type {
     const types: (() => Type)[] = [
         () => new VoidType(),
         generatePrimitiveType,
-        () => new EnumType([generateRandomString(), generateRandomString()]),
-        () => new SumType([generateComplexType(depth + 1), generateComplexType(depth + 1)]),
+        () => new EnumType({ members: [generateRandomString(), generateRandomString()] }),
+        () => new SumType({ members: [generateComplexType(depth + 1), generateComplexType(depth + 1)] }),
         () =>
-            new ProductType([
-                new ProductMember(generateRandomString(), generateComplexType(depth + 1)),
-                new ProductMember(generateRandomString(), generateComplexType(depth + 1))
-            ]),
-        () => new TupleType([generateComplexType(depth + 1), generateComplexType(depth + 1)]),
-        () => new MapType(generateComplexType(depth + 1), generateComplexType(depth + 1)),
-        () => new SetType(generateComplexType(depth + 1)),
-        () => new SequenceType(generateComplexType(depth + 1)),
-        () => new OptionType(generateComplexType(depth + 1)),
-        () => new NamedTypeReference([generateRandomString()])
+            new ProductType({
+                members: [
+                    new ProductMember({ name: generateRandomString(), type: generateComplexType(depth + 1) }),
+                    new ProductMember({ name: generateRandomString(), type: generateComplexType(depth + 1) })
+                ]
+            }),
+        () => new TupleType({ members: [generateComplexType(depth + 1), generateComplexType(depth + 1)] }),
+        () => new MapType({ keyType: generateComplexType(depth + 1), valueType: generateComplexType(depth + 1) }),
+        () => new SetType({ keyType: generateComplexType(depth + 1) }),
+        () => new SequenceType({ elementType: generateComplexType(depth + 1) }),
+        () => new OptionType({ type: generateComplexType(depth + 1) }),
+        () => new NamedTypeReference({ fqn: [generateRandomString()] })
     ];
 
     return types[Math.floor(Math.random() * types.length)]();
@@ -115,7 +117,7 @@ export class IncrementalModelGenerator implements IterableIterator<{ model: Mode
     private stepCount: number;
 
     constructor(private maxSteps: number = 50) {
-        this.currentModel = new Model(['root'], undefined, []);
+        this.currentModel = new Model({ name: ['root'], values: [] });
         this.changeHistory = ['Initial empty model'];
         this.coverageTracker = new CoverageTracker();
         this.stepCount = 0;
@@ -170,7 +172,7 @@ export class IncrementalModelGenerator implements IterableIterator<{ model: Mode
     private addDefinition(typeKind?: string): void {
         const type = typeKind ? generateComplexType() : generateComplexType();
         const name = generateRandomString();
-        const newDefinition = new Definition(name, type);
+        const newDefinition = new Definition({ name, type });
         this.currentModel.values.push(newDefinition);
         this.changeHistory.push(`Added definition: ${name} (${this.typeToString(type)})`);
         this.coverageTracker.markTypeCovered('Definition');
@@ -179,7 +181,7 @@ export class IncrementalModelGenerator implements IterableIterator<{ model: Mode
 
     private addDeletion(): void {
         const name = generateRandomString();
-        const newDeletion = new Deletion(name);
+        const newDeletion = new Deletion({ name });
         this.currentModel.values.push(newDeletion);
         this.changeHistory.push(`Added deletion: ${name}`);
         this.coverageTracker.markTypeCovered('Deletion');
@@ -187,14 +189,14 @@ export class IncrementalModelGenerator implements IterableIterator<{ model: Mode
 
     private addMemberModification(): void {
         const name = generateRandomString();
-        const memberModification = new MemberModification(name, []);
+        const memberModification = new MemberModification({ name, values: [] });
 
         // Add a MemberAddition
-        const newMember = new ProductMember(generateRandomString(), generateComplexType());
-        memberModification.values.push(new MemberAddition(newMember));
+        const newMember = new ProductMember({ name: generateRandomString(), type: generateComplexType() });
+        memberModification.values.push(new MemberAddition({ value: newMember }));
 
         // Add a MemberDeletion
-        memberModification.values.push(new MemberDeletion(generateRandomString()));
+        memberModification.values.push(new MemberDeletion({ name: generateRandomString() }));
 
         this.currentModel.values.push(memberModification);
         this.changeHistory.push(`Added member modification: ${name}`);

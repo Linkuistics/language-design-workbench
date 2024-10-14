@@ -119,9 +119,9 @@ export class ChoiceRule {
 }
 
 export class EnumRule {
-    public members: { name: string; value: string }[];
+    public members: string[];
 
-    constructor(init: { members: { name: string; value: string }[] }) {
+    constructor(init: { members: string[] }) {
         this.members = init.members;
     }
 }

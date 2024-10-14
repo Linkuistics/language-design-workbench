@@ -34,7 +34,7 @@ export class Rule {
 
     constructor(init: {
         name: Name;
-        annotation: RuleAnnotation | undefined;
+        annotation?: RuleAnnotation | undefined;
         versionAnnotations: VersionAnnotation[];
         body: RuleBody;
     }) {
@@ -200,9 +200,9 @@ export class CountedRuleElement {
     public versionAnnotations: VersionAnnotation[];
 
     constructor(init: {
-        label: Label | undefined;
+        label?: Label | undefined;
         countableRuleElement: CountableRuleElement;
-        count: Count | undefined;
+        count?: Count | undefined;
         versionAnnotations: VersionAnnotation[];
     }) {
         this.label = init.label;
@@ -353,9 +353,9 @@ export function isWhitespace(value: LineComment | BlockComment | Whitespace): va
 export class EnumRule {
     readonly discriminator = Discriminator.EnumRule;
 
-    public members: { name: string; value: string }[];
+    public members: string[];
 
-    constructor(init: { members: { name: string; value: string }[] }) {
+    constructor(init: { members: string[] }) {
         this.members = init.members;
     }
 }

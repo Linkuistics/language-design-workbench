@@ -29,10 +29,7 @@ export class ExtendedGrammarFromParsedGrammar extends Transformer {
                 let value = cre.value;
                 if (!name) name = value.replace(/[^a-zA-Z0-9]/g, '');
                 if (name.length === 0) return undefined;
-                return {
-                    name,
-                    value
-                };
+                return name;
             }
             return undefined;
         });

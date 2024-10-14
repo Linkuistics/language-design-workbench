@@ -28,7 +28,7 @@ export class Model {
 
     constructor(init: {
         name: Fqn;
-        parentName: Fqn | undefined;
+        parentName?: Fqn | undefined;
         values: (Definition | Deletion | MemberModification)[];
     }) {
         this.name = init.name;
@@ -55,8 +55,11 @@ export function isDefinition(value: Definition | Deletion | MemberModification):
 
 export class Deletion {
     readonly discriminator = Discriminator.Deletion;
+    public name: Id;
 
-    constructor(public name: Id) {}
+    constructor({ name }: { name: Id }) {
+        this.name = name;
+    }
 }
 export function isDeletion(value: Definition | Deletion | MemberModification): value is Deletion {
     return value.discriminator === Discriminator.Deletion;
@@ -78,8 +81,11 @@ export function isMemberModification(value: Definition | Deletion | MemberModifi
 
 export class MemberDeletion {
     readonly discriminator = Discriminator.MemberDeletion;
+    public name: Id;
 
-    constructor(public name: Id) {}
+    constructor(init: { name: Id }) {
+        this.name = init.name;
+    }
 }
 export function isMemberDeletion(value: MemberDeletion | MemberAddition): value is MemberDeletion {
     return value.discriminator === Discriminator.MemberDeletion;
@@ -87,8 +93,10 @@ export function isMemberDeletion(value: MemberDeletion | MemberAddition): value 
 
 export class MemberAddition {
     readonly discriminator = Discriminator.MemberAddition;
-
-    constructor(public value: Type | ProductMember) {}
+    public value: Type | ProductMember;
+    constructor(init: { value: Type | ProductMember }) {
+        this.value = init.value;
+    }
 }
 export function isMemberAddition(value: MemberDeletion | MemberAddition): value is MemberAddition {
     return value.discriminator === Discriminator.MemberAddition;

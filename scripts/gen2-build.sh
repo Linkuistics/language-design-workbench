@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 CLI=src/gen1/cli/ldw.ts
-REGISTRY=src/gen2/language-registry.json
+REGISTRY=src/gen2/languages/registry.json
 
 echo
 

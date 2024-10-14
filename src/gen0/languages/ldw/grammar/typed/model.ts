@@ -27,13 +27,13 @@ export class Field {
 }
 
 export class Grammar {
-    public name: Name[];
+    public names: Name[];
     public rules: Rule[];
     public prattRules: PrattRule[];
     public definitions: Definition[];
 
-    constructor(init: { name: Name[]; rules: Rule[]; prattRules: PrattRule[]; definitions: Definition[] }) {
-        this.name = init.name;
+    constructor(init: { names: Name[]; rules: Rule[]; prattRules: PrattRule[]; definitions: Definition[] }) {
+        this.names = init.names;
         this.rules = init.rules;
         this.prattRules = init.prattRules;
         this.definitions = init.definitions;
@@ -121,10 +121,10 @@ export class ChoiceRule {
 }
 
 export class EnumRule {
-    public members: { name: string; value: string }[];
+    public members: string[];
     public field?: Field;
 
-    constructor(init: { members: { name: string; value: string }[]; field?: Field }) {
+    constructor(init: { members: string[]; field?: Field }) {
         this.members = init.members;
         this.field = init.field;
     }

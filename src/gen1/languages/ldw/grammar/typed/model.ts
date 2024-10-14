@@ -1,3 +1,5 @@
+import * as LdwModelParsed from '../../model/parsed/model';
+
 export enum Discriminator {
     ChoiceRule,
     SequenceRule,
@@ -18,11 +20,18 @@ export class Grammar {
     public names: Name[];
     public rules: Rule[];
     public prattRules: PrattRule[];
+    public definitions: LdwModelParsed.Definition[];
 
-    constructor(init: { names: Name[]; rules: Rule[]; prattRules: PrattRule[] }) {
+    constructor(init: {
+        names: Name[];
+        rules: Rule[];
+        prattRules: PrattRule[];
+        definitions: LdwModelParsed.Definition[];
+    }) {
         this.names = init.names;
         this.rules = init.rules;
         this.prattRules = init.prattRules;
+        this.definitions = init.definitions;
     }
 }
 
@@ -31,17 +40,20 @@ export class Rule {
     public annotation: RuleAnnotation | undefined;
     public versionAnnotations: VersionAnnotation[];
     public body: RuleBody;
+    public type: LdwModelParsed.Type;
 
     constructor(init: {
         name: Name;
-        annotation: RuleAnnotation | undefined;
+        annotation?: RuleAnnotation | undefined;
         versionAnnotations: VersionAnnotation[];
         body: RuleBody;
+        type: LdwModelParsed.Type;
     }) {
         this.name = init.name;
         this.annotation = init.annotation;
         this.versionAnnotations = init.versionAnnotations;
         this.body = init.body;
+        this.type = init.type;
     }
 }
 
@@ -200,9 +212,9 @@ export class CountedRuleElement {
     public versionAnnotations: VersionAnnotation[];
 
     constructor(init: {
-        label: Label | undefined;
+        label?: Label | undefined;
         countableRuleElement: CountableRuleElement;
-        count: Count | undefined;
+        count?: Count | undefined;
         versionAnnotations: VersionAnnotation[];
     }) {
         this.label = init.label;
@@ -238,9 +250,11 @@ export class RuleReference {
     readonly discriminator = Discriminator.RuleReference;
 
     public names: Name[];
+    public field: Field | undefined;
 
-    constructor(init: { names: Name[] }) {
+    constructor(init: { names: Name[]; field?: Field | undefined }) {
         this.names = init.names;
+        this.field = init.field;
     }
 }
 export function isRuleReference(
@@ -253,9 +267,11 @@ export class StringElement {
     readonly discriminator = Discriminator.StringElement;
 
     public value: string;
+    public field: Field | undefined;
 
-    constructor(init: { value: string }) {
+    constructor(init: { value: string; field?: Field | undefined }) {
         this.value = init.value;
+        this.field = init.field;
     }
 }
 export function isStringElement(
@@ -270,11 +286,18 @@ export class CharSet {
     public negated: boolean;
     public startChars: CharSetChar[];
     public endChars: (CharSetChar | undefined)[];
+    public field: Field | undefined;
 
-    constructor(init: { negated: boolean; startChars: CharSetChar[]; endChars: (CharSetChar | undefined)[] }) {
+    constructor(init: {
+        negated: boolean;
+        startChars: CharSetChar[];
+        endChars: (CharSetChar | undefined)[];
+        field?: Field | undefined;
+    }) {
         this.negated = init.negated;
         this.startChars = init.startChars;
         this.endChars = init.endChars;
+        this.field = init.field;
     }
 }
 export function isCharSet(
@@ -287,6 +310,12 @@ export type CharSetChar = string;
 
 export class AnyElement {
     readonly discriminator = Discriminator.AnyElement;
+
+    public field: Field | undefined;
+
+    constructor(init: { field?: Field | undefined }) {
+        this.field = init.field;
+    }
 }
 export function isAnyElement(
     value: RuleReference | StringElement | CharSet | AnyElement | ChoiceRule | SequenceRule | EnumRule | SeparatedByRule
@@ -353,10 +382,12 @@ export function isWhitespace(value: LineComment | BlockComment | Whitespace): va
 export class EnumRule {
     readonly discriminator = Discriminator.EnumRule;
 
-    public members: { name: string; value: string }[];
+    public members: string[];
+    public field: Field | undefined;
 
-    constructor(init: { members: { name: string; value: string }[] }) {
+    constructor(init: { members: string[]; field?: Field | undefined }) {
         this.members = init.members;
+        this.field = init.field;
     }
 }
 export function isEnumRule(
@@ -382,4 +413,16 @@ export function isSeparatedByRule(
     value: ChoiceRule | SequenceRule | EnumRule | SeparatedByRule | RuleReference | StringElement | CharSet | AnyElement
 ): value is SeparatedByRule {
     return value.discriminator === Discriminator.SeparatedByRule;
+}
+
+export class Field {
+    public type: LdwModelParsed.Type;
+    public name: string | undefined;
+    public isExplicit: boolean;
+
+    constructor(init: { type: LdwModelParsed.Type; name?: string | undefined; isExplicit: boolean }) {
+        this.type = init.type;
+        this.name = init.name;
+        this.isExplicit = init.isExplicit;
+    }
 }
