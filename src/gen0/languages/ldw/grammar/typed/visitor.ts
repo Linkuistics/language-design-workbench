@@ -1,5 +1,4 @@
-// Generated on 2024-10-15T13:20:35.874Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
-
+// Generated on 2024-10-15T16:00:28.581Z
 import * as Model from './model';
 
 export class Visitor {
@@ -49,13 +48,13 @@ export class Visitor {
     visitVersionNumber(node: Model.VersionNumber): void {}
 
     visitRuleBody(node: Model.RuleBody): void {
-        if (node instanceof Model.ChoiceRule) {
+        if (node.discriminator === Model.Discriminator.ChoiceRule) {
             this.visitChoiceRule(node);
-        } else if (node instanceof Model.SequenceRule) {
+        } else if (node.discriminator === Model.Discriminator.SequenceRule) {
             this.visitSequenceRule(node);
-        } else if (node instanceof Model.EnumRule) {
+        } else if (node.discriminator === Model.Discriminator.EnumRule) {
             this.visitEnumRule(node);
-        } else if (node instanceof Model.SeparatedByRule) {
+        } else if (node.discriminator === Model.Discriminator.SeparatedByRule) {
             this.visitSeparatedByRule(node);
         }
     }
@@ -73,9 +72,9 @@ export class Visitor {
     }
 
     visitRuleElement(node: Model.RuleElement): void {
-        if (node instanceof Model.CountedRuleElement) {
+        if (node.discriminator === Model.Discriminator.CountedRuleElement) {
             this.visitCountedRuleElement(node);
-        } else if (node instanceof Model.NegativeLookahead) {
+        } else if (node.discriminator === Model.Discriminator.NegativeLookahead) {
             this.visitNegativeLookahead(node);
         }
     }
@@ -90,21 +89,21 @@ export class Visitor {
     }
 
     visitCountableRuleElement(node: Model.CountableRuleElement): void {
-        if (node instanceof Model.RuleReference) {
+        if (node.discriminator === Model.Discriminator.RuleReference) {
             this.visitRuleReference(node);
-        } else if (node instanceof Model.StringElement) {
+        } else if (node.discriminator === Model.Discriminator.StringElement) {
             this.visitStringElement(node);
-        } else if (node instanceof Model.CharSet) {
+        } else if (node.discriminator === Model.Discriminator.CharSet) {
             this.visitCharSet(node);
-        } else if (node instanceof Model.AnyElement) {
+        } else if (node.discriminator === Model.Discriminator.AnyElement) {
             this.visitAnyElement(node);
-        } else if (node instanceof Model.ChoiceRule) {
+        } else if (node.discriminator === Model.Discriminator.ChoiceRule) {
             this.visitRuleBody(node);
-        } else if (node instanceof Model.SequenceRule) {
+        } else if (node.discriminator === Model.Discriminator.SequenceRule) {
             this.visitRuleBody(node);
-        } else if (node instanceof Model.EnumRule) {
+        } else if (node.discriminator === Model.Discriminator.EnumRule) {
             this.visitRuleBody(node);
-        } else if (node instanceof Model.SeparatedByRule) {
+        } else if (node.discriminator === Model.Discriminator.SeparatedByRule) {
             this.visitRuleBody(node);
         }
     }
@@ -134,19 +133,19 @@ export class Visitor {
     }
 
     visitNegativeLookahead(node: Model.NegativeLookahead): void {
-        if (node.content instanceof Model.CharSet) {
+        if (node.content.discriminator === Model.Discriminator.CharSet) {
             this.visitCharSet(node.content);
-        } else if (node.content instanceof Model.StringElement) {
+        } else if (node.content.discriminator === Model.Discriminator.StringElement) {
             this.visitStringElement(node.content);
         }
     }
 
     visitTrivia(node: Model.Trivia): void {
-        if (node instanceof Model.LineComment) {
+        if (node.discriminator === Model.Discriminator.LineComment) {
             this.visitLineComment(node);
-        } else if (node instanceof Model.BlockComment) {
+        } else if (node.discriminator === Model.Discriminator.BlockComment) {
             this.visitBlockComment(node);
-        } else if (node instanceof Model.Whitespace) {
+        } else if (node.discriminator === Model.Discriminator.Whitespace) {
             this.visitWhitespace(node);
         }
     }
