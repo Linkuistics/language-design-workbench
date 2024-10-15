@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:12:59.410Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 export enum Discriminator {
     VoidType = 'VoidType',
     PrimitiveType = 'PrimitiveType',

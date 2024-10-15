@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:13:01.742Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 import * as Model from './model';
 
 export class Visitor {

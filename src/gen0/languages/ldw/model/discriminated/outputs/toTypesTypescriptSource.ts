@@ -19,6 +19,7 @@ import {
     VoidType
 } from '../model';
 import { Visitor } from '../visitor';
+import { hostname } from 'os';
 
 export class ParsedModelToTypesTypescriptSource extends Visitor {
     private output: IndentingOutputStream;
@@ -37,6 +38,9 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitModel(node: Model): void {
+        this.output.writeLine(`// Generated on ${new Date().toISOString()} by ${hostname()} at ${process.cwd()}`);
+        this.output.writeLine();
+
         const foreignReferences = new Map<string, string>();
         new (class extends Visitor {
             visitNamedTypeReference(node: NamedTypeReference): void {

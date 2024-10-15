@@ -1,3 +1,4 @@
+import { hostname } from 'os';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
 import {
     Definition,
@@ -32,6 +33,9 @@ class Generator extends Visitor {
     output = new IndentingOutputStream();
 
     visitModel(model: Model) {
+        this.output.writeLine(`// Generated on ${new Date().toISOString()} by ${hostname()} at ${process.cwd()}`);
+        this.output.writeLine();
+
         this.output.write(`model ${model.name.join('::')}`);
         if (model.parentName) {
             this.output.write(` modifies ${model.parentName.join('::')}`);

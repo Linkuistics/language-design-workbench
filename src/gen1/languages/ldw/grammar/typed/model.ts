@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:12:55.834Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 import * as LdwModelParsed from '../../model/parsed/model';
 
 export enum Discriminator {
@@ -206,18 +208,15 @@ export type RuleElement = CountedRuleElement | NegativeLookahead;
 export class CountedRuleElement {
     readonly discriminator = Discriminator.CountedRuleElement;
 
-    public label: Label | undefined;
     public countableRuleElement: CountableRuleElement;
     public count: Count | undefined;
     public versionAnnotations: VersionAnnotation[];
 
     constructor(init: {
-        label?: Label | undefined;
         countableRuleElement: CountableRuleElement;
         count?: Count | undefined;
         versionAnnotations: VersionAnnotation[];
     }) {
-        this.label = init.label;
         this.countableRuleElement = init.countableRuleElement;
         this.count = init.count;
         this.versionAnnotations = init.versionAnnotations;

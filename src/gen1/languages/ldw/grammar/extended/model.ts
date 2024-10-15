@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:12:54.122Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 export enum Discriminator {
     ChoiceRule = 'ChoiceRule',
     SequenceRule = 'SequenceRule',

@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:12:56.229Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 import * as Model from './model';
 
 export class Visitor {
@@ -79,8 +81,6 @@ export class Visitor {
     }
 
     visitCountedRuleElement(node: Model.CountedRuleElement): void {
-        if (node.label != undefined) {
-        }
         this.visitCountableRuleElement(node.countableRuleElement);
         if (node.count != undefined) {
         }

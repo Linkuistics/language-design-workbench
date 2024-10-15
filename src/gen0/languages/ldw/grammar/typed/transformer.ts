@@ -49,22 +49,48 @@ export class Transformer {
         throw new Error('Automatic transformation not possible');
     }
 
+    transformRuleAnnotation(input: In.RuleAnnotation): Out.RuleAnnotation {
+        switch (input) {
+            case In.RuleAnnotation.NoSkip:
+                return Out.RuleAnnotation.NoSkip;
+            case In.RuleAnnotation.Atomic:
+                return Out.RuleAnnotation.Atomic;
+            default:
+                throw new Error('Unexpected rule annotation');
+        }
+    }
+
     transformPrattRule(input: In.PrattRule): Out.PrattRule {
         return new Out.PrattRule({
             name: input.name,
             operators: input.operators.map((o) => this.transformPrattOperator(o)),
             primary: this.transformPrattPrimary(input.primary),
-            versionAnnotations: input.versionAnnotations
+            versionAnnotations: input.versionAnnotations.map((x) => this.transformVersionAnnotation(x))
         });
     }
 
     transformPrattOperator(input: In.PrattOperator): Out.PrattOperator {
         return new Out.PrattOperator({
-            type: input.type,
+            type: this.transformPrattOperatorType(input.type),
             name: input.name,
             body: this.transformRuleBody(input.body),
-            versionAnnotations: input.versionAnnotations
+            versionAnnotations: input.versionAnnotations.map((x) => this.transformVersionAnnotation(x))
         });
+    }
+
+    transformPrattOperatorType(input: In.PrattOperatorType): Out.PrattOperatorType {
+        switch (input) {
+            case In.PrattOperatorType.Prefix:
+                return Out.PrattOperatorType.Prefix;
+            case In.PrattOperatorType.Postfix:
+                return Out.PrattOperatorType.Postfix;
+            case In.PrattOperatorType.Left:
+                return Out.PrattOperatorType.Left;
+            case In.PrattOperatorType.Right:
+                return Out.PrattOperatorType.Right;
+            default:
+                throw new Error('Unexpected pratt operator type');
+        }
     }
 
     transformPrattPrimary(input: In.PrattPrimary): Out.PrattPrimary {
@@ -94,8 +120,8 @@ export class Transformer {
     transformCountedRuleElement(input: In.CountedRuleElement): Out.CountedRuleElement {
         return new Out.CountedRuleElement({
             countableRuleElement: this.transformCountableRuleElement(input.countableRuleElement),
-            count: input.count,
-            versionAnnotations: input.versionAnnotations
+            count: input.count && this.transformCount(input.count),
+            versionAnnotations: input.versionAnnotations.map((x) => this.transformVersionAnnotation(x))
         });
     }
 
@@ -125,5 +151,36 @@ export class Transformer {
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {
         return new Out.AnyElement({});
+    }
+
+    transformVersionAnnotation(input: In.VersionAnnotation): Out.VersionAnnotation {
+        return new Out.VersionAnnotation({
+            type: this.transformVersionAnnotationType(input.type),
+            version: input.version
+        });
+    }
+
+    transformVersionAnnotationType(input: In.VersionAnnotationType): Out.VersionAnnotationType {
+        switch (input) {
+            case In.VersionAnnotationType.Enabled:
+                return Out.VersionAnnotationType.Enabled;
+            case In.VersionAnnotationType.Disabled:
+                return Out.VersionAnnotationType.Disabled;
+            default:
+                throw new Error('Unexpected version annotation type');
+        }
+    }
+
+    transformCount(input: In.Count): Out.Count {
+        switch (input) {
+            case In.Count.OneOrMore:
+                return Out.Count.OneOrMore;
+            case In.Count.ZeroOrMore:
+                return Out.Count.ZeroOrMore;
+            case In.Count.Optional:
+                return Out.Count.Optional;
+            default:
+                throw new Error('Unexpected count');
+        }
     }
 }

@@ -1,113 +1,156 @@
 import * as Model from './model';
 
 export class Visitor {
-    visitGrammar(grammar: Model.Grammar): void {
-        grammar.rules.forEach((rule) => this.visitRule(rule));
-        grammar.prattRules.forEach((rule) => this.visitPrattRule(rule));
+    visitGrammar(node: Model.Grammar): void {
+        node.rules.forEach((x) => {
+            this.visitRule(x);
+        });
+        node.prattRules.forEach((x) => {
+            this.visitPrattRule(x);
+        });
     }
 
-    visitRule(rule: Model.Rule): void {
-        this.visitRuleBody(rule.body);
-        rule.versionAnnotations.forEach((va) => this.visitVersionAnnotation(va));
+    visitRule(node: Model.Rule): void {
+        if (node.annotation != undefined) {
+        }
+        node.versionAnnotations.forEach((x) => {
+            this.visitVersionAnnotation(x);
+        });
+        this.visitRuleBody(node.body);
     }
 
-    visitRuleBody(ruleBody: Model.RuleBody): void {
-        if (ruleBody instanceof Model.SequenceRule) {
-            return this.visitSequenceRule(ruleBody);
-        } else if (ruleBody instanceof Model.ChoiceRule) {
-            return this.visitChoiceRule(ruleBody);
-        } else if (ruleBody instanceof Model.EnumRule) {
-            return this.visitEnumRule(ruleBody);
-        } else {
-            return this.visitSeparatedByRule(ruleBody);
+    visitPrattRule(node: Model.PrattRule): void {
+        node.versionAnnotations.forEach((x) => {
+            this.visitVersionAnnotation(x);
+        });
+        node.operators.forEach((x) => {
+            this.visitPrattOperator(x);
+        });
+        this.visitPrattPrimary(node.primary);
+    }
+
+    visitPrattOperator(node: Model.PrattOperator): void {
+        node.versionAnnotations.forEach((x) => {
+            this.visitVersionAnnotation(x);
+        });
+        this.visitRuleBody(node.body);
+    }
+
+    visitPrattPrimary(node: Model.PrattPrimary): void {
+        this.visitRuleBody(node.body);
+    }
+
+    visitVersionAnnotation(node: Model.VersionAnnotation): void {
+        this.visitVersionNumber(node.version);
+    }
+
+    visitVersionNumber(node: Model.VersionNumber): void {}
+
+    visitRuleBody(node: Model.RuleBody): void {
+        if (node instanceof Model.ChoiceRule) {
+            this.visitChoiceRule(node);
+        } else if (node instanceof Model.SequenceRule) {
+            this.visitSequenceRule(node);
+        } else if (node instanceof Model.EnumRule) {
+            this.visitEnumRule(node);
+        } else if (node instanceof Model.SeparatedByRule) {
+            this.visitSeparatedByRule(node);
         }
     }
 
-    visitPrattRule(rule: Model.PrattRule): void {
-        rule.operators.forEach((op) => this.visitPrattOperator(op));
-        this.visitPrattPrimary(rule.primary);
-        rule.versionAnnotations.forEach((va) => this.visitVersionAnnotation(va));
+    visitChoiceRule(node: Model.ChoiceRule): void {
+        node.choices.forEach((x) => {
+            this.visitSequenceRule(x);
+        });
     }
 
-    visitPrattOperator(operator: Model.PrattOperator): void {
-        this.visitRuleBody(operator.body);
-        operator.versionAnnotations.forEach((va) => this.visitVersionAnnotation(va));
+    visitSequenceRule(node: Model.SequenceRule): void {
+        node.elements.forEach((x) => {
+            this.visitRuleElement(x);
+        });
     }
 
-    visitPrattPrimary(primary: Model.PrattPrimary): void {
-        this.visitRuleBody(primary.body);
-    }
-
-    visitSequenceRule(sequenceRule: Model.SequenceRule): void {
-        sequenceRule.elements.forEach((el: Model.RuleElement) => this.visitRuleElement(el));
-    }
-
-    visitRuleElement(ruleElement: Model.RuleElement): void {
-        if (ruleElement instanceof Model.CountedRuleElement) {
-            return this.visitCountedRuleElement(ruleElement);
-        } else {
-            return this.visitNegativeLookahead(ruleElement);
+    visitRuleElement(node: Model.RuleElement): void {
+        if (node instanceof Model.CountedRuleElement) {
+            this.visitCountedRuleElement(node);
+        } else if (node instanceof Model.NegativeLookahead) {
+            this.visitNegativeLookahead(node);
         }
     }
 
-    visitCharSet(charSet: Model.CharSet): void {}
+    visitCountedRuleElement(node: Model.CountedRuleElement): void {
+        this.visitCountableRuleElement(node.countableRuleElement);
+        if (node.count != undefined) {
+        }
+        node.versionAnnotations.forEach((x) => {
+            this.visitVersionAnnotation(x);
+        });
+    }
 
-    visitNegativeLookahead(negativeLookahead: Model.NegativeLookahead): void {
-        if (negativeLookahead.content instanceof Model.CharSet) {
-            this.visitCharSet(negativeLookahead.content);
-        } else {
-            this.visitStringElement(negativeLookahead.content);
+    visitCountableRuleElement(node: Model.CountableRuleElement): void {
+        if (node instanceof Model.RuleReference) {
+            this.visitRuleReference(node);
+        } else if (node instanceof Model.StringElement) {
+            this.visitStringElement(node);
+        } else if (node instanceof Model.CharSet) {
+            this.visitCharSet(node);
+        } else if (node instanceof Model.AnyElement) {
+            this.visitAnyElement(node);
+        } else if (node instanceof Model.ChoiceRule) {
+            this.visitRuleBody(node);
+        } else if (node instanceof Model.SequenceRule) {
+            this.visitRuleBody(node);
+        } else if (node instanceof Model.EnumRule) {
+            this.visitRuleBody(node);
+        } else if (node instanceof Model.SeparatedByRule) {
+            this.visitRuleBody(node);
         }
     }
 
-    visitChoiceRule(rules: Model.ChoiceRule): void {
-        rules.choices.forEach((choice: Model.SequenceRule) => this.visitSequenceRule(choice));
-    }
-
-    visitEnumRule(ruleBody: Model.EnumRule): void {
-        if (ruleBody.field) this.visitField(ruleBody.field);
-    }
-
-    visitSeparatedByRule(ruleBody: Model.SeparatedByRule): void {
-        this.visitRuleElement(ruleBody.element);
-    }
-
-    visitCountedRuleElement(element: Model.CountedRuleElement): void {
-        this.visitCountableRuleElement(element.countableRuleElement);
-        element.versionAnnotations.forEach((va) => this.visitVersionAnnotation(va));
-    }
-
-    visitCountableRuleElement(cre: Model.CountableRuleElement): void {
-        if (cre instanceof Model.RuleReference) {
-            return this.visitRuleReference(cre);
-        } else if (cre instanceof Model.AnyElement) {
-            return this.visitAnyElement(cre);
-        } else if (cre instanceof Model.StringElement) {
-            return this.visitStringElement(cre);
-        } else if (cre instanceof Model.CharSet) {
-            return this.visitCharSet(cre);
-        } else {
-            return this.visitRuleBody(cre);
+    visitRuleReference(node: Model.RuleReference): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
         }
     }
 
-    visitRuleReference(ruleReference: Model.RuleReference): void {
-        if (ruleReference.field) this.visitField(ruleReference.field);
+    visitStringElement(node: Model.StringElement): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
     }
 
-    visitStringElement(stringElement: Model.StringElement): void {
-        if (stringElement.field) this.visitField(stringElement.field);
+    visitCharSet(node: Model.CharSet): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
     }
 
-    visitAnyElement(anyElement: Model.AnyElement): void {
-        if (anyElement.field) this.visitField(anyElement.field);
+    visitAnyElement(node: Model.AnyElement): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
     }
 
-    visitVersionAnnotation(versionAnnotation: Model.VersionAnnotation): void {
-        this.visitVersionNumber(versionAnnotation.version);
+    visitNegativeLookahead(node: Model.NegativeLookahead): void {
+        if (node.content instanceof Model.CharSet) {
+            this.visitCharSet(node.content);
+        } else if (node.content instanceof Model.StringElement) {
+            this.visitStringElement(node.content);
+        }
     }
 
-    visitVersionNumber(versionNumber: Model.VersionNumber): void {}
+    visitEnumRule(node: Model.EnumRule): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
-    visitField(field: Model.Field): void {}
+    visitSeparatedByRule(node: Model.SeparatedByRule): void {
+        this.visitRuleElement(node.element);
+    }
+
+    visitField(node: Model.Field): void {
+        if (node.name != undefined) {
+        }
+    }
 }

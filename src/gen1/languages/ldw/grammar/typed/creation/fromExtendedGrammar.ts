@@ -60,8 +60,8 @@ class TransformToGrammarWithTypes extends Transformer {
             return new Out.Rule({
                 name: input.name,
                 body: body,
-                annotation: input.annotation,
-                versionAnnotations: input.versionAnnotations,
+                annotation: input.annotation && this.transformRuleAnnotation(input.annotation),
+                versionAnnotations: input.versionAnnotations.map((x) => this.transformVersionAnnotation(x)),
                 type: new ProductType({ members: [new ProductMember({ name: 'value', type: PrimitiveType.String })] })
             });
         }
@@ -171,8 +171,8 @@ class TransformToGrammarWithTypes extends Transformer {
         return new Out.Rule({
             name: input.name,
             body: body,
-            annotation: input.annotation,
-            versionAnnotations: input.versionAnnotations,
+            annotation: input.annotation && this.transformRuleAnnotation(input.annotation),
+            versionAnnotations: input.versionAnnotations.map((x) => this.transformVersionAnnotation(x)),
             type: ruleType
         });
     }

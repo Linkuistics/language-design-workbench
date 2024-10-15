@@ -6,6 +6,10 @@ model ldw::grammar::typed modifies ldw::grammar::extended {
         is_explicit: boolean
     };
 
+    modify counted_rule_element
+        -= label
+    ;
+
     modify grammar
         += definitions: seq<ldw::model::parsed::Definition>
     ;
