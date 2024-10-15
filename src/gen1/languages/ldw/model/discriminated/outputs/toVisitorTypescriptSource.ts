@@ -53,9 +53,6 @@ class TopLevelGenerator extends Visitor {
     }
 
     visitModel(model: Model): void {
-        this.output.writeLine(`// Generated on ${new Date().toISOString()} by ${hostname()} at ${process.cwd()}`);
-        this.output.writeLine();
-
         model.definitions.forEach((definition) => {
             this.definitions.set(definition.name, definition);
         });

@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T13:26:58.828Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+// Generated on 2024-10-15T13:55:43.046Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
 
 export enum Discriminator {
     Definition = 'Definition',

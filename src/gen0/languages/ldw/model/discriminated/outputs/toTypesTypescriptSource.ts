@@ -38,9 +38,6 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitModel(node: Model): void {
-        this.output.writeLine(`// Generated on ${new Date().toISOString()} by ${hostname()} at ${process.cwd()}`);
-        this.output.writeLine();
-
         const foreignReferences = new Map<string, string>();
         new (class extends Visitor {
             visitNamedTypeReference(node: NamedTypeReference): void {

@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T13:26:57.024Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+// Generated on 2024-10-15T13:20:35.481Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
 
 import * as LdwModelParsed from '../../model/parsed/model';
 
