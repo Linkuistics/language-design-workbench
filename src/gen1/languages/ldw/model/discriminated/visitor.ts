@@ -3,6 +3,9 @@ import * as Model from './model';
 export class Visitor {
     visitModel(node: Model.Model): void {
         this.visitFqn(node.name);
+        if (node.parent != undefined) {
+            this.visitModel(node.parent);
+        }
         node.definitions.forEach((x) => {
             this.visitDefinition(x);
         });
@@ -12,37 +15,32 @@ export class Visitor {
 
     visitDefinition(node: Model.Definition): void {
         this.visitType(node.type);
+        if (node.discriminationPeers != undefined) {
+        }
+        if (node.discriminationMembers != undefined) {
+        }
     }
 
     visitType(node: Model.Type): void {
         if (node instanceof Model.VoidType) {
             this.visitVoidType(node);
-        }
-        if (node instanceof Model.EnumType) {
+        } else if (node instanceof Model.EnumType) {
             this.visitEnumType(node);
-        }
-        if (node instanceof Model.SumType) {
+        } else if (node instanceof Model.SumType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.ProductType) {
+        } else if (node instanceof Model.ProductType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.TupleType) {
+        } else if (node instanceof Model.TupleType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.MapType) {
+        } else if (node instanceof Model.MapType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.SetType) {
+        } else if (node instanceof Model.SetType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.SequenceType) {
+        } else if (node instanceof Model.SequenceType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.OptionType) {
+        } else if (node instanceof Model.OptionType) {
             this.visitTypeWithStructure(node);
-        }
-        if (node instanceof Model.NamedTypeReference) {
+        } else if (node instanceof Model.NamedTypeReference) {
             this.visitNamedTypeReference(node);
         }
     }
@@ -54,23 +52,17 @@ export class Visitor {
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
         if (node instanceof Model.SumType) {
             this.visitSumType(node);
-        }
-        if (node instanceof Model.ProductType) {
+        } else if (node instanceof Model.ProductType) {
             this.visitProductType(node);
-        }
-        if (node instanceof Model.TupleType) {
+        } else if (node instanceof Model.TupleType) {
             this.visitGenericType(node);
-        }
-        if (node instanceof Model.MapType) {
+        } else if (node instanceof Model.MapType) {
             this.visitGenericType(node);
-        }
-        if (node instanceof Model.SetType) {
+        } else if (node instanceof Model.SetType) {
             this.visitGenericType(node);
-        }
-        if (node instanceof Model.SequenceType) {
+        } else if (node instanceof Model.SequenceType) {
             this.visitGenericType(node);
-        }
-        if (node instanceof Model.OptionType) {
+        } else if (node instanceof Model.OptionType) {
             this.visitGenericType(node);
         }
     }
@@ -94,17 +86,13 @@ export class Visitor {
     visitGenericType(node: Model.GenericType): void {
         if (node instanceof Model.TupleType) {
             this.visitTupleType(node);
-        }
-        if (node instanceof Model.MapType) {
+        } else if (node instanceof Model.MapType) {
             this.visitMapType(node);
-        }
-        if (node instanceof Model.SetType) {
+        } else if (node instanceof Model.SetType) {
             this.visitSetType(node);
-        }
-        if (node instanceof Model.SequenceType) {
+        } else if (node instanceof Model.SequenceType) {
             this.visitSequenceType(node);
-        }
-        if (node instanceof Model.OptionType) {
+        } else if (node instanceof Model.OptionType) {
             this.visitOptionType(node);
         }
     }
@@ -139,11 +127,9 @@ export class Visitor {
     visitTrivia(node: Model.Trivia): void {
         if (node instanceof Model.LineComment) {
             this.visitLineComment(node);
-        }
-        if (node instanceof Model.BlockComment) {
+        } else if (node instanceof Model.BlockComment) {
             this.visitBlockComment(node);
-        }
-        if (node instanceof Model.Whitespace) {
+        } else if (node instanceof Model.Whitespace) {
             this.visitWhitespace(node);
         }
     }

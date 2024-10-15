@@ -1,19 +1,19 @@
 import * as LdwModelParsed from '../../model/parsed/model';
 
 export enum Discriminator {
-    ChoiceRule,
-    SequenceRule,
-    CountedRuleElement,
-    RuleReference,
-    StringElement,
-    CharSet,
-    AnyElement,
-    NegativeLookahead,
-    LineComment,
-    BlockComment,
-    Whitespace,
-    EnumRule,
-    SeparatedByRule
+    ChoiceRule = 'ChoiceRule',
+    SequenceRule = 'SequenceRule',
+    CountedRuleElement = 'CountedRuleElement',
+    RuleReference = 'RuleReference',
+    StringElement = 'StringElement',
+    CharSet = 'CharSet',
+    AnyElement = 'AnyElement',
+    NegativeLookahead = 'NegativeLookahead',
+    LineComment = 'LineComment',
+    BlockComment = 'BlockComment',
+    Whitespace = 'Whitespace',
+    EnumRule = 'EnumRule',
+    SeparatedByRule = 'SeparatedByRule'
 }
 
 export class Grammar {
@@ -58,8 +58,8 @@ export class Rule {
 }
 
 export enum RuleAnnotationEnum {
-    NoSkip = 1,
-    Atomic = 2
+    NoSkip = 'NoSkip',
+    Atomic = 'Atomic'
 }
 export class RuleAnnotation {
     static NoSkip: RuleAnnotation = new RuleAnnotation(RuleAnnotationEnum.NoSkip);
@@ -117,10 +117,10 @@ export class PrattPrimary {
 }
 
 export enum PrattOperatorTypeEnum {
-    Prefix = 1,
-    Postfix = 2,
-    Left = 3,
-    Right = 4
+    Prefix = 'Prefix',
+    Postfix = 'Postfix',
+    Left = 'Left',
+    Right = 'Right'
 }
 export class PrattOperatorType {
     static Prefix: PrattOperatorType = new PrattOperatorType(PrattOperatorTypeEnum.Prefix);
@@ -142,8 +142,8 @@ export class VersionAnnotation {
 }
 
 export enum VersionAnnotationTypeEnum {
-    Enabled = 1,
-    Disabled = 2
+    Enabled = 'Enabled',
+    Disabled = 'Disabled'
 }
 export class VersionAnnotationType {
     static Enabled: VersionAnnotationType = new VersionAnnotationType(VersionAnnotationTypeEnum.Enabled);
@@ -230,9 +230,9 @@ export function isCountedRuleElement(value: CountedRuleElement | NegativeLookahe
 export type CountableRuleElement = RuleReference | StringElement | CharSet | AnyElement | RuleBody;
 
 export enum CountEnum {
-    OneOrMore = 1,
-    ZeroOrMore = 2,
-    Optional = 3
+    OneOrMore = 'OneOrMore',
+    ZeroOrMore = 'ZeroOrMore',
+    Optional = 'Optional'
 }
 export class Count {
     static OneOrMore: Count = new Count(CountEnum.OneOrMore);

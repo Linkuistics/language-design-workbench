@@ -11,6 +11,8 @@ export class Visitor {
     }
 
     visitRule(node: Model.Rule): void {
+        if (node.annotation != undefined) {
+        }
         node.versionAnnotations.forEach((x) => {
             this.visitVersionAnnotation(x);
         });
@@ -47,14 +49,11 @@ export class Visitor {
     visitRuleBody(node: Model.RuleBody): void {
         if (node instanceof Model.ChoiceRule) {
             this.visitChoiceRule(node);
-        }
-        if (node instanceof Model.SequenceRule) {
+        } else if (node instanceof Model.SequenceRule) {
             this.visitSequenceRule(node);
-        }
-        if (node instanceof Model.EnumRule) {
+        } else if (node instanceof Model.EnumRule) {
             this.visitEnumRule(node);
-        }
-        if (node instanceof Model.SeparatedByRule) {
+        } else if (node instanceof Model.SeparatedByRule) {
             this.visitSeparatedByRule(node);
         }
     }
@@ -74,14 +73,17 @@ export class Visitor {
     visitRuleElement(node: Model.RuleElement): void {
         if (node instanceof Model.CountedRuleElement) {
             this.visitCountedRuleElement(node);
-        }
-        if (node instanceof Model.NegativeLookahead) {
+        } else if (node instanceof Model.NegativeLookahead) {
             this.visitNegativeLookahead(node);
         }
     }
 
     visitCountedRuleElement(node: Model.CountedRuleElement): void {
+        if (node.label != undefined) {
+        }
         this.visitCountableRuleElement(node.countableRuleElement);
+        if (node.count != undefined) {
+        }
         node.versionAnnotations.forEach((x) => {
             this.visitVersionAnnotation(x);
         });
@@ -90,55 +92,61 @@ export class Visitor {
     visitCountableRuleElement(node: Model.CountableRuleElement): void {
         if (node instanceof Model.RuleReference) {
             this.visitRuleReference(node);
-        }
-        if (node instanceof Model.StringElement) {
+        } else if (node instanceof Model.StringElement) {
             this.visitStringElement(node);
-        }
-        if (node instanceof Model.CharSet) {
+        } else if (node instanceof Model.CharSet) {
             this.visitCharSet(node);
-        }
-        if (node instanceof Model.AnyElement) {
+        } else if (node instanceof Model.AnyElement) {
             this.visitAnyElement(node);
-        }
-        if (node instanceof Model.ChoiceRule) {
+        } else if (node instanceof Model.ChoiceRule) {
             this.visitRuleBody(node);
-        }
-        if (node instanceof Model.SequenceRule) {
+        } else if (node instanceof Model.SequenceRule) {
             this.visitRuleBody(node);
-        }
-        if (node instanceof Model.EnumRule) {
+        } else if (node instanceof Model.EnumRule) {
             this.visitRuleBody(node);
-        }
-        if (node instanceof Model.SeparatedByRule) {
+        } else if (node instanceof Model.SeparatedByRule) {
             this.visitRuleBody(node);
         }
     }
 
-    visitRuleReference(node: Model.RuleReference): void {}
+    visitRuleReference(node: Model.RuleReference): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
-    visitStringElement(node: Model.StringElement): void {}
+    visitStringElement(node: Model.StringElement): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
-    visitCharSet(node: Model.CharSet): void {}
+    visitCharSet(node: Model.CharSet): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
-    visitAnyElement(node: Model.AnyElement): void {}
+    visitAnyElement(node: Model.AnyElement): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
     visitNegativeLookahead(node: Model.NegativeLookahead): void {
-        if (node instanceof Model.CharSet) {
-            this.visitCharSet(node);
-        }
-        if (node instanceof Model.StringElement) {
-            this.visitStringElement(node);
+        if (node.content instanceof Model.CharSet) {
+            this.visitCharSet(node.content);
+        } else if (node.content instanceof Model.StringElement) {
+            this.visitStringElement(node.content);
         }
     }
 
     visitTrivia(node: Model.Trivia): void {
         if (node instanceof Model.LineComment) {
             this.visitLineComment(node);
-        }
-        if (node instanceof Model.BlockComment) {
+        } else if (node instanceof Model.BlockComment) {
             this.visitBlockComment(node);
-        }
-        if (node instanceof Model.Whitespace) {
+        } else if (node instanceof Model.Whitespace) {
             this.visitWhitespace(node);
         }
     }
@@ -149,11 +157,18 @@ export class Visitor {
 
     visitWhitespace(node: Model.Whitespace): void {}
 
-    visitEnumRule(node: Model.EnumRule): void {}
+    visitEnumRule(node: Model.EnumRule): void {
+        if (node.field != undefined) {
+            this.visitField(node.field);
+        }
+    }
 
     visitSeparatedByRule(node: Model.SeparatedByRule): void {
         this.visitRuleElement(node.element);
     }
 
-    visitField(node: Model.Field): void {}
+    visitField(node: Model.Field): void {
+        if (node.name != undefined) {
+        }
+    }
 }

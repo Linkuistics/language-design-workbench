@@ -71,52 +71,56 @@ class TopLevelGenerator extends Visitor {
         this.output.writeLine('}');
     }
 
+    valueName: string = '';
+
     visitDefinition(definition: Definition): void {
         this.output.writeLine(
             `visit${pascalCase(definition.name)}(node: Model.${pascalCase(definition.name)}): void {`
         );
+        this.valueName = 'node';
         this.output.indentDuring(() => super.visitDefinition(definition));
         this.output.writeLine('}');
         this.output.writeLine();
     }
 
     visitSumType(sumType: SumType): void {
+        const dispatchers: string[] = [];
         sumType.members.forEach((member) => {
             if (member instanceof NamedTypeReference) {
                 const name = member.fqn[member.fqn.length - 1];
-                this.generateDispatcher(member, `this.visit${pascalCase(name)}(node);`);
+                this.accumulateDispatcher(member, dispatchers, `this.visit${pascalCase(name)}(${this.valueName});`);
             }
         });
+        this.output.join(dispatchers, ' else ', (dispatcher) => this.output.writeLine(dispatcher));
     }
 
-    generateDispatcher(type: NamedTypeReference, body: string) {
+    accumulateDispatcher(type: NamedTypeReference, dispatchers: string[], body: string) {
         const name = type.fqn[type.fqn.length - 1];
         const definition = this.visitableDefinitions.get(name);
         if (!definition) return;
         if (definition.type instanceof ProductType) {
-            this.output.writeLine(`if (node instanceof Model.${pascalCase(name)}) {`);
-            this.output.indentDuring(() => {
-                this.output.writeLine(body);
-            });
-            this.output.writeLine('}');
+            dispatchers.push(`if (${this.valueName} instanceof Model.${pascalCase(name)}) { ${body} }`);
         } else if (definition.type instanceof SumType) {
             definition.type.members.forEach((member) => {
                 if (member instanceof NamedTypeReference) {
-                    this.generateDispatcher(member, body);
+                    this.accumulateDispatcher(member, dispatchers, body);
                 }
             });
         }
     }
 
-    valueName: string = '';
-
     visitProductMember(productMember: ProductMember): void {
-        this.valueName = `node.${camelCase(productMember.name)}`;
+        const oldValueName = this.valueName;
+        this.valueName = `${this.valueName}.${camelCase(productMember.name)}`;
         this.visitType(productMember.type);
-        this.valueName = '';
+        this.valueName = oldValueName;
     }
 
-    visitOptionType(optionType: OptionType): void | OptionType {}
+    visitOptionType(optionType: OptionType): void | OptionType {
+        this.output.writeLine(`if (${this.valueName} != undefined) {`);
+        this.visitType(optionType.type);
+        this.output.writeLine(`}`);
+    }
 
     visitSequenceType(sequenceType: SequenceType): void | SequenceType {
         if (

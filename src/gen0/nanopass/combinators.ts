@@ -19,37 +19,30 @@ type ValidateNanopassChain<T extends NanopassTuple> = T extends []
             : never
         : never;
 
-type ChainInput<T extends NanopassTuple> = T extends [
-    Nanopass<infer I, any>,
-    ...any[]
-]
-    ? I
-    : never;
+type ChainInput<T extends NanopassTuple> = T extends [Nanopass<infer I, any>, ...any[]] ? I : never;
 
-type ChainOutput<T extends NanopassTuple> = T extends [
-    ...any[],
-    Nanopass<any, infer O>
-]
-    ? O
-    : never;
+type ChainOutput<T extends NanopassTuple> = T extends [...any[], Nanopass<any, infer O>] ? O : never;
 
 export function composePasses<T extends NanopassTuple>(
     ...passes: ValidateNanopassChain<T>
 ): Nanopass<ChainInput<T>, ChainOutput<T>> {
     return {
         transform: (input: ChainInput<T>): ChainOutput<T> => {
-            return passes.reduce(
-                (value, transformer) => transformer.transform(value),
-                input
-            ) as ChainOutput<T>;
+            return passes.reduce((value, transformer) => transformer.transform(value), input) as ChainOutput<T>;
         }
     };
 }
 
-export function repeatPass<T>(
-    count: number,
-    nanopass: Nanopass<T, T>
-): Nanopass<T, T> {
+export function dumpPassAsJSON<T>(): Nanopass<T, T> {
+    return {
+        transform: (input: T): T => {
+            console.log(JSON.stringify(input, null, 2));
+            return input;
+        }
+    };
+}
+
+export function repeatPass<T>(count: number, nanopass: Nanopass<T, T>): Nanopass<T, T> {
     return {
         transform: (input: T): T => {
             let output = input;
@@ -71,13 +64,10 @@ export function iterateUntilFixedPoint<T>(
             const initialOutput = nanopass.transform(input);
             let fixedPoint = nanopass.transform(initialOutput);
             let numberOfIterations = 1;
-            let fixedPointReached =
-                JSON.stringify(initialOutput) !== JSON.stringify(fixedPoint);
+            let fixedPointReached = JSON.stringify(initialOutput) !== JSON.stringify(fixedPoint);
             while (fixedPointReached && numberOfIterations < iterationLimit) {
                 fixedPoint = nanopass.transform(fixedPoint);
-                fixedPointReached =
-                    JSON.stringify(initialOutput) !==
-                    JSON.stringify(fixedPoint);
+                fixedPointReached = JSON.stringify(initialOutput) !== JSON.stringify(fixedPoint);
                 numberOfIterations++;
             }
             if (!fixedPointReached || logSuccesss) {
@@ -96,10 +86,7 @@ export function iterateUntilFixedPoint<T>(
     };
 }
 
-export function optionalPass<T>(
-    enable: boolean,
-    nanopass: Nanopass<T, T>
-): Nanopass<T, T> {
+export function optionalPass<T>(enable: boolean, nanopass: Nanopass<T, T>): Nanopass<T, T> {
     return {
         transform: (input: T): T => {
             if (enable) {

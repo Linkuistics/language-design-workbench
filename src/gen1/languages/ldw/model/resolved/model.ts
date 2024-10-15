@@ -1,18 +1,18 @@
 export enum Discriminator {
-    VoidType,
-    PrimitiveType,
-    EnumType,
-    SumType,
-    ProductType,
-    TupleType,
-    MapType,
-    SetType,
-    SequenceType,
-    OptionType,
-    NamedTypeReference,
-    Whitespace,
-    LineComment,
-    BlockComment
+    VoidType = 'VoidType',
+    PrimitiveType = 'PrimitiveType',
+    EnumType = 'EnumType',
+    SumType = 'SumType',
+    ProductType = 'ProductType',
+    TupleType = 'TupleType',
+    MapType = 'MapType',
+    SetType = 'SetType',
+    SequenceType = 'SequenceType',
+    OptionType = 'OptionType',
+    NamedTypeReference = 'NamedTypeReference',
+    Whitespace = 'Whitespace',
+    LineComment = 'LineComment',
+    BlockComment = 'BlockComment'
 }
 
 export class Model {
@@ -62,19 +62,19 @@ export function isVoidType(
 }
 
 export enum PrimitiveTypeEnum {
-    Boolean = 1,
-    Char = 2,
-    String = 3,
-    I8 = 4,
-    I16 = 5,
-    I32 = 6,
-    I64 = 7,
-    U8 = 8,
-    U16 = 9,
-    U32 = 10,
-    U64 = 11,
-    F32 = 12,
-    F64 = 13
+    Boolean = 'Boolean',
+    Char = 'Char',
+    String = 'String',
+    I8 = 'I8',
+    I16 = 'I16',
+    I32 = 'I32',
+    I64 = 'I64',
+    U8 = 'U8',
+    U16 = 'U16',
+    U32 = 'U32',
+    U64 = 'U64',
+    F32 = 'F32',
+    F64 = 'F64'
 }
 export class PrimitiveType {
     readonly discriminator = Discriminator.PrimitiveType;

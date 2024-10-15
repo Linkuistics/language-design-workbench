@@ -16,33 +16,11 @@ import { ParseError } from '../parsing/parseError';
 
 program.version('1.0.0').description('Language Design Workbench CLI');
 
-class IOError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'IOError';
-    }
-}
-
-class ValidationError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = 'ValidationError';
-    }
-}
-
 function handleError(error: unknown): never {
     if (error instanceof ParseError) {
         console.error(`Parse Error: ${error.toString()}`);
-    } else if (error instanceof IOError) {
-        console.error(`IO Error: ${error.message}`);
-    } else if (error instanceof SyntaxError) {
-        console.error(`Syntax Error: ${error.message}`);
-    } else if (error instanceof ValidationError) {
-        console.error(`Validation Error: ${error.message}`);
-    } else if (error instanceof Error) {
-        console.error(`Error: ${error.message}`);
     } else {
-        console.error('An unknown error occurred:', error);
+        console.error(error);
     }
     process.exit(1);
 }

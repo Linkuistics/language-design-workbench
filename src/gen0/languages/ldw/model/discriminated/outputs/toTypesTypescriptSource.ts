@@ -70,7 +70,7 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
                     switch (definition.type.discriminator) {
                         case Discriminator.ProductType:
                         case Discriminator.EnumType:
-                            this.output.writeLine(`${pascalCase(definition.name)},`);
+                            this.output.writeLine(`${pascalCase(definition.name)} = '${pascalCase(definition.name)}',`);
                             break;
                         default:
                             break;
@@ -139,7 +139,7 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
             this.output.writeLine(`export enum ${pascalCase(definition.name)}Enum {`);
             this.output.indentDuring(() => {
                 this.output.join(enumType.members, ',\n', (member, index) => {
-                    this.output.write(`${pascalCase(member)} = ${index + 1}`);
+                    this.output.write(`${pascalCase(member)} = '${pascalCase(member)}'`);
                 });
                 this.output.writeLine();
             });
