@@ -81,51 +81,10 @@ export class Registry {
             const newContent = fs.readFileSync(newPath, 'utf-8');
             const newContentWithoutHeader = newContent.slice(newContent.indexOf('\n') + 1).trim();
 
-            // const newLines = newContentWithoutHeader.split('\n');
-            // const oldLines = oldContentWithoutHeader.split('\n');
-
-            // console.log(fqn, filename, 'old', oldLines[0]);
-            // console.log(fqn, filename, 'new', newLines[0]);
-
-            // let filesAreIdentical = true;
-
-            // if (newContentWithoutHeader.length !== oldContentWithoutHeader.length) {
-            //     console.log(
-            //         fqn,
-            //         filename,
-            //         'Length mismatch',
-            //         oldContentWithoutHeader.length,
-            //         newContentWithoutHeader.length
-            //     );
-            //     filesAreIdentical = false;
-            // }
-
-            // for (let i = 0; i < Math.min(newContentWithoutHeader.length, oldContentWithoutHeader.length); i++) {
-            //     if (newContentWithoutHeader[i] !== oldContentWithoutHeader[i]) {
-            //         console.log(
-            //             fqn,
-            //             filename,
-            //             'Content mismatch at',
-            //             i,
-            //             oldContentWithoutHeader[i],
-            //             newContentWithoutHeader[i]
-            //         );
-            //         filesAreIdentical = false;
-            //         break;
-            //     }
-            // }
-
             if (newContentWithoutHeader === oldContentWithoutHeader) {
-                // console.log('File strings are identical: ', fqn, filename);
                 fs.unlinkSync(newPath);
                 return;
             }
-
-            // if (filesAreIdentical) {
-            //     console.log('Files are identical: ', fqn, filename);
-            //     fs.unlinkSync(newPath);
-            //     return;
-            // }
 
             fs.unlinkSync(oldPath);
         }
