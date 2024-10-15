@@ -63,31 +63,74 @@ export class Registry {
 
     public async writeOutput(fqn: string, content: string, filename: string): Promise<void> {
         const outputPath = this.resolvePath(fqn, filename);
-        const contentWithHeader = this.addHeader(content);
-        const formattedContent = await this.formatContent(contentWithHeader, outputPath);
 
-        if (fs.existsSync(outputPath)) {
-            const existingContent = fs.readFileSync(outputPath, 'utf-8');
-            if (this.compareContents(existingContent, formattedContent)) {
+        const oldPath = path.join(path.dirname(outputPath), `${path.basename(outputPath)}`);
+
+        const newPath = path.join(path.dirname(outputPath), `new.${path.basename(outputPath)}`);
+        const header = `// Generated on ${new Date().toISOString()}\n`;
+        fs.writeFileSync(newPath, header + content);
+        await this.formatOutput(newPath);
+
+        if (fs.existsSync(oldPath)) {
+            const oldContent = fs.readFileSync(oldPath, 'utf-8');
+            const oldContentWithoutHeader = oldContent.startsWith('// Generated on')
+                ? oldContent.slice(oldContent.indexOf('\n') + 1).trim()
+                : oldContent.trim();
+
+            // We know the new content starts with '// Generated on' because we wrote it
+            const newContent = fs.readFileSync(newPath, 'utf-8');
+            const newContentWithoutHeader = newContent.slice(newContent.indexOf('\n') + 1).trim();
+
+            // const newLines = newContentWithoutHeader.split('\n');
+            // const oldLines = oldContentWithoutHeader.split('\n');
+
+            // console.log(fqn, filename, 'old', oldLines[0]);
+            // console.log(fqn, filename, 'new', newLines[0]);
+
+            // let filesAreIdentical = true;
+
+            // if (newContentWithoutHeader.length !== oldContentWithoutHeader.length) {
+            //     console.log(
+            //         fqn,
+            //         filename,
+            //         'Length mismatch',
+            //         oldContentWithoutHeader.length,
+            //         newContentWithoutHeader.length
+            //     );
+            //     filesAreIdentical = false;
+            // }
+
+            // for (let i = 0; i < Math.min(newContentWithoutHeader.length, oldContentWithoutHeader.length); i++) {
+            //     if (newContentWithoutHeader[i] !== oldContentWithoutHeader[i]) {
+            //         console.log(
+            //             fqn,
+            //             filename,
+            //             'Content mismatch at',
+            //             i,
+            //             oldContentWithoutHeader[i],
+            //             newContentWithoutHeader[i]
+            //         );
+            //         filesAreIdentical = false;
+            //         break;
+            //     }
+            // }
+
+            if (newContentWithoutHeader === oldContentWithoutHeader) {
+                // console.log('File strings are identical: ', fqn, filename);
+                fs.unlinkSync(newPath);
                 return;
             }
+
+            // if (filesAreIdentical) {
+            //     console.log('Files are identical: ', fqn, filename);
+            //     fs.unlinkSync(newPath);
+            //     return;
+            // }
+
+            fs.unlinkSync(oldPath);
         }
 
-        fs.writeFileSync(outputPath, formattedContent);
-    }
-
-    private addHeader(content: string): string {
-        const header = `// Generated on ${new Date().toISOString()} by ${hostname()} at ${process.cwd()}\n\n`;
-        return header + content;
-    }
-
-    private async formatContent(content: string, filePath: string): Promise<string> {
-        const tempPath = path.join(path.dirname(filePath), `.temp_${path.basename(filePath)}`);
-        fs.writeFileSync(tempPath, content);
-        await this.formatOutput(tempPath);
-        const formattedContent = fs.readFileSync(tempPath, 'utf-8');
-        fs.unlinkSync(tempPath);
-        return formattedContent;
+        fs.renameSync(newPath, oldPath);
     }
 
     private async formatOutput(filePath: string): Promise<void> {
@@ -97,20 +140,6 @@ export class Registry {
         } else if (ext === '.rs') {
             await execPromise(`rustfmt "${filePath}"`);
         }
-    }
-
-    private compareContents(existingContent: string, newContent: string): boolean {
-        const existingLines = existingContent.split('\n');
-        const newLines = newContent.split('\n');
-
-        if (existingLines.length < 2 || newLines.length < 2) {
-            return false;
-        }
-
-        const existingContentWithoutHeader = existingLines.slice(2).join('\n');
-        const newContentWithoutHeader = newLines.slice(2).join('\n');
-
-        return existingContentWithoutHeader.trim() === newContentWithoutHeader.trim();
     }
 
     public relativePathToModule(from: string, to: string): string {

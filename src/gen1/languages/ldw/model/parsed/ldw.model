@@ -1,5 +1,3 @@
-// Generated on 2024-10-15T13:55:36.789Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
-
 model ldw::model::parsed {
 
     Model = {
