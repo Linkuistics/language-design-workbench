@@ -1,13 +1,27 @@
+// Generated on 2024-10-15T17:26:45.278Z
 import * as Model from './model';
 
 export class Visitor {
     visitModel(node: Model.Model): void {
-        // if (node.parent) this.visitModel(node.parent);
-        node.definitions.forEach((x) => this.visitDefinition(x));
+        this.visitFqn(node.name);
+        if (node.parent != undefined) {
+            this.visitModel(node.parent);
+        }
+        node.definitions.forEach((x) => {
+            this.visitDefinition(x);
+        });
+    }
+
+    visitFqn(node: Model.Fqn): void {
+        node.forEach((x) => {});
     }
 
     visitDefinition(node: Model.Definition): void {
         this.visitType(node.type);
+        if (node.discriminationPeers != undefined) {
+        }
+        if (node.discriminationMembers != undefined) {
+        }
     }
 
     visitType(node: Model.Type): void {
@@ -21,9 +35,6 @@ export class Visitor {
             case Model.Discriminator.EnumType:
                 this.visitEnumType(node);
                 break;
-            case Model.Discriminator.NamedTypeReference:
-                this.visitNamedTypeReference(node);
-                break;
             case Model.Discriminator.SumType:
             case Model.Discriminator.ProductType:
             case Model.Discriminator.TupleType:
@@ -33,6 +44,9 @@ export class Visitor {
             case Model.Discriminator.OptionType:
                 this.visitTypeWithStructure(node);
                 break;
+            case Model.Discriminator.NamedTypeReference:
+                this.visitNamedTypeReference(node);
+                break;
         }
     }
 
@@ -40,7 +54,9 @@ export class Visitor {
 
     visitPrimitiveType(node: Model.PrimitiveType): void {}
 
-    visitEnumType(node: Model.EnumType): void {}
+    visitEnumType(node: Model.EnumType): void {
+        node.members.forEach((x) => {});
+    }
 
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
         switch (node.discriminator) {
@@ -119,5 +135,27 @@ export class Visitor {
         this.visitType(node.type);
     }
 
-    visitNamedTypeReference(node: Model.NamedTypeReference): void {}
+    visitNamedTypeReference(node: Model.NamedTypeReference): void {
+        this.visitFqn(node.fqn);
+    }
+
+    visitTrivia(node: Model.Trivia): void {
+        switch (node.discriminator) {
+            case Model.Discriminator.LineComment:
+                this.visitLineComment(node);
+                break;
+            case Model.Discriminator.BlockComment:
+                this.visitBlockComment(node);
+                break;
+            case Model.Discriminator.Whitespace:
+                this.visitWhitespace(node);
+                break;
+        }
+    }
+
+    visitWhitespace(node: Model.Whitespace): void {}
+
+    visitLineComment(node: Model.LineComment): void {}
+
+    visitBlockComment(node: Model.BlockComment): void {}
 }

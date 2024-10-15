@@ -16,6 +16,15 @@ class AnalyseSumTypes extends Visitor {
         super();
     }
 
+    modelDepth = 0;
+    visitModel(node: Out.Model): void {
+        if (this.modelDepth == 0) {
+            this.modelDepth++;
+            super.visitModel(node);
+            this.modelDepth--;
+        }
+    }
+
     visitDefinition(node: Out.Definition): void {
         if (node.type.discriminator === Out.Discriminator.SumType) {
             const nonterminalDefinitions = new Set<string>();

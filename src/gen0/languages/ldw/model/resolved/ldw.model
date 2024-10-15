@@ -7,8 +7,8 @@ model ldw::model::resolved modifies ldw::model::parsed {
         += definitions: map<string, Definition>
     ;
     
-    delete Deletion;
     delete MemberModification;
+    delete Deletion;
     delete MemberDeletion;
     delete MemberAddition;
     
