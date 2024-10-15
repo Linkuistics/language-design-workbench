@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T17:20:42.255Z
+// Generated on 2024-10-15T17:21:09.831Z
 export enum Discriminator {
     VoidType = 'VoidType',
     PrimitiveType = 'PrimitiveType',

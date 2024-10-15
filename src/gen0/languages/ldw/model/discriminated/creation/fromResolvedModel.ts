@@ -47,7 +47,7 @@ class AnalyseSumTypes extends Visitor {
         terminalDefinitions: Set<string>
     ): void {
         sumType.members.forEach((member) => {
-            if (member.discriminator !== In.Discriminator.NamedTypeReference) {
+            if (member.discriminator !== Out.Discriminator.NamedTypeReference) {
                 throw new Error('Not yet implemented: sum type discriminators on non-named types');
             }
 
@@ -61,7 +61,7 @@ class AnalyseSumTypes extends Visitor {
             }
 
             switch (definition.type.discriminator) {
-                case In.Discriminator.SumType:
+                case Out.Discriminator.SumType:
                     if (!nonterminalDefinitions.has(name)) {
                         nonterminalDefinitions.add(name);
                         this.collectDefinitionsReachableFromSumType(
@@ -71,8 +71,8 @@ class AnalyseSumTypes extends Visitor {
                         );
                     }
                     break;
-                case In.Discriminator.ProductType:
-                case In.Discriminator.EnumType:
+                case Out.Discriminator.ProductType:
+                case Out.Discriminator.EnumType:
                     if (!terminalDefinitions.has(name)) {
                         terminalDefinitions.add(name);
                     }
