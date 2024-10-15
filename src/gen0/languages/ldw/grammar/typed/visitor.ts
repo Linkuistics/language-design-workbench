@@ -1,3 +1,5 @@
+// Generated on 2024-10-15T13:20:35.874Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+
 import * as Model from './model';
 
 export class Visitor {
@@ -138,6 +140,22 @@ export class Visitor {
             this.visitStringElement(node.content);
         }
     }
+
+    visitTrivia(node: Model.Trivia): void {
+        if (node instanceof Model.LineComment) {
+            this.visitLineComment(node);
+        } else if (node instanceof Model.BlockComment) {
+            this.visitBlockComment(node);
+        } else if (node instanceof Model.Whitespace) {
+            this.visitWhitespace(node);
+        }
+    }
+
+    visitLineComment(node: Model.LineComment): void {}
+
+    visitBlockComment(node: Model.BlockComment): void {}
+
+    visitWhitespace(node: Model.Whitespace): void {}
 
     visitEnumRule(node: Model.EnumRule): void {
         if (node.field != undefined) {

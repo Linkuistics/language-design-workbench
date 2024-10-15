@@ -50,13 +50,11 @@ export class Transformer {
     }
 
     transformRuleAnnotation(input: In.RuleAnnotation): Out.RuleAnnotation {
-        switch (input) {
-            case In.RuleAnnotation.NoSkip:
+        switch (input.value) {
+            case In.RuleAnnotationEnum.NoSkip:
                 return Out.RuleAnnotation.NoSkip;
-            case In.RuleAnnotation.Atomic:
+            case In.RuleAnnotationEnum.Atomic:
                 return Out.RuleAnnotation.Atomic;
-            default:
-                throw new Error('Unexpected rule annotation');
         }
     }
 
@@ -79,17 +77,15 @@ export class Transformer {
     }
 
     transformPrattOperatorType(input: In.PrattOperatorType): Out.PrattOperatorType {
-        switch (input) {
-            case In.PrattOperatorType.Prefix:
+        switch (input.value) {
+            case In.PrattOperatorTypeEnum.Prefix:
                 return Out.PrattOperatorType.Prefix;
-            case In.PrattOperatorType.Postfix:
+            case In.PrattOperatorTypeEnum.Postfix:
                 return Out.PrattOperatorType.Postfix;
-            case In.PrattOperatorType.Left:
+            case In.PrattOperatorTypeEnum.Left:
                 return Out.PrattOperatorType.Left;
-            case In.PrattOperatorType.Right:
+            case In.PrattOperatorTypeEnum.Right:
                 return Out.PrattOperatorType.Right;
-            default:
-                throw new Error('Unexpected pratt operator type');
         }
     }
 
@@ -161,26 +157,22 @@ export class Transformer {
     }
 
     transformVersionAnnotationType(input: In.VersionAnnotationType): Out.VersionAnnotationType {
-        switch (input) {
-            case In.VersionAnnotationType.Enabled:
+        switch (input.value) {
+            case In.VersionAnnotationTypeEnum.Enabled:
                 return Out.VersionAnnotationType.Enabled;
-            case In.VersionAnnotationType.Disabled:
+            case In.VersionAnnotationTypeEnum.Disabled:
                 return Out.VersionAnnotationType.Disabled;
-            default:
-                throw new Error('Unexpected version annotation type');
         }
     }
 
     transformCount(input: In.Count): Out.Count {
-        switch (input) {
-            case In.Count.OneOrMore:
+        switch (input.value) {
+            case In.CountEnum.OneOrMore:
                 return Out.Count.OneOrMore;
-            case In.Count.ZeroOrMore:
+            case In.CountEnum.ZeroOrMore:
                 return Out.Count.ZeroOrMore;
-            case In.Count.Optional:
+            case In.CountEnum.Optional:
                 return Out.Count.Optional;
-            default:
-                throw new Error('Unexpected count');
         }
     }
 }

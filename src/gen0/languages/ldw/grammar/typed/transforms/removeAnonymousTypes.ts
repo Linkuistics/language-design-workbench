@@ -38,8 +38,8 @@ class TypeRemover extends ModelVisitor {
     visitEnumType(enumType: EnumType): void | Type {
         if (this.depth > 1) {
             let name = `${this.baseName}_${this.definitions.length}`;
-            this.definitions.push(new Definition(name, enumType));
-            return new NamedTypeReference([name]);
+            this.definitions.push(new Definition({ name, type: enumType }));
+            return new NamedTypeReference({ fqn: [name] });
         }
     }
 
@@ -47,16 +47,16 @@ class TypeRemover extends ModelVisitor {
         if (this.depth > 1) {
             console.log('Removing internal SumType', this.baseName, sumType);
             let name = `${this.baseName}_${this.definitions.length}`;
-            this.definitions.push(new Definition(name, sumType));
-            return new NamedTypeReference([name]);
+            this.definitions.push(new Definition({ name, type: sumType }));
+            return new NamedTypeReference({ fqn: [name] });
         }
     }
 
     visitProductType(productType: ProductType): void | Type {
         if (this.depth > 1) {
             let name = `${this.baseName}_${this.definitions.length}`;
-            this.definitions.push(new Definition(name, productType));
-            return new NamedTypeReference([name]);
+            this.definitions.push(new Definition({ name, type: productType }));
+            return new NamedTypeReference({ fqn: [name] });
         }
     }
 }

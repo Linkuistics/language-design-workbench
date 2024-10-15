@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T13:20:33.758Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+// Generated on 2024-10-15T13:26:55.243Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
 
 export enum Discriminator {
     ChoiceRule = 'ChoiceRule',
