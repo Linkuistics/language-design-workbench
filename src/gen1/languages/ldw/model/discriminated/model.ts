@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T13:13:01.342Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+// Generated on 2024-10-15T13:20:40.661Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
 
 export enum Discriminator {
     VoidType = 'VoidType',

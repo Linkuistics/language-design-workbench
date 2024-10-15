@@ -44,8 +44,8 @@ export class Transformer {
         return new Out.Rule({
             name: input.name,
             body: this.transformRuleBody(input.body),
-            annotation: input.annotation,
-            versionAnnotations: input.versionAnnotations
+            annotation: input.annotation && this.transformRuleAnnotation(input.annotation),
+            versionAnnotations: input.versionAnnotations.map((a) => this.transformVersionAnnotation(a))
         });
     }
 
@@ -54,13 +54,13 @@ export class Transformer {
             name: input.name,
             operators: input.operators.map((o) => this.transformPrattOperator(o)),
             primary: this.transformPrattPrimary(input.primary),
-            versionAnnotations: input.versionAnnotations
+            versionAnnotations: input.versionAnnotations.map((a) => this.transformVersionAnnotation(a))
         });
     }
 
     transformPrattOperator(input: In.PrattOperator): Out.PrattOperator {
         return new Out.PrattOperator({
-            type: input.type,
+            type: this.transformPrattOperatorType(input.type),
             name: input.name,
             body: this.transformRuleBody(input.body),
             versionAnnotations: input.versionAnnotations
@@ -90,8 +90,8 @@ export class Transformer {
         return new Out.CountedRuleElement({
             countableRuleElement: this.transformCountableRuleElement(input.countableRuleElement),
             label: input.label,
-            count: input.count,
-            versionAnnotations: input.versionAnnotations
+            count: input.count && this.transformCount(input.count),
+            versionAnnotations: input.versionAnnotations.map((a) => this.transformVersionAnnotation(a))
         });
     }
 
@@ -131,5 +131,54 @@ export class Transformer {
 
     transformAnyElement(input: In.AnyElement): Out.AnyElement {
         return new Out.AnyElement();
+    }
+
+    transformCount(input: In.Count): Out.Count {
+        switch (input.value) {
+            case In.CountEnum.OneOrMore:
+                return Out.Count.OneOrMore;
+            case In.CountEnum.ZeroOrMore:
+                return Out.Count.ZeroOrMore;
+            case In.CountEnum.Optional:
+                return Out.Count.Optional;
+        }
+    }
+
+    transformRuleAnnotation(input: In.RuleAnnotation): Out.RuleAnnotation {
+        switch (input.value) {
+            case In.RuleAnnotationEnum.NoSkip:
+                return Out.RuleAnnotation.NoSkip;
+            case In.RuleAnnotationEnum.Atomic:
+                return Out.RuleAnnotation.Atomic;
+        }
+    }
+
+    transformVersionAnnotationType(input: In.VersionAnnotationType): Out.VersionAnnotationType {
+        switch (input.value) {
+            case In.VersionAnnotationTypeEnum.Enabled:
+                return Out.VersionAnnotationType.Enabled;
+            case In.VersionAnnotationTypeEnum.Disabled:
+                return Out.VersionAnnotationType.Disabled;
+        }
+    }
+
+    transformPrattOperatorType(input: In.PrattOperatorType): Out.PrattOperatorType {
+        switch (input.value) {
+            case In.PrattOperatorTypeEnum.Prefix:
+                return Out.PrattOperatorType.Prefix;
+            case In.PrattOperatorTypeEnum.Postfix:
+                return Out.PrattOperatorType.Postfix;
+            case In.PrattOperatorTypeEnum.Left:
+                return Out.PrattOperatorType.Left;
+            case In.PrattOperatorTypeEnum.Right:
+                return Out.PrattOperatorType.Right;
+        }
+    }
+
+    transformVersionAnnotation(input: In.VersionAnnotation): Out.VersionAnnotation {
+        return new Out.VersionAnnotation({
+            type: this.transformVersionAnnotationType(input.type),
+            version: input.version
+        });
     }
 }

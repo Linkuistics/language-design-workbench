@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T13:12:59.855Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
+// Generated on 2024-10-15T13:20:39.333Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
 
 import * as Model from './model';
 
