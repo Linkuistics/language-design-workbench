@@ -1,20 +1,29 @@
+// Generated on 2024-10-15T17:18:16.268Z
 import * as Model from './model';
 
 export class Visitor {
     visitModel(node: Model.Model): void {
+        this.visitFqn(node.name);
+        if (node.parentName != undefined) {
+            this.visitFqn(node.parentName);
+        }
         node.values.forEach((x) => {
             switch (x.discriminator) {
-                case Model.Discriminator.Definition:
-                    this.visitDefinition(x);
-                    break;
                 case Model.Discriminator.Deletion:
                     this.visitDeletion(x);
                     break;
-                default:
+                case Model.Discriminator.MemberModification:
                     this.visitMemberModification(x);
+                    break;
+                case Model.Discriminator.Definition:
+                    this.visitDefinition(x);
                     break;
             }
         });
+    }
+
+    visitFqn(node: Model.Fqn): void {
+        node.forEach((x) => {});
     }
 
     visitDefinition(node: Model.Definition): void {
@@ -29,7 +38,7 @@ export class Visitor {
                 case Model.Discriminator.MemberDeletion:
                     this.visitMemberDeletion(x);
                     break;
-                default:
+                case Model.Discriminator.MemberAddition:
                     this.visitMemberAddition(x);
                     break;
             }
@@ -43,7 +52,17 @@ export class Visitor {
             case Model.Discriminator.ProductMember:
                 this.visitProductMember(node.value);
                 break;
-            default:
+            case Model.Discriminator.VoidType:
+            case Model.Discriminator.PrimitiveType:
+            case Model.Discriminator.EnumType:
+            case Model.Discriminator.SumType:
+            case Model.Discriminator.ProductType:
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
+            case Model.Discriminator.NamedTypeReference:
                 this.visitType(node.value);
                 break;
         }
@@ -60,9 +79,6 @@ export class Visitor {
             case Model.Discriminator.EnumType:
                 this.visitEnumType(node);
                 break;
-            case Model.Discriminator.NamedTypeReference:
-                this.visitNamedTypeReference(node);
-                break;
             case Model.Discriminator.SumType:
             case Model.Discriminator.ProductType:
             case Model.Discriminator.TupleType:
@@ -72,6 +88,9 @@ export class Visitor {
             case Model.Discriminator.OptionType:
                 this.visitTypeWithStructure(node);
                 break;
+            case Model.Discriminator.NamedTypeReference:
+                this.visitNamedTypeReference(node);
+                break;
         }
     }
 
@@ -79,7 +98,9 @@ export class Visitor {
 
     visitPrimitiveType(node: Model.PrimitiveType): void {}
 
-    visitEnumType(node: Model.EnumType): void {}
+    visitEnumType(node: Model.EnumType): void {
+        node.members.forEach((x) => {});
+    }
 
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
         switch (node.discriminator) {
@@ -158,5 +179,27 @@ export class Visitor {
         this.visitType(node.type);
     }
 
-    visitNamedTypeReference(node: Model.NamedTypeReference): void {}
+    visitNamedTypeReference(node: Model.NamedTypeReference): void {
+        this.visitFqn(node.fqn);
+    }
+
+    visitTrivia(node: Model.Trivia): void {
+        switch (node.discriminator) {
+            case Model.Discriminator.LineComment:
+                this.visitLineComment(node);
+                break;
+            case Model.Discriminator.BlockComment:
+                this.visitBlockComment(node);
+                break;
+            case Model.Discriminator.Whitespace:
+                this.visitWhitespace(node);
+                break;
+        }
+    }
+
+    visitWhitespace(node: Model.Whitespace): void {}
+
+    visitLineComment(node: Model.LineComment): void {}
+
+    visitBlockComment(node: Model.BlockComment): void {}
 }

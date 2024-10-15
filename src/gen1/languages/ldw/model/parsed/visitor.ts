@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T15:21:51.641Z
+// Generated on 2024-10-15T17:18:16.268Z
 import * as Model from './model';
 
 export class Visitor {
@@ -7,9 +7,24 @@ export class Visitor {
         if (node.parentName != undefined) {
             this.visitFqn(node.parentName);
         }
+        node.values.forEach((x) => {
+            switch (x.discriminator) {
+                case Model.Discriminator.Deletion:
+                    this.visitDeletion(x);
+                    break;
+                case Model.Discriminator.MemberModification:
+                    this.visitMemberModification(x);
+                    break;
+                case Model.Discriminator.Definition:
+                    this.visitDefinition(x);
+                    break;
+            }
+        });
     }
 
-    visitFqn(node: Model.Fqn): void {}
+    visitFqn(node: Model.Fqn): void {
+        node.forEach((x) => {});
+    }
 
     visitDefinition(node: Model.Definition): void {
         this.visitType(node.type);
@@ -17,79 +32,91 @@ export class Visitor {
 
     visitDeletion(node: Model.Deletion): void {}
 
-    visitMemberModification(node: Model.MemberModification): void {}
+    visitMemberModification(node: Model.MemberModification): void {
+        node.values.forEach((x) => {
+            switch (x.discriminator) {
+                case Model.Discriminator.MemberDeletion:
+                    this.visitMemberDeletion(x);
+                    break;
+                case Model.Discriminator.MemberAddition:
+                    this.visitMemberAddition(x);
+                    break;
+            }
+        });
+    }
 
     visitMemberDeletion(node: Model.MemberDeletion): void {}
 
     visitMemberAddition(node: Model.MemberAddition): void {
-        if (node.value instanceof Model.ProductMember) {
-            this.visitProductMember(node.value);
-        } else if (node.value instanceof Model.VoidType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.EnumType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.SumType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.ProductType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.TupleType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.MapType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.SetType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.SequenceType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.OptionType) {
-            this.visitType(node.value);
-        } else if (node.value instanceof Model.NamedTypeReference) {
-            this.visitType(node.value);
+        switch (node.value.discriminator) {
+            case Model.Discriminator.ProductMember:
+                this.visitProductMember(node.value);
+                break;
+            case Model.Discriminator.VoidType:
+            case Model.Discriminator.PrimitiveType:
+            case Model.Discriminator.EnumType:
+            case Model.Discriminator.SumType:
+            case Model.Discriminator.ProductType:
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
+            case Model.Discriminator.NamedTypeReference:
+                this.visitType(node.value);
+                break;
         }
     }
 
     visitType(node: Model.Type): void {
-        if (node instanceof Model.VoidType) {
-            this.visitVoidType(node);
-        } else if (node instanceof Model.EnumType) {
-            this.visitEnumType(node);
-        } else if (node instanceof Model.SumType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.ProductType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.TupleType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.MapType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.SetType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.SequenceType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.OptionType) {
-            this.visitTypeWithStructure(node);
-        } else if (node instanceof Model.NamedTypeReference) {
-            this.visitNamedTypeReference(node);
+        switch (node.discriminator) {
+            case Model.Discriminator.VoidType:
+                this.visitVoidType(node);
+                break;
+            case Model.Discriminator.PrimitiveType:
+                this.visitPrimitiveType(node);
+                break;
+            case Model.Discriminator.EnumType:
+                this.visitEnumType(node);
+                break;
+            case Model.Discriminator.SumType:
+            case Model.Discriminator.ProductType:
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
+                this.visitTypeWithStructure(node);
+                break;
+            case Model.Discriminator.NamedTypeReference:
+                this.visitNamedTypeReference(node);
+                break;
         }
     }
 
     visitVoidType(node: Model.VoidType): void {}
 
-    visitEnumType(node: Model.EnumType): void {}
+    visitPrimitiveType(node: Model.PrimitiveType): void {}
+
+    visitEnumType(node: Model.EnumType): void {
+        node.members.forEach((x) => {});
+    }
 
     visitTypeWithStructure(node: Model.TypeWithStructure): void {
-        if (node instanceof Model.SumType) {
-            this.visitSumType(node);
-        } else if (node instanceof Model.ProductType) {
-            this.visitProductType(node);
-        } else if (node instanceof Model.TupleType) {
-            this.visitGenericType(node);
-        } else if (node instanceof Model.MapType) {
-            this.visitGenericType(node);
-        } else if (node instanceof Model.SetType) {
-            this.visitGenericType(node);
-        } else if (node instanceof Model.SequenceType) {
-            this.visitGenericType(node);
-        } else if (node instanceof Model.OptionType) {
-            this.visitGenericType(node);
+        switch (node.discriminator) {
+            case Model.Discriminator.SumType:
+                this.visitSumType(node);
+                break;
+            case Model.Discriminator.ProductType:
+                this.visitProductType(node);
+                break;
+            case Model.Discriminator.TupleType:
+            case Model.Discriminator.MapType:
+            case Model.Discriminator.SetType:
+            case Model.Discriminator.SequenceType:
+            case Model.Discriminator.OptionType:
+                this.visitGenericType(node);
+                break;
         }
     }
 
@@ -110,16 +137,22 @@ export class Visitor {
     }
 
     visitGenericType(node: Model.GenericType): void {
-        if (node instanceof Model.TupleType) {
-            this.visitTupleType(node);
-        } else if (node instanceof Model.MapType) {
-            this.visitMapType(node);
-        } else if (node instanceof Model.SetType) {
-            this.visitSetType(node);
-        } else if (node instanceof Model.SequenceType) {
-            this.visitSequenceType(node);
-        } else if (node instanceof Model.OptionType) {
-            this.visitOptionType(node);
+        switch (node.discriminator) {
+            case Model.Discriminator.TupleType:
+                this.visitTupleType(node);
+                break;
+            case Model.Discriminator.MapType:
+                this.visitMapType(node);
+                break;
+            case Model.Discriminator.SetType:
+                this.visitSetType(node);
+                break;
+            case Model.Discriminator.SequenceType:
+                this.visitSequenceType(node);
+                break;
+            case Model.Discriminator.OptionType:
+                this.visitOptionType(node);
+                break;
         }
     }
 
@@ -151,12 +184,16 @@ export class Visitor {
     }
 
     visitTrivia(node: Model.Trivia): void {
-        if (node instanceof Model.LineComment) {
-            this.visitLineComment(node);
-        } else if (node instanceof Model.BlockComment) {
-            this.visitBlockComment(node);
-        } else if (node instanceof Model.Whitespace) {
-            this.visitWhitespace(node);
+        switch (node.discriminator) {
+            case Model.Discriminator.LineComment:
+                this.visitLineComment(node);
+                break;
+            case Model.Discriminator.BlockComment:
+                this.visitBlockComment(node);
+                break;
+            case Model.Discriminator.Whitespace:
+                this.visitWhitespace(node);
+                break;
         }
     }
 

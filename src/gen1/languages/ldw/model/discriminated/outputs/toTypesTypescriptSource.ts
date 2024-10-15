@@ -5,7 +5,6 @@ import {
     Definition,
     Discriminator,
     EnumType,
-    Fqn,
     MapType,
     Model,
     NamedTypeReference,
@@ -16,28 +15,47 @@ import {
     SetType,
     SumType,
     TupleType,
+    Type,
     VoidType
 } from '../model';
 import { Visitor } from '../visitor';
-import { hostname } from 'os';
 
-export class ParsedModelToTypesTypescriptSource extends Visitor {
+export class ParsedModelToTypesTypescriptSource {
     private output: IndentingOutputStream;
 
-    constructor(
-        public registry: Registry,
-        public useGenerics: boolean
-    ) {
-        super();
+    constructor(public registry: Registry) {
         this.output = new IndentingOutputStream();
     }
 
     transform(model: Model): string {
-        this.visitModel(model);
+        this.importForeignReferences(model);
+
+        this.generateDiscriminatorEnum(model);
+
+        model.definitions.forEach((definition) => {
+            switch (definition.type.discriminator) {
+                case Discriminator.SumType:
+                    this.generateSumDefinition(definition, definition.type);
+                    break;
+                case Discriminator.ProductType:
+                    this.generateProductDefinition(definition, definition.type);
+                    break;
+                case Discriminator.EnumType:
+                    this.generateEnumDefinition(definition, definition.type);
+                    break;
+                default:
+                    this.output.write(`export type ${pascalCase(definition.name)} = `);
+                    this.generateType(definition.type);
+                    this.output.writeLine(';');
+                    break;
+            }
+            this.output.writeLine();
+        });
+
         return this.output.toString().trim();
     }
 
-    visitModel(node: Model): void {
+    importForeignReferences(model: Model) {
         const foreignReferences = new Map<string, string>();
         new (class extends Visitor {
             visitNamedTypeReference(node: NamedTypeReference): void {
@@ -47,9 +65,9 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
                     foreignReferences.set(namespace, module);
                 }
             }
-        })().visitModel(node);
+        })().visitModel(model);
 
-        const modelFQN = node.name.join('::');
+        const modelFQN = model.name.join('::');
         for (const [namespace, module] of foreignReferences) {
             const modulePath = this.registry.relativePathToModule(modelFQN, module);
             this.output.writeLine(`import * as ${namespace} from '${modulePath}/model';`);
@@ -58,15 +76,12 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
         if (foreignReferences.size > 0) {
             this.output.writeLine();
         }
+    }
 
-        if (this.useGenerics) {
-            this.output.writeLine('type Option<T> = T | undefined;');
-            this.output.writeLine();
-        }
-
+    generateDiscriminatorEnum(model: Model) {
         this.output.writeLine('export enum Discriminator {');
         this.output.indentDuring(() => {
-            node.definitions.forEach((definition) => {
+            model.definitions.forEach((definition) => {
                 if (definition.discriminationPeers) {
                     switch (definition.type.discriminator) {
                         case Discriminator.ProductType:
@@ -81,114 +96,96 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
         });
         this.output.writeLine('}');
         this.output.writeLine();
-
-        super.visitModel(node);
     }
 
-    visitDefinition(definition: Definition) {
-        if (definition.type instanceof ProductType) {
-            const productType = definition.type as ProductType;
-            this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
-            this.output.indentDuring(() => {
-                if (definition.discriminationPeers) {
-                    this.output.writeLine(`readonly discriminator = Discriminator.${pascalCase(definition.name)};`);
-                    this.output.writeLine();
-                }
-                productType.members.forEach((member) => {
-                    this.output.write(`public ${camelCase(member.name)}: `);
-                    this.visitType(member.type);
-                    this.output.writeLine(';');
-                });
-                this.output.writeLine();
-                if (productType.members.length > 0) {
-                    this.output.writeLine('constructor(init: {');
-                    this.output.indentDuring(() => {
-                        this.output.join(productType.members, ',\n', (member) => {
-                            const opt = member.type.discriminator === Discriminator.OptionType ? '?' : '';
-                            this.output.write(`${camelCase(member.name)}${opt}: `);
-                            this.visitType(member.type);
-                        });
-                        this.output.writeLine();
-                    });
-                    this.output.writeLine('}) {');
-                    this.output.indentDuring(() => {
-                        productType.members.forEach((member) => {
-                            this.output.writeLine(`this.${camelCase(member.name)} = init.${camelCase(member.name)};`);
-                        });
-                    });
-                    this.output.writeLine('}');
-                }
+    generateSumDefinition(definition: Definition, sumType: SumType) {
+        this.output.write(`export type ${pascalCase(definition.name)} = `);
+        this.generateType(sumType);
+        this.output.writeLine(';');
+
+        this.generateDiscriminatorFunction(definition);
+    }
+
+    generateProductDefinition(definition: Definition, productType: ProductType) {
+        this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
+        this.output.indentDuring(() => {
+            this.generateDiscriminatorField(definition);
+
+            productType.members.forEach((member) => {
+                this.output.write(`public ${camelCase(member.name)}: `);
+                this.generateType(member.type);
+                this.output.writeLine(';');
             });
-            this.output.writeLine('}');
-            if (definition.discriminationPeers) {
-                const values = [...definition.discriminationPeers.values()];
-                const valueType = values.map((value) => pascalCase(value)).join(' | ');
-                this.output.writeLine(
-                    `export function is${pascalCase(definition.name)}(value: ${valueType} ): value is ${pascalCase(
-                        definition.name
-                    )} {`
-                );
+            this.output.writeLine();
+            if (productType.members.length > 0) {
+                this.output.writeLine('constructor(init: {');
                 this.output.indentDuring(() => {
-                    this.output.writeLine(
-                        `return value.discriminator === Discriminator.${pascalCase(definition.name)};`
-                    );
+                    this.output.join(productType.members, ',\n', (member) => {
+                        const opt = member.type.discriminator === Discriminator.OptionType ? '?' : '';
+                        this.output.write(`${camelCase(member.name)}${opt}: `);
+                        this.generateType(member.type);
+                    });
+                    this.output.writeLine();
+                });
+                this.output.writeLine('}) {');
+                this.output.indentDuring(() => {
+                    productType.members.forEach((member) => {
+                        this.output.writeLine(`this.${camelCase(member.name)} = init.${camelCase(member.name)};`);
+                    });
                 });
                 this.output.writeLine('}');
             }
-        } else if (definition.type instanceof EnumType) {
-            const enumType = definition.type as EnumType;
-            this.output.writeLine(`export enum ${pascalCase(definition.name)}Enum {`);
-            this.output.indentDuring(() => {
-                this.output.join(enumType.members, ',\n', (member, index) => {
-                    this.output.write(`${pascalCase(member)} = '${pascalCase(member)}'`);
-                });
-                this.output.writeLine();
+        });
+        this.output.writeLine('}');
+
+        this.generateDiscriminatorFunction(definition);
+    }
+
+    generateEnumDefinition(definition: Definition, enumType: EnumType) {
+        this.output.writeLine(`export enum ${pascalCase(definition.name)}Enum {`);
+        this.output.indentDuring(() => {
+            this.output.join(enumType.members, ',\n', (member, index) => {
+                this.output.write(`${pascalCase(member)} = '${pascalCase(member)}'`);
             });
-            this.output.writeLine('}');
-            this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
-            this.output.indentDuring(() => {
-                if (definition.discriminationPeers) {
-                    this.output.writeLine(`readonly discriminator = Discriminator.${pascalCase(definition.name)};`);
-                    this.output.writeLine();
-                }
-                enumType.members.forEach((member) => {
-                    this.output.writeLine(
-                        `static ${pascalCase(member)}: ${pascalCase(definition.name)} = new ${pascalCase(definition.name)}(${pascalCase(definition.name)}Enum.${pascalCase(member)});`
-                    );
-                });
-                this.output.writeLine();
+            this.output.writeLine();
+        });
+        this.output.writeLine('}');
+
+        this.output.writeLine(`export class ${pascalCase(definition.name)} {`);
+        this.output.indentDuring(() => {
+            this.generateDiscriminatorField(definition);
+
+            enumType.members.forEach((member) => {
                 this.output.writeLine(
-                    `private constructor(public readonly value: ${pascalCase(definition.name)}Enum) {}`
+                    `static ${pascalCase(member)}: ${pascalCase(definition.name)} = new ${pascalCase(definition.name)}(${pascalCase(definition.name)}Enum.${pascalCase(member)});`
                 );
             });
-            this.output.writeLine('}');
-            if (definition.discriminationPeers) {
-                const values = [...definition.discriminationPeers.values()];
-                const valueType = values.map((value) => pascalCase(value)).join(' | ');
-                this.output.writeLine(
-                    `export function is${pascalCase(definition.name)}(value: ${valueType} ): value is ${pascalCase(
-                        definition.name
-                    )} {`
-                );
-                this.output.indentDuring(() => {
-                    this.output.writeLine(
-                        `return value.discriminator === Discriminator.${pascalCase(definition.name)};`
-                    );
-                });
-                this.output.writeLine('}');
-            }
-        } else if (definition.type instanceof SumType) {
-            this.output.write(`export type ${pascalCase(definition.name)} = `);
-            this.visitType(definition.type);
-            this.output.writeLine(';');
-            if (definition.discriminationPeers) {
-                const values = [...definition.discriminationPeers.values()];
-                const valueType = values.map((value) => pascalCase(value)).join(' | ');
-                this.output.writeLine(
-                    `export function is${pascalCase(definition.name)}(value: ${valueType} ): value is ${pascalCase(
-                        definition.name
-                    )} {`
-                );
+            this.output.writeLine();
+            this.output.writeLine(`private constructor(public readonly value: ${pascalCase(definition.name)}Enum) {}`);
+        });
+        this.output.writeLine('}');
+
+        this.generateDiscriminatorFunction(definition);
+    }
+
+    generateDiscriminatorField(definition: Definition) {
+        if (definition.discriminationPeers) {
+            this.output.writeLine(`readonly discriminator = Discriminator.${pascalCase(definition.name)};`);
+            this.output.writeLine();
+        }
+    }
+
+    generateDiscriminatorFunction(definition: Definition) {
+        if (definition.discriminationPeers) {
+            const values = [...definition.discriminationPeers.values()];
+            const valueType = values.map((value) => pascalCase(value)).join(' | ');
+            this.output.writeLine(
+                `export function is${pascalCase(definition.name)}(value: ${valueType} ): value is ${pascalCase(
+                    definition.name
+                )} {`
+            );
+
+            if (definition.discriminationMembers) {
                 this.output.indentDuring(() => {
                     this.output.writeLine('switch (value.discriminator) {');
                     this.output.indentDuring(() => {
@@ -205,14 +202,25 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
                     });
                     this.output.writeLine('}');
                 });
-                this.output.writeLine('}');
+            } else {
+                this.output.indentDuring(() => {
+                    this.output.writeLine(
+                        `return value.discriminator === Discriminator.${pascalCase(definition.name)};`
+                    );
+                });
             }
-        } else {
-            this.output.write(`export type ${pascalCase(definition.name)} = `);
-            this.visitType(definition.type);
-            this.output.writeLine(';');
+            this.output.writeLine('}');
         }
-        this.output.writeLine();
+    }
+
+    generateType(type: Type) {
+        new TypeGenerator(this.output).visitType(type);
+    }
+}
+
+class TypeGenerator extends Visitor {
+    constructor(public output: IndentingOutputStream) {
+        super();
     }
 
     visitVoidType(voidType: VoidType) {
@@ -278,31 +286,19 @@ export class ParsedModelToTypesTypescriptSource extends Visitor {
     }
 
     visitSequenceType(sequenceType: SequenceType) {
-        if (this.useGenerics) {
-            this.output.write('Array<');
+        if (sequenceType.elementType instanceof OptionType || sequenceType.elementType instanceof SumType) {
+            this.output.write('(');
             this.visitType(sequenceType.elementType);
-            this.output.write('>');
+            this.output.write(')');
         } else {
-            if (sequenceType.elementType instanceof OptionType || sequenceType.elementType instanceof SumType) {
-                this.output.write('(');
-                this.visitType(sequenceType.elementType);
-                this.output.write(')');
-            } else {
-                this.visitType(sequenceType.elementType);
-            }
-            this.output.write('[]');
+            this.visitType(sequenceType.elementType);
         }
+        this.output.write('[]');
     }
 
     visitOptionType(optionType: OptionType) {
-        if (this.useGenerics) {
-            this.output.write('Option<');
-            this.visitType(optionType.type);
-            this.output.write('>');
-        } else {
-            this.visitType(optionType.type);
-            this.output.write(' | undefined');
-        }
+        this.visitType(optionType.type);
+        this.output.write(' | undefined');
     }
 
     visitNamedTypeReference(namedTypeReference: NamedTypeReference) {

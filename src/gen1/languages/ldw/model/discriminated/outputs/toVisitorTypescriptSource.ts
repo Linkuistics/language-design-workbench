@@ -3,6 +3,8 @@ import pluralize from 'pluralize';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
 import {
     Definition,
+    Discriminator,
+    EnumType,
     MapType,
     Model,
     NamedTypeReference,
@@ -33,6 +35,8 @@ class TopLevelGenerator extends Visitor {
             if (definition.type instanceof ProductType) {
                 this.visitableDefinitions.set(definition.name, definition);
             } else if (definition.type instanceof SumType) {
+                this.visitableDefinitions.set(definition.name, definition);
+            } else if (definition.type instanceof EnumType) {
                 this.visitableDefinitions.set(definition.name, definition);
             }
         });
@@ -85,34 +89,36 @@ class TopLevelGenerator extends Visitor {
     }
 
     visitSumType(sumType: SumType): void {
-        const dispatchers: string[] = [];
-        sumType.members.forEach((member) => {
-            if (member instanceof NamedTypeReference) {
-                const name = member.fqn[member.fqn.length - 1];
-                this.accumulateDispatcher(member, dispatchers, `this.visit${pascalCase(name)}(${this.valueName});`);
-            }
-        });
-        this.output.join(dispatchers, ' else ', (dispatcher) => this.output.writeLine(dispatcher));
-    }
-
-    accumulateDispatcher(type: NamedTypeReference, dispatchers: string[], body: string) {
-        const name = type.fqn[type.fqn.length - 1];
-        const definition = this.visitableDefinitions.get(name);
-        if (!definition) return;
-        if (definition.type instanceof ProductType) {
-            dispatchers.push(`if (${this.valueName} instanceof Model.${pascalCase(name)}) { ${body} }`);
-        } else if (definition.type instanceof SumType) {
-            definition.type.members.forEach((member) => {
+        this.output.writeLine(`switch (${this.valueName}.discriminator) {`);
+        this.output.indentDuring(() => {
+            sumType.members.forEach((member) => {
                 if (member instanceof NamedTypeReference) {
-                    this.accumulateDispatcher(member, dispatchers, body);
+                    const name = member.fqn[member.fqn.length - 1];
+                    const definition = this.definitions.get(name)!;
+                    if (definition.discriminationMembers) {
+                        definition.discriminationMembers.forEach((member) => {
+                            this.output.writeLine(`case Model.Discriminator.${pascalCase(member)}:`);
+                        });
+                    } else {
+                        this.output.writeLine(`case Model.Discriminator.${pascalCase(name)}:`);
+                    }
+                    this.output.indentDuring(() => {
+                        this.output.writeLine(`this.visit${pascalCase(name)}(${this.valueName});`);
+                        this.output.writeLine(`break`);
+                    });
                 }
             });
-        }
+        });
+        this.output.writeLine(`}`);
     }
 
     visitProductMember(productMember: ProductMember): void {
         const oldValueName = this.valueName;
-        this.valueName = `${this.valueName}.${camelCase(productMember.name)}`;
+        if (productMember.type.discriminator === Discriminator.SequenceType) {
+            this.valueName = `${this.valueName}.${pluralize(camelCase(productMember.name))}`;
+        } else {
+            this.valueName = `${this.valueName}.${camelCase(productMember.name)}`;
+        }
         this.visitType(productMember.type);
         this.valueName = oldValueName;
     }
@@ -124,19 +130,19 @@ class TopLevelGenerator extends Visitor {
     }
 
     visitSequenceType(sequenceType: SequenceType): void | SequenceType {
-        if (
-            sequenceType.elementType instanceof NamedTypeReference &&
-            this.visitableDefinitions.has(sequenceType.elementType.fqn[sequenceType.elementType.fqn.length - 1])
-        ) {
-            this.output.writeLine(`${pluralize(this.valueName)}.forEach(x => {`);
-            let oldValueName = this.valueName;
-            this.valueName = 'x';
-            this.output.indentDuring(() => {
-                this.visitType(sequenceType.elementType);
-            });
-            this.valueName = oldValueName;
-            this.output.writeLine(`})`);
-        }
+        // if (
+        //     sequenceType.elementType instanceof NamedTypeReference &&
+        //     this.visitableDefinitions.has(sequenceType.elementType.fqn[sequenceType.elementType.fqn.length - 1])
+        // ) {
+        this.output.writeLine(`${this.valueName}.forEach(x => {`);
+        let oldValueName = this.valueName;
+        this.valueName = 'x';
+        this.output.indentDuring(() => {
+            this.visitType(sequenceType.elementType);
+        });
+        this.valueName = oldValueName;
+        this.output.writeLine(`})`);
+        // }
     }
 
     visitMapType(mapType: MapType): void | MapType {

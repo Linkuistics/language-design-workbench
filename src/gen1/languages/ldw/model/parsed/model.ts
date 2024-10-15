@@ -1,4 +1,4 @@
-// Generated on 2024-10-15T15:21:51.243Z
+// Generated on 2024-10-15T15:44:01.648Z
 export enum Discriminator {
     Definition = 'Definition',
     Deletion = 'Deletion',

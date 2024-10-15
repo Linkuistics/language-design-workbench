@@ -87,9 +87,7 @@ program
             const discriminatedModel = passes.transform(modelSource);
 
             if (isTypescript) {
-                const typesSource = new ParsedModelToTypesTypescriptSource(registry, options.generics).transform(
-                    discriminatedModel
-                );
+                const typesSource = new ParsedModelToTypesTypescriptSource(registry).transform(discriminatedModel);
                 await registry.writeOutput(options.name, typesSource, 'model.ts');
 
                 const visitorSource = new ParsedModelToVisitorTypescriptSource().transform(discriminatedModel);
