@@ -8,6 +8,7 @@
  * functionality.
  */
 
+import { Builder, Stack } from './builder';
 import { InputStream, LineAndColumn } from './inputStream';
 
 export type ParseFailure = {
@@ -40,6 +41,8 @@ export abstract class Parser implements InputStream {
     /** Whether to skip trivia or not (true by default) */
     private skipTriviaEnabled: boolean = true;
     private debugEnabled: boolean;
+
+    builder: Builder = new Builder();
 
     /**
      * Creates a new Parser instance.
@@ -87,14 +90,18 @@ export abstract class Parser implements InputStream {
 
     skipSeq(predicate: () => boolean): boolean {
         const position = this.getPosition();
+        const depth = this.builder.depth();
         if (predicate()) return true;
+        this.builder.prune(depth);
         this.restorePosition(this.getPosition());
         return false;
     }
 
     skipNegativeLookahead(predicate: () => boolean): boolean {
         const position = this.getPosition();
+        const depth = this.builder.depth();
         if (predicate()) {
+            this.builder.prune(depth);
             this.restorePosition(position);
             return false;
         }
@@ -103,6 +110,50 @@ export abstract class Parser implements InputStream {
 
     makeString(from: number, to: number): string {
         return this.input.makeString(from, to);
+    }
+
+    buildBoolean(label: string | undefined, parser: () => boolean): boolean {
+        if (!parser()) return false;
+        this.builder.push(label, true);
+        return true;
+    }
+
+    buildString(label: string | undefined, parser: () => boolean): boolean {
+        const pos = this.getPosition();
+        if (!parser()) return false;
+        this.builder.push(label, this.makeString(pos, this.getPosition()));
+        return true;
+    }
+
+    buildStringObject<T>(
+        label: string | undefined,
+        factory: { new (init: { value: string }): T },
+        parser: () => boolean
+    ): boolean {
+        const pos = this.getPosition();
+        if (!parser()) return false;
+        this.builder.push(label, new factory({ value: this.makeString(pos, this.getPosition()) }));
+        return true;
+    }
+
+    buildEnum<T>(label: string | undefined, ...values: [string, T][]): boolean {
+        for (const [text, value] of values) {
+            if (this.skipString(text)) {
+                this.builder.push(label, value);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    buildObject<T>(label: string | undefined, buildFunction: (stack: Stack) => T, parser: () => boolean): boolean {
+        const depth = this.builder.depth();
+        if (parser()) {
+            this.builder.create(depth, label, buildFunction);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

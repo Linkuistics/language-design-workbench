@@ -1,8 +1,11 @@
-import { pascalCase } from 'literal-case';
+import { camelCase, pascalCase } from 'literal-case';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
 import * as Model from '../model';
 import { Visitor } from '../visitor';
 import * as LdwModelParsed from '../../../model/parsed/model';
+import { assert } from 'console';
+import { typeAsTypescript } from '../../../model/parsed/typescript';
+import { singular } from 'pluralize';
 
 export class GrammarWithTypesToParserTypescriptSource {
     transform(grammar: Model.Grammar): string {
@@ -14,6 +17,7 @@ export class GrammarWithTypesToParserTypescriptSource {
         output.writeLine("import { InputStream } from './src/gen0/parsing/inputStream';");
         output.writeLine("import * as Model from './src/gen0/languages/ldw/grammar/parsed/model';");
         output.writeLine("import { Parser, ParseResult } from './src/gen0/parsing/parser';");
+        output.writeLine("import * as Builder from './src/gen0/parsing/builder';");
         output.writeLine();
         output.writeLine(`export class ${pascalCase(grammar.names[grammar.names.length - 1])}Parser extends Parser {`);
 
@@ -21,7 +25,7 @@ export class GrammarWithTypesToParserTypescriptSource {
             output.writeLine('consumeTrivia(): string | undefined { return undefined }');
             output.writeLine('consumeIdentifierForKeyword(): string | undefined { return undefined }');
             output.writeLine();
-            // parserGenerator.visitGrammar(grammar);
+            parserGenerator.visitGrammar(grammar);
             lexerGenerator.visitGrammar(grammar);
         });
 
@@ -37,7 +41,68 @@ export class GrammarWithTypesToParserTypescriptSource {
 
         output.writeLine('}');
 
+        grammar.rules.forEach((rule) => {
+            generateBuildFunction(rule, output);
+        });
+
         return output.toString().trim();
+    }
+}
+
+function generateBuildFunction(rule: Model.Rule, output: IndentingOutputStream): void {
+    if (rule.annotation === Model.RuleAnnotation.Atomic) return;
+
+    const ruleName = pascalCase(rule.name);
+
+    switch (rule.type.discriminator) {
+        case LdwModelParsed.Discriminator.SequenceType:
+            output.writeLine(
+                `function build${ruleName}(stack: Builder.Stack): Model.${ruleName} { return stack.map(x => x.value) }`
+            );
+            output.writeLine();
+            break;
+        case LdwModelParsed.Discriminator.ProductType:
+            output.writeLine(`function build${ruleName}(stack: Builder.Stack): Model.${ruleName} {`);
+            if (rule.type.members.length === 0) {
+                output.writeLine(`return new Model.${ruleName}()`);
+            } else {
+                rule.type.members.forEach((member) => {
+                    if (LdwModelParsed.isSequenceType(member.type)) {
+                        output.writeLine(
+                            `let ${camelCase(member.name)}: ${typeAsTypescript(member.type, 'Model.')} = [];`
+                        );
+                    } else {
+                        output.writeLine(`let ${camelCase(member.name)}: ${typeAsTypescript(member.type, 'Model.')};`);
+                    }
+                });
+                output.writeLine(`for (const x of stack) { switch (x.label) {`);
+                rule.type.members.forEach((member) => {
+                    output.writeLine(`case '${singular(camelCase(member.name))}':`);
+                    if (LdwModelParsed.isSequenceType(member.type)) {
+                        const elementType = member.type.elementType;
+                        output.writeLine(
+                            `${camelCase(member.name)}.push(x.value as ${typeAsTypescript(elementType, 'Model.')});`
+                        );
+                    } else {
+                        output.writeLine(
+                            `${camelCase(member.name)} = x.value as ${typeAsTypescript(member.type, 'Model.')};`
+                        );
+                    }
+                    output.writeLine('break');
+                });
+                output.writeLine(`default: break`);
+                output.writeLine(`}}`);
+                output.writeLine(`return new Model.${ruleName}({`);
+                rule.type.members.forEach((member) => {
+                    output.writeLine(`${camelCase(member.name)}: ${camelCase(member.name)}!,`);
+                });
+                output.writeLine(`})`);
+            }
+            output.writeLine(`}`);
+            output.writeLine();
+            break;
+        default:
+            break;
     }
 }
 
@@ -46,125 +111,40 @@ class ParserGenerator extends Visitor {
         super();
     }
 
+    useLabelParameter = false;
+    ruleName: string = '';
+
     visitRule(rule: Model.Rule): void {
         if (rule.annotation === Model.RuleAnnotation.Atomic) return;
 
-        const methodName = `parse${pascalCase(rule.name)}`;
-        this.output.writeLine(`${methodName}(): ParseResult<Model.${pascalCase(rule.name)}> {`);
+        this.ruleName = pascalCase(rule.name);
+        this.useLabelParameter = false;
+
+        this.output.writeLine(`parse${this.ruleName}(label: string | undefined): boolean {`);
         this.output.indentDuring(() => {
-            if (rule.annotation === Model.RuleAnnotation.NoSkip) {
-                this.output.writeLine('return this.ignoreTriviaDuring(() => {');
-                this.output.indentDuring(() => {
-                    super.visitRule(rule);
-                });
-                this.output.writeLine('});');
-            } else {
-                super.visitRule(rule);
+            switch (rule.type.discriminator) {
+                case LdwModelParsed.Discriminator.NamedTypeReference:
+                case LdwModelParsed.Discriminator.SumType:
+                    this.output.write(`return `);
+                    this.useLabelParameter = true;
+                    this.visitRuleBody(rule.body);
+                    break;
+                case LdwModelParsed.Discriminator.SequenceType:
+                case LdwModelParsed.Discriminator.ProductType:
+                    this.output.write(`return this.buildObject(label, build${this.ruleName}, () => `);
+                    this.visitRuleBody(rule.body);
+                    this.output.writeLine(`)`);
+                    break;
+                case LdwModelParsed.Discriminator.EnumType:
+                    this.output.writeLine(`return this.buildEnum(label,`);
+                    this.output.join(rule.type.members, ',', (member) => {
+                        this.output.writeLine(`[ '${member}', Model.${this.ruleName}.${pascalCase(member)} ]`);
+                    });
+                    this.output.writeLine(`)`);
+                    break;
+                default:
+                    throw new Error(`Not yet implemented: rule type discriminator ${rule.type.discriminator}`);
             }
-        });
-        this.output.writeLine('}');
-        this.output.writeLine();
-    }
-
-    visitCountedRuleElement(node: Model.CountedRuleElement): void {
-        switch (node.count) {
-            case Model.Count.OneOrMore:
-                this.output.writeLine(`return this.oneOrMore(() => {`);
-                this.output.indentDuring(() => {
-                    super.visitCountedRuleElement(node);
-                });
-                this.output.writeLine('});');
-                break;
-            case Model.Count.ZeroOrMore:
-                this.output.writeLine(`return this.zeroOrMore(() => {`);
-                this.output.indentDuring(() => {
-                    super.visitCountedRuleElement(node);
-                });
-                this.output.writeLine('});');
-                break;
-            case Model.Count.Optional:
-                this.output.writeLine(`return this.maybe(() => {`);
-                this.output.indentDuring(() => {
-                    super.visitCountedRuleElement(node);
-                });
-                this.output.writeLine('});');
-                break;
-            default:
-                super.visitCountedRuleElement(node);
-        }
-    }
-
-    visitChoiceRule(node: Model.ChoiceRule): void {
-        this.output.writeLine('/* Choice */');
-    }
-
-    visitEnumRule(node: Model.EnumRule): void {
-        this.output.writeLine('/* Enum */');
-    }
-
-    visitSeparatedByRule(node: Model.SeparatedByRule): void {
-        this.output.writeLine('/* SeparatedBy */');
-    }
-
-    visitRuleReference(node: Model.RuleReference): void {
-        this.output.writeLine(`const result = this.parse${pascalCase(node.names[node.names.length - 1])}();`);
-        this.output.writeLine(`if (!result.success) return result;`);
-    }
-
-    visitStringElement(node: Model.StringElement): void {
-        this.output.writeLine(`const result = this.mustConsumeString('${node.value}');`);
-        this.output.writeLine(`if (!result.success) return result;`);
-    }
-
-    visitNegativeLookahead(node: Model.NegativeLookahead): void {
-        throw new Error('Not implemented - negative lookahead in non-atomic rule');
-    }
-
-    visitCharSet(node: Model.CharSet): void {
-        throw new Error('Not implemented - char set in non-atomic rule');
-    }
-
-    visitAnyElement(node: Model.AnyElement): void {
-        throw new Error('Not implemented - any element in non-atomic rule');
-    }
-}
-
-class LexerGenerator extends Visitor {
-    tempCount = 0;
-
-    constructor(public output: IndentingOutputStream) {
-        super();
-    }
-
-    visitRule(rule: Model.Rule): void {
-        if (rule.annotation !== Model.RuleAnnotation.Atomic) return;
-
-        const name = pascalCase(rule.name);
-
-        this.tempCount = 0;
-
-        this.output.writeLine(`lex${name}(): boolean {`);
-        this.output.indentDuring(() => {
-            this.output.write('return ');
-            super.visitRule(rule);
-        });
-        this.output.writeLine('}');
-        this.output.writeLine();
-
-        this.output.writeLine(`parse${name}(): ParseResult<Model.${name}> {`);
-        this.output.indentDuring(() => {
-            this.output.writeLine('const start = this.getPosition();');
-            this.output.writeLine(`return this.lex${name}()`);
-            this.output.indentDuring(() => {
-                if (LdwModelParsed.isPrimitiveType(rule.type)) {
-                    this.output.writeLine(`? this.success(this.makeString(start, this.input.getPosition()))`);
-                } else {
-                    this.output.writeLine(
-                        `? this.success(new Model.${name}({ value: this.makeString(start, this.input.getPosition()) }))`
-                    );
-                }
-                this.output.writeLine(`: this.failure("Failed to lex a ${name}");`);
-            });
         });
         this.output.writeLine('}');
         this.output.writeLine();
@@ -181,20 +161,22 @@ class LexerGenerator extends Visitor {
     }
 
     visitChoiceRule(node: Model.ChoiceRule): void {
+        // Opportunity to join CharSet children
         this.output.writeLine(`(`);
         this.output.join(node.choices, ' || ', (choice) => this.visitSequenceRule(choice));
         this.output.writeLine(`)`);
     }
 
     visitEnumRule(node: Model.EnumRule): void {
-        throw new Error('Not implemented - enum in atomic rule');
+        throw new Error('Not implemented');
     }
 
     visitSeparatedByRule(node: Model.SeparatedByRule): void {
-        throw new Error('Not implemented - separatedBy in atomic rule');
+        throw new Error('Not implemented');
     }
 
     visitCountedRuleElement(node: Model.CountedRuleElement): void {
+        // Oportunity to lift CharSet children
         switch (node.count) {
             case Model.Count.OneOrMore:
                 this.output.writeLine('this.skipOneOrMore(() => ');
@@ -216,10 +198,127 @@ class LexerGenerator extends Visitor {
         }
     }
 
+    visitRuleReference(node: Model.RuleReference): void {
+        if (node.field) {
+            if (this.useLabelParameter) {
+                this.output.writeLine(`this.parse${pascalCase(node.names[node.names.length - 1])}(label)`);
+            } else {
+                this.output.writeLine(
+                    `this.parse${pascalCase(node.names[node.names.length - 1])}('${camelCase(node.field.name!)}')`
+                );
+            }
+        } else {
+            this.output.writeLine(`this.lex${pascalCase(node.names[node.names.length - 1])}()`);
+        }
+    }
+
+    visitStringElement(node: Model.StringElement): void {
+        let text = node.value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        if (node.field) {
+            this.output.writeLine(
+                `this.buildBoolean('${camelCase(node.field.name!)}', () => this.skipString('${text}'))`
+            );
+        } else {
+            this.output.writeLine(`this.skipString('${text}')`);
+        }
+    }
+
+    visitCharSet(node: Model.CharSet): void {
+        // TODO: lots of opportunity to optimise for specific regex forms
+        const regex = charSetToRegex(node);
+        if (node.field) {
+            this.output.writeLine(`this.buildString('${camelCase(node.field.name!)}', () => this.skipRegex(${regex}))`);
+            this.output.writeLine(`)`);
+        } else {
+            this.output.writeLine(`this.skipRegex(${regex})`);
+        }
+    }
+
+    visitAnyElement(node: Model.AnyElement): void {
+        throw new Error('Not implemented');
+    }
+
     visitNegativeLookahead(node: Model.NegativeLookahead): void {
-        this.output.write('this.skipNegativeLookahead(() =>');
-        super.visitNegativeLookahead(node);
-        this.output.write(')');
+        throw new Error('Not implemented');
+    }
+}
+
+class LexerGenerator extends Visitor {
+    constructor(public output: IndentingOutputStream) {
+        super();
+    }
+
+    visitRule(rule: Model.Rule): void {
+        if (rule.annotation !== Model.RuleAnnotation.Atomic) return;
+
+        const name = pascalCase(rule.name);
+
+        this.output.writeLine(`parse${name}(label: string | undefined): boolean {`);
+        this.output.indentDuring(() => {
+            if (LdwModelParsed.isPrimitiveType(rule.type)) {
+                this.output.writeLine(`return this.buildString(label, () => this.lex${name}())`);
+            } else {
+                this.output.writeLine(`return this.buildStringOnject(label, Model.${name}, () => this.lex${name}())`);
+            }
+        });
+        this.output.writeLine('}');
+        this.output.writeLine();
+
+        this.output.writeLine(`lex${name}(): boolean {`);
+        this.output.indentDuring(() => {
+            this.output.write('return ');
+            super.visitRule(rule);
+        });
+        this.output.writeLine('}');
+        this.output.writeLine();
+    }
+
+    visitSequenceRule(node: Model.SequenceRule): void {
+        if (node.elements.length === 1) {
+            this.visitRuleElement(node.elements[0]);
+        } else {
+            this.output.writeLine(`this.skipSeq(() => `);
+            this.output.join(node.elements, ' && ', (element) => this.visitRuleElement(element));
+            this.output.writeLine(`)`);
+        }
+    }
+
+    visitChoiceRule(node: Model.ChoiceRule): void {
+        // Oportunity to join CharSet children
+        this.output.writeLine(`(`);
+        this.output.join(node.choices, ' || ', (choice) => this.visitSequenceRule(choice));
+        this.output.writeLine(`)`);
+    }
+
+    visitEnumRule(node: Model.EnumRule): void {
+        throw new Error('Not implemented');
+    }
+
+    visitSeparatedByRule(node: Model.SeparatedByRule): void {
+        throw new Error('Not implemented');
+    }
+
+    visitCountedRuleElement(node: Model.CountedRuleElement): void {
+        // Oportunity to lift CharSet children
+        switch (node.count) {
+            case Model.Count.OneOrMore:
+                this.output.writeLine('this.skipOneOrMore(() => ');
+                super.visitCountedRuleElement(node);
+                this.output.writeLine(')');
+                break;
+            case Model.Count.ZeroOrMore:
+                this.output.writeLine('this.skipZeroOrMore(() => ');
+                super.visitCountedRuleElement(node);
+                this.output.writeLine(')');
+                break;
+            case Model.Count.Optional:
+                this.output.writeLine('this.skipOptional(() => ');
+                super.visitCountedRuleElement(node);
+                this.output.writeLine(')');
+                break;
+            default:
+                super.visitCountedRuleElement(node);
+        }
     }
 
     visitRuleReference(node: Model.RuleReference): void {
@@ -233,8 +332,15 @@ class LexerGenerator extends Visitor {
     }
 
     visitCharSet(node: Model.CharSet): void {
+        // TODO: lots of opportunity to optimise for specific regex forms
         const regex = charSetToRegex(node);
         this.output.writeLine(`this.skipRegex(${regex})`);
+    }
+
+    visitNegativeLookahead(node: Model.NegativeLookahead): void {
+        this.output.write('this.skipNegativeLookahead(() =>');
+        super.visitNegativeLookahead(node);
+        this.output.write(')');
     }
 
     visitAnyElement(node: Model.AnyElement): void {
@@ -243,7 +349,7 @@ class LexerGenerator extends Visitor {
 }
 
 function charSetToRegex(charSet: Model.CharSet): string {
-    let regex = charSet.negated ? '/^[^' : '/^[';
+    let regex = charSet.negated ? '/[^' : '/[';
     for (let i = 0; i < charSet.startChars.length; i++) {
         const startChar = charSet.startChars[i];
         const endChar = charSet.endChars[i];
@@ -256,266 +362,3 @@ function charSetToRegex(charSet: Model.CharSet): string {
     regex += ']/';
     return regex;
 }
-
-// class ParserGenerator {
-//     constructor(public grammar: Model.Grammar) {}
-
-//     generateParseMethod(rule: Model.Rule, debug: boolean): string {
-//         const methodName = `parse${capitalize(rule.name)}`;
-//         let methodBody = generateRuleBody(rule.body, debug);
-
-//         if (rule.annotation) {
-//             methodBody = wrapWithAnnotation(methodBody, rule.annotation);
-//         }
-
-//         if (rule.versionAnnotations.length > 0) {
-//             methodBody = wrapWithVersionAnnotations(methodBody, rule.versionAnnotations);
-//         }
-
-//         return `
-//         ${methodName}(): ParseResult<Model.${rule.name}> {
-//             let result: ParseResult<Model.${rule.name}>;
-//             ${methodBody}
-//             return result;
-//         }
-//     `;
-//     }
-
-//     generateRuleBody(
-//         ruleBody: Model.SequenceRule | Model.ChoiceRule | Model.EnumRule | Model.SeparatedByRule,
-//         debug: boolean
-//     ): string {
-//         switch (ruleBody.discriminator) {
-//             case Model.Discriminator.SequenceRule:
-//                 return generateSequenceRuleBody(ruleBody as Model.SequenceRule, debug);
-//             case Model.Discriminator.ChoiceRule:
-//                 return generateChoiceRuleBody(ruleBody as Model.ChoiceRule, debug);
-//             case Model.Discriminator.EnumRule:
-//                 return generateEnumRuleBody(ruleBody as Model.EnumRule, debug);
-//             case Model.Discriminator.SeparatedByRule:
-//                 return generateSeparatedByRuleBody(ruleBody as Model.SeparatedByRule, debug);
-//         }
-//     }
-
-//     generateSequenceRuleBody(sequenceRule: Model.SequenceRule, debug: boolean): string {
-//         let body = '';
-//         let declarations = '';
-//         let constructorArgs = [];
-
-//         for (const element of sequenceRule.elements) {
-//             const { declaration, parsing, argName } = generateElementParsing(element, debug);
-//             declarations += declaration;
-//             body += parsing;
-//             if (argName) {
-//                 constructorArgs.push(argName);
-//             }
-//         }
-
-//         body += `result = this.success(new Model.SequenceRule({ ${constructorArgs.join(', ')} }));`;
-//         return declarations + body;
-//     }
-
-//     generateChoiceRuleBody(choiceRule: Model.ChoiceRule, debug: boolean): string {
-//         const alternatives = choiceRule.choices
-//             .map(
-//                 (choice, index) => `() => {
-//             ${generateElementParsing(choice, debug).parsing}
-//             return result;
-//         }`
-//             )
-//             .join(',');
-
-//         return `result = this.firstAlternative('choice_rule', ${alternatives});`;
-//     }
-
-//     generateEnumRuleBody(enumRule: Model.EnumRule, debug: boolean): string {
-//         const alternatives = enumRule.members
-//             .map(
-//                 (member) => `() => {
-//             const memberResult = this.mustConsumeString('${member}');
-//             if (memberResult.success) {
-//                 return this.success(${JSON.stringify(member)});
-//             }
-//             return memberResult;
-//         }`
-//             )
-//             .join(',');
-
-//         return `result = this.firstAlternative('enum_rule', ${alternatives});`;
-//     }
-
-//     generateSeparatedByRuleBody(separatedByRule: Model.SeparatedByRule, debug: boolean): string {
-//         const { parsing: elementParsing } = generateElementParsing(separatedByRule.element, debug);
-//         const { parsing: separatorParsing } = generateElementParsing(separatedByRule.separator, debug);
-
-//         return `
-//         const elements: any[] = [];
-//         let firstElement = ${elementParsing};
-//         if (!firstElement.success) {
-//             result = firstElement;
-//         } else {
-//             elements.push(firstElement.value);
-
-//             while (true) {
-//                 const startPos = this.getPosition();
-//                 const separatorResult = ${separatorParsing};
-//                 if (!separatorResult.success) {
-//                     this.restorePosition(startPos);
-//                     break;
-//                 }
-//                 const nextElement = ${elementParsing};
-//                 if (!nextElement.success) {
-//                     this.restorePosition(startPos);
-//                     break;
-//                 }
-//                 elements.push(nextElement.value);
-//             }
-
-//             result = this.success(new Model.SeparatedByRule({ elements }));
-//         }
-//     `;
-//     }
-
-//     generateElementParsing(
-//         element: Model.RuleElement | Model.CountableRuleElement,
-//         debug: boolean
-//     ): { declaration: string; parsing: string; argName?: string } {
-//         switch (element.discriminator) {
-//             case Model.Discriminator.CountedRuleElement:
-//                 return generateCountedElementParsing(element as Model.CountedRuleElement, debug);
-//             case Model.Discriminator.RuleReference:
-//                 const ruleRef = element as Model.RuleReference;
-//                 const argName = ruleRef.names[0].toLowerCase();
-//                 return {
-//                     declaration: `let ${argName}: any;`,
-//                     parsing: `${argName} = this.parse${capitalize(ruleRef.names[0])}();`,
-//                     argName
-//                 };
-//             case Model.Discriminator.StringElement:
-//                 const stringElem = element as Model.StringElement;
-//                 return {
-//                     declaration: '',
-//                     parsing: `this.mustConsumeString('${stringElem.value}');`
-//                 };
-//             case Model.Discriminator.CharSet:
-//                 const charSet = element as Model.CharSet;
-//                 return {
-//                     declaration: '',
-//                     parsing: `this.mustConsumeRegex(${charSetToRegex(charSet)});`
-//                 };
-//             case Model.Discriminator.AnyElement:
-//                 return {
-//                     declaration: '',
-//                     parsing: `this.consumeAny();`
-//                 };
-//             case Model.Discriminator.NegativeLookahead:
-//                 const negLookahead = element as Model.NegativeLookahead;
-//                 const { parsing: contentParsing } = generateElementParsing(negLookahead.content, debug);
-//                 return {
-//                     declaration: '',
-//                     parsing: `
-//                     const startPos = this.getPosition();
-//                     const lookaheadResult = ${contentParsing};
-//                     this.restorePosition(startPos);
-//                     if (lookaheadResult.success) {
-//                         return this.failure('Negative lookahead failed');
-//                     }
-//                 `
-//                 };
-//             default:
-//                 throw new Error(`Unsupported element type: ${(element as any).discriminator}`);
-//         }
-//     }
-
-//     generateCountedElementParsing(
-//         countedElement: Model.CountedRuleElement,
-//         debug: boolean
-//     ): { declaration: string; parsing: string; argName?: string } {
-//         const { countableRuleElement, count } = countedElement;
-//         const { declaration, parsing, argName } = generateElementParsing(countableRuleElement, debug);
-//         let wrappedParsing = '';
-
-//         switch (count) {
-//             case Model.Count.Optional:
-//                 wrappedParsing = `this.maybe(() => { ${parsing} });`;
-//                 break;
-//             case Model.Count.ZeroOrMore:
-//                 wrappedParsing = `this.zeroOrMore(() => { ${parsing} });`;
-//                 break;
-//             case Model.Count.OneOrMore:
-//                 wrappedParsing = `this.oneOrMore(() => { ${parsing} });`;
-//                 break;
-//             default:
-//                 wrappedParsing = parsing;
-//         }
-
-//         return { declaration, parsing: wrappedParsing, argName };
-//     }
-
-//     generateTriviaHandlingMethods(triviaRule: Model.Rule, debug: boolean): string {
-//         return `
-//     protected consumeTrivia(): string | undefined {
-//         return this.parseTrivia()?.constructor.name;
-//     }
-
-//     private parseTrivia(): Model.Trivia | undefined {
-//         let result: ParseResult<Model.Trivia>;
-//         ${generateRuleBody(triviaRule.body, debug)}
-//         return result.success ? result.value : undefined;
-//     }`;
-//     }
-
-//     generateConsumeIdentifierForKeyword(identifierRule: Model.Rule): string {
-//         return `
-//     protected consumeIdentifierForKeyword(): string | undefined {
-//         const startPos = this.getPosition();
-//         let result: ParseResult<Model.Identifier>;
-//         ${generateRuleBody(identifierRule.body, false)}
-//         if (result.success) {
-//             return result.value;
-//         }
-//         this.restorePosition(startPos);
-//         return undefined;
-//     }`;
-//     }
-
-//     wrapWithAnnotation(methodBody: string, annotation: Model.RuleAnnotation): string {
-//         switch (annotation) {
-//             case Model.RuleAnnotation.NoSkip:
-//                 return `this.withNoSkip(() => { ${methodBody} })`;
-//             case Model.RuleAnnotation.Atomic:
-//                 return `this.atomic(() => { ${methodBody} })`;
-//             default:
-//                 return methodBody;
-//         }
-//     }
-
-//     wrapWithVersionAnnotations(methodBody: string, annotations: Model.VersionAnnotation[]): string {
-//         let wrappedBody = methodBody;
-//         for (const annotation of annotations) {
-//             wrappedBody = `
-//             if (this.isVersionEnabled(${JSON.stringify(annotation.version)})) {
-//                 ${wrappedBody}
-//             } else {
-//                 result = this.failure('Version not enabled');
-//             }
-//         `;
-//         }
-//         return wrappedBody;
-//     }
-
-//     charSetToRegex(charSet: Model.CharSet): string {
-//         let regex = charSet.negated ? '/^[^' : '/^[';
-//         for (let i = 0; i < charSet.startChars.length; i++) {
-//             const startChar = charSet.startChars[i];
-//             const endChar = charSet.endChars[i];
-//             if (endChar) {
-//                 regex += `${startChar}-${endChar}`;
-//             } else {
-//                 regex += startChar;
-//             }
-//         }
-//         regex += ']/';
-//         return regex;
-//     }
-// }
