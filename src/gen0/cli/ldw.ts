@@ -13,6 +13,7 @@ import { ResolvedModelFromParsedModel } from '../languages/ldw/model/resolved/cr
 import { composePasses } from '../nanopass/combinators';
 import { Registry } from '../nanopass/registry';
 import { ParseError } from '../parsing/parseError';
+import { GrammarWithTypesToParserTypescriptSource } from '../languages/ldw/grammar/typed/outputs/toParserTypescriptSource';
 
 program.version('1.0.0').description('Language Design Workbench CLI');
 
@@ -51,6 +52,37 @@ program
                 new ParsedModelToSource()
             ).transform(grammarSource);
             await registry.writeOutput(options.name, modelSource, 'ldw.model');
+        } catch (error) {
+            handleError(error);
+        }
+    });
+
+program
+    .command('generate-parser')
+    .description('Parse .grammar source and generate artefacts')
+    .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
+    .option('-n, --name <name>', 'Fully qualified name of the grammar')
+    .action(async (options) => {
+        try {
+            if (!options.registry) {
+                throw new Error('Registry file is required');
+            }
+            if (!options.name) {
+                throw new Error('Fully qualified name is required');
+            }
+
+            const registry = new Registry(options.registry);
+
+            const grammarSource = registry.readInput(options.name, 'ldw.grammar');
+
+            const parserSource = composePasses(
+                new ParsedGrammarFromSource(),
+                new ExtendedGrammarFromParsedGrammar(),
+                new TypedGrammarFromExtendedGrammar(),
+                new GrammarWithTypesToParserTypescriptSource()
+            ).transform(grammarSource);
+
+            console.log(parserSource);
         } catch (error) {
             handleError(error);
         }

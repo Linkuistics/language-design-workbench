@@ -74,6 +74,48 @@ export class StringInputStream implements InputStream {
         return this.position >= this.input.length;
     }
 
+    skip(count: number = 1): boolean {
+        if (count < 0) return false;
+        const newPosition = this.position + count;
+        if (newPosition > this.input.length) return false;
+        this.position = newPosition;
+        return true;
+    }
+
+    skipString(str: string): boolean {
+        if (this.input.startsWith(str, this.position)) {
+            this.position += str.length;
+            return true;
+        }
+        return false;
+    }
+
+    skipRegex(regex: RegExp): boolean {
+        const remainingInput = this.input.slice(this.position);
+        const match = remainingInput.match(regex);
+        if (match && match.index === 0) {
+            const consumedString = match[0];
+            this.position += consumedString.length;
+            return true;
+        }
+        return false;
+    }
+
+    skipWhile(predicate: (char: string) => boolean): boolean {
+        if (this.isEOF()) return false;
+
+        let foundAtLeastOne = false;
+        while (true) {
+            // TODO: inline the peeking logic
+            const char = this.peek();
+            if (char === undefined || !predicate(char)) {
+                return foundAtLeastOne;
+            }
+            this.position++;
+            foundAtLeastOne = true;
+        }
+    }
+
     /**
      * Attempts to peek at upcoming characters in the input without consuming them.
      * This method is essential for lookahead operations in the parser.
@@ -89,74 +131,7 @@ export class StringInputStream implements InputStream {
         return this.input[peekIndex];
     }
 
-    /**
-     * Attempts to consume the specified number of characters from the input.
-     *
-     * @param count - The number of characters to consume (default is 1).
-     * @returns The consumed characters as a string, or undefined if no characters could be consumed.
-     */
-    consume(count: number = 1): string | undefined {
-        if (count < 1) {
-            return undefined;
-        }
-        const endIndex = Math.min(this.position + count, this.input.length);
-        const chars = this.input.slice(this.position, endIndex);
-        this.position = endIndex;
-        return chars.length === 0 ? undefined : chars;
-    }
-
-    /**
-     * Attempts to consume input matching a regular expression at the current position.
-     * This method is useful for parsing complex patterns in the input.
-     *
-     * @param regex - The regular expression to match.
-     * @returns The consumed string if successful, or undefined if no match.
-     *
-     * @remarks
-     * TODO: Optimize this method to avoid creating a new string.
-     */
-    consumeRegex(regex: RegExp): string | undefined {
-        const remainingInput = this.input.slice(this.position);
-        const match = remainingInput.match(regex);
-        if (match && match.index === 0) {
-            const consumedString = match[0];
-            this.position += consumedString.length;
-            return consumedString;
-        }
-        return undefined;
-    }
-
-    /**
-     * Attempts to consume a specific string at the current position.
-     * This method is particularly useful for parsing keywords or specific sequences.
-     *
-     * @param str - The string to consume.
-     * @returns The consumed string if successful, or undefined if no match.
-     */
-    consumeString(str: string): string | undefined {
-        if (this.input.startsWith(str, this.position)) {
-            this.position += str.length;
-            return str;
-        }
-        return undefined;
-    }
-
-    /**
-     * Attempts to consume characters while the predicate function returns true.
-     * This method allows for flexible, condition-based consumption of input.
-     *
-     * @param predicate - A function that takes a character and returns a boolean.
-     * @returns The consumed string, or undefined if no characters were consumed.
-     */
-    consumeWhile(predicate: (char: string) => boolean): string | undefined {
-        let consumed = '';
-        while (!this.isEOF()) {
-            const char = this.peek();
-            if (char === undefined || !predicate(char)) {
-                break;
-            }
-            consumed += this.consume();
-        }
-        return consumed.length === 0 ? undefined : consumed;
+    makeString(from: number, to: number): string {
+        return this.input.slice(from, to);
     }
 }

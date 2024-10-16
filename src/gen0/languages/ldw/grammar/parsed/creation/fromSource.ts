@@ -405,7 +405,7 @@ class GrammarParser extends Parser {
 
     private parseOptionalLabel(): ParseResult<Model.Label | undefined> {
         const startPos = this.getPosition();
-        const nameResult = this.maybe(() => this.parseName());
+        const nameResult = this.optional(() => this.parseName());
         if (!nameResult.success) return nameResult;
 
         if (nameResult.value) {
