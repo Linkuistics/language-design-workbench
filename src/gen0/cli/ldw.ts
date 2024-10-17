@@ -1,4 +1,4 @@
-import { program } from 'commander';
+import { program, Command } from 'commander';
 import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
 import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
@@ -17,11 +17,21 @@ import { GrammarWithTypesToParserTypescriptSource } from '../languages/ldw/gramm
 
 program.version('1.0.0').description('Language Design Workbench CLI');
 
-function handleError(error: unknown): never {
-    if (error instanceof ParseError) {
-        console.error(`Parse Error: ${error.toString()}`);
+class ArgumentValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'ArgumentValidationError';
+    }
+}
+
+function handleError(error: unknown, command: Command): never {
+    if (error instanceof ArgumentValidationError) {
+        process.stderr.write(`Error: ${error.message}\n`);
+        command.help({ error: true });
+    } else if (error instanceof ParseError) {
+        process.stderr.write(`Parse Error: ${error.toString()}\n`);
     } else {
-        console.error(error);
+        process.stderr.write(`${error}\n`);
     }
     process.exit(1);
 }
@@ -31,13 +41,13 @@ program
     .description('Parse .grammar source and generate artefacts')
     .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
     .option('-n, --name <name>', 'Fully qualified name of the grammar')
-    .action(async (options) => {
+    .action(async (options, command) => {
         try {
             if (!options.registry) {
-                throw new Error('Registry file is required');
+                throw new ArgumentValidationError('Registry file is required');
             }
             if (!options.name) {
-                throw new Error('Fully qualified name is required');
+                throw new ArgumentValidationError('Fully qualified name is required');
             }
 
             const registry = new Registry(options.registry);
@@ -53,7 +63,7 @@ program
             ).transform(grammarSource);
             await registry.writeOutput(options.name, modelSource, 'ldw.model');
         } catch (error) {
-            handleError(error);
+            handleError(error, command);
         }
     });
 
@@ -62,13 +72,25 @@ program
     .description('Parse .grammar source and generate artefacts')
     .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
     .option('-n, --name <name>', 'Fully qualified name of the grammar')
-    .action(async (options) => {
+    .option(
+        '--roots <roots>',
+        'Comma-separated list of root rule names',
+        (value: string, previous: string[]) => {
+            const newRoots = value.split(',');
+            return previous ? previous.concat(newRoots) : newRoots;
+        },
+        [] as string[]
+    )
+    .action(async (options, command) => {
         try {
             if (!options.registry) {
-                throw new Error('Registry file is required');
+                throw new ArgumentValidationError('Registry file is required');
             }
             if (!options.name) {
-                throw new Error('Fully qualified name is required');
+                throw new ArgumentValidationError('Fully qualified name is required');
+            }
+            if (options.roots.length === 0) {
+                throw new ArgumentValidationError('At least one root is required');
             }
 
             const registry = new Registry(options.registry);
@@ -79,12 +101,12 @@ program
                 new ParsedGrammarFromSource(),
                 new ExtendedGrammarFromParsedGrammar(),
                 new TypedGrammarFromExtendedGrammar(),
-                new GrammarWithTypesToParserTypescriptSource()
+                new GrammarWithTypesToParserTypescriptSource(options.roots)
             ).transform(grammarSource);
 
             console.log(parserSource);
         } catch (error) {
-            handleError(error);
+            handleError(error, command);
         }
     });
 
@@ -94,13 +116,13 @@ program
     .option('-r, --registry <file>', 'Registry file for resolving fully qualified names')
     .option('-n, --name <name>', 'Fully qualified name of the grammar')
     .option('-l, --language <lang>', 'Output language (typescript or rust)', 'typescript')
-    .action(async (options) => {
+    .action(async (options, command) => {
         try {
             if (!options.registry) {
-                throw new Error('Registry file is required');
+                throw new ArgumentValidationError('Registry file is required');
             }
             if (!options.name) {
-                throw new Error('Fully qualified name is required');
+                throw new ArgumentValidationError('Fully qualified name is required');
             }
 
             const registry = new Registry(options.registry);
@@ -126,7 +148,7 @@ program
                 await registry.writeOutput(options.name, visitorSource, 'visitor.ts');
             }
         } catch (error) {
-            handleError(error);
+            handleError(error, command);
         }
     });
 

@@ -9,6 +9,6 @@ echo "Using registry $REGISTRY"
 
 for grammar in ldw::grammar::parsed  ; do
     echo "    Processing grammar $grammar"
-    ts-node $CLI generate-parser -r $REGISTRY -n $grammar > parser.ts
+    ts-node $CLI generate-parser -r $REGISTRY -n $grammar --roots grammar > parser.ts
     prettier --write parser.ts
 done

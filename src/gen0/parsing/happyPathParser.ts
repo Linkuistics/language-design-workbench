@@ -37,7 +37,7 @@ interface Trivia {
  *
  * @implements {InputStream}
  */
-export abstract class Parser implements InputStream {
+export abstract class ParserBase implements InputStream {
     /** Whether to skip trivia or not (true by default) */
     private skipTriviaEnabled: boolean = true;
     private debugEnabled: boolean;
