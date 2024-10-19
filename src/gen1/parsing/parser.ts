@@ -8,6 +8,7 @@
  * functionality.
  */
 
+import { Builder, Stack } from './builder';
 import { InputStream, LineAndColumn } from './inputStream';
 
 export type ParseFailure = {
@@ -41,6 +42,8 @@ export abstract class Parser implements InputStream {
     private skipTriviaEnabled: boolean = true;
     private debugEnabled: boolean;
 
+    builder: Builder = new Builder();
+
     /**
      * Creates a new Parser instance.
      * @param input - The InputStream to wrap.
@@ -51,6 +54,127 @@ export abstract class Parser implements InputStream {
         debug: boolean = false
     ) {
         this.debugEnabled = debug;
+    }
+
+    skip(count?: number): boolean {
+        return this.input.skip(count);
+    }
+
+    skipString(str: string): boolean {
+        return this.input.skipString(str);
+    }
+
+    skipRegex(regex: RegExp): boolean {
+        return this.input.skipRegex(regex);
+    }
+
+    skipWhile(predicate: (char: string) => boolean): boolean {
+        return this.input.skipWhile(predicate);
+    }
+
+    skipOptional(predicate: () => boolean): boolean {
+        predicate();
+        return true;
+    }
+
+    skipZeroOrMore(predicate: () => boolean): boolean {
+        while (predicate());
+        return true;
+    }
+
+    skipOneOrMore(predicate: () => boolean): boolean {
+        if (!predicate()) return false;
+        while (predicate());
+        return true;
+    }
+
+    skipSeq(predicate: () => boolean): boolean {
+        const position = this.getPosition();
+        const depth = this.builder.depth();
+        if (predicate()) return true;
+        this.builder.prune(depth);
+        this.restorePosition(this.getPosition());
+        return false;
+    }
+
+    skipNegativeLookahead(predicate: () => boolean): boolean {
+        const position = this.getPosition();
+        const depth = this.builder.depth();
+        if (predicate()) {
+            this.builder.prune(depth);
+            this.restorePosition(position);
+            return false;
+        }
+        return true;
+    }
+
+    skipTrivia(predicate: () => boolean): boolean {
+        const position = this.getPosition();
+        const depth = this.builder.depth();
+        this.skipTriviaIfEnabled();
+        if (predicate()) return true;
+        this.builder.prune(depth);
+        this.restorePosition(this.getPosition());
+        return false;
+    }
+
+    ignoreSkipTriviaDuring<T>(consumer: () => boolean): boolean {
+        this.skipTriviaIfEnabled();
+        const originalSkipTrivia = this.skipTriviaEnabled;
+        this.skipTriviaEnabled = false;
+        try {
+            return consumer();
+        } finally {
+            this.skipTriviaEnabled = originalSkipTrivia;
+        }
+    }
+
+    makeString(from: number, to: number): string {
+        return this.input.makeString(from, to);
+    }
+
+    buildBoolean(label: string | undefined, parser: () => boolean): boolean {
+        if (!parser()) return false;
+        this.builder.push(label, true);
+        return true;
+    }
+
+    buildString(label: string | undefined, parser: () => boolean): boolean {
+        const pos = this.getPosition();
+        if (!parser()) return false;
+        this.builder.push(label, this.makeString(pos, this.getPosition()));
+        return true;
+    }
+
+    buildStringObject<T>(
+        label: string | undefined,
+        factory: { new (init: { value: string }): T },
+        parser: () => boolean
+    ): boolean {
+        const pos = this.getPosition();
+        if (!parser()) return false;
+        this.builder.push(label, new factory({ value: this.makeString(pos, this.getPosition()) }));
+        return true;
+    }
+
+    buildEnum<T>(label: string | undefined, ...values: [string, T][]): boolean {
+        for (const [text, value] of values) {
+            if (this.skipString(text)) {
+                this.builder.push(label, value);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    buildObject<T>(label: string | undefined, buildFunction: (stack: Stack) => T, parser: () => boolean): boolean {
+        const depth = this.builder.depth();
+        if (parser()) {
+            this.builder.create(depth, label, buildFunction);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -224,13 +348,15 @@ export abstract class Parser implements InputStream {
      */
     consume(count: number = 1): string | undefined {
         this.skipTriviaIfEnabled();
-        const consumed = this.input.consume(count);
-        if (consumed === undefined) {
-            this.debugLog(`Failed to consume ${count} character(s)`);
+        const pos = this.input.getPosition();
+        if (this.input.skip(count)) {
+            const result = this.input.makeString(pos, this.getPosition());
+            this.debugLog(`Consumed ${count} character(s): "${result}"`);
+            return result;
         } else {
-            this.debugLog(`Consumed ${count} character(s): "${consumed}"`);
+            this.debugLog(`Failed to consume ${count} character(s)`);
+            return undefined;
         }
-        return consumed;
     }
 
     /**
@@ -238,13 +364,13 @@ export abstract class Parser implements InputStream {
      */
     consumeString(str: string): string | undefined {
         this.skipTriviaIfEnabled();
-        const consumed = this.input.consumeString(str);
-        if (consumed === undefined) {
+        if (this.input.skipString(str)) {
             this.debugLog(`Failed to consume string: "${str}"`);
+            return str;
         } else {
-            this.debugLog(`Consumed string: "${consumed}"`);
+            this.debugLog(`Failed to consume string: "${str}"`);
+            return undefined;
         }
-        return consumed;
     }
 
     /**
@@ -292,13 +418,15 @@ export abstract class Parser implements InputStream {
      */
     consumeWhile(predicate: (char: string) => boolean): string | undefined {
         this.skipTriviaIfEnabled();
-        const consumed = this.input.consumeWhile(predicate);
-        if (consumed === undefined) {
-            this.debugLog(`Failed to consume while predicate`);
+        const pos = this.input.getPosition();
+        if (this.input.skipWhile(predicate)) {
+            const result = this.input.makeString(pos, this.getPosition());
+            this.debugLog(`Consumed while predicate: "${result}"`);
+            return result;
         } else {
-            this.debugLog(`Consumed while predicate: "${consumed}"`);
+            this.debugLog(`Failed to consume while predicate`);
+            return undefined;
         }
-        return consumed;
     }
 
     mustConsumeWhile(predicate: (char: string) => boolean, expected: string): ParseResult<string> {
@@ -314,13 +442,15 @@ export abstract class Parser implements InputStream {
      */
     consumeRegex(regex: RegExp): string | undefined {
         this.skipTriviaIfEnabled();
-        const consumed = this.input.consumeRegex(regex);
-        if (consumed === undefined) {
-            this.debugLog(`Failed to consume regex: ${regex}`);
+        const pos = this.input.getPosition();
+        if (this.input.skipRegex(regex)) {
+            const result = this.input.makeString(pos, this.getPosition());
+            this.debugLog(`Consumed regex ${regex}: "${result}"`);
+            return result;
         } else {
-            this.debugLog(`Consumed regex ${regex}: "${consumed}"`);
+            this.debugLog(`Failed to consume regex: ${regex}`);
+            return undefined;
         }
-        return consumed;
     }
 
     mustConsumeRegex(regex: RegExp, expected: string): ParseResult<string> {
@@ -362,6 +492,26 @@ export abstract class Parser implements InputStream {
                 children: errors
             }
         };
+    }
+
+    /**
+     * Helper method to attempt a parsing operation, returning a success result with undefined value if it fails.
+     * Useful for implementing optional grammar rules.
+     *
+     * @param parser - A function that performs a parsing operation.
+     * @returns A ParseResult containing the result of the parsing operation, or a success result with undefined value if it fails.
+     */
+    protected optional<T>(parser: () => ParseResult<T>): ParseResult<T | undefined> {
+        const pos = this.getPosition();
+        const result = parser();
+        if (result.success) {
+            this.debugLog(`Maybe succeeded`);
+            return result;
+        } else {
+            this.restorePosition(pos);
+            this.debugLog(`Maybe failed`);
+            return this.success(undefined);
+        }
     }
 
     /**
@@ -424,26 +574,6 @@ export abstract class Parser implements InputStream {
         }
         this.debugLog(`Must succeeded: "${expected}"`);
         return this.success(value);
-    }
-
-    /**
-     * Helper method to attempt a parsing operation, returning a success result with undefined value if it fails.
-     * Useful for implementing optional grammar rules.
-     *
-     * @param parser - A function that performs a parsing operation.
-     * @returns A ParseResult containing the result of the parsing operation, or a success result with undefined value if it fails.
-     */
-    protected maybe<T>(parser: () => ParseResult<T>): ParseResult<T | undefined> {
-        const pos = this.getPosition();
-        const result = parser();
-        if (result.success) {
-            this.debugLog(`Maybe succeeded`);
-            return result;
-        } else {
-            this.restorePosition(pos);
-            this.debugLog(`Maybe failed`);
-            return this.success(undefined);
-        }
     }
 
     /**

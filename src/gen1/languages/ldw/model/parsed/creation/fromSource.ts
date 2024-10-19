@@ -292,7 +292,7 @@ export class ModelParser extends Parser {
             const openBrace = this.mustConsumeString('{');
             if (!openBrace.success) return openBrace;
 
-            const firstMemberResult = this.maybe(() => this.parseProductMember());
+            const firstMemberResult = this.optional(() => this.parseProductMember());
             if (!firstMemberResult.success) return firstMemberResult;
             if (firstMemberResult.value) members.push(firstMemberResult.value);
 

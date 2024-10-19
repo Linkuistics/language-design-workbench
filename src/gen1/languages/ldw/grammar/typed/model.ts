@@ -1,5 +1,4 @@
-// Generated on 2024-10-15T13:20:35.481Z by Bach.local at /Users/antony/Development/Linkuistics/language-design-workbench
-
+// Generated on 2024-10-19T22:19:37.538Z
 import * as LdwModelParsed from '../../model/parsed/model';
 
 export enum Discriminator {
@@ -22,14 +21,9 @@ export class Grammar {
     public names: Name[];
     public rules: Rule[];
     public prattRules: PrattRule[];
-    public definitions: LdwModelParsed.Definition[];
+    public definitions: Definition[];
 
-    constructor(init: {
-        names: Name[];
-        rules: Rule[];
-        prattRules: PrattRule[];
-        definitions: LdwModelParsed.Definition[];
-    }) {
+    constructor(init: { names: Name[]; rules: Rule[]; prattRules: PrattRule[]; definitions: Definition[] }) {
         this.names = init.names;
         this.rules = init.rules;
         this.prattRules = init.prattRules;
@@ -42,14 +36,14 @@ export class Rule {
     public annotation: RuleAnnotation | undefined;
     public versionAnnotations: VersionAnnotation[];
     public body: RuleBody;
-    public type: LdwModelParsed.Type;
+    public type: Type;
 
     constructor(init: {
         name: Name;
         annotation?: RuleAnnotation | undefined;
         versionAnnotations: VersionAnnotation[];
         body: RuleBody;
-        type: LdwModelParsed.Type;
+        type: Type;
     }) {
         this.name = init.name;
         this.annotation = init.annotation;
@@ -415,11 +409,11 @@ export function isSeparatedByRule(
 }
 
 export class Field {
-    public type: LdwModelParsed.Type;
+    public type: Type;
     public name: string | undefined;
     public isExplicit: boolean;
 
-    constructor(init: { type: LdwModelParsed.Type; name?: string | undefined; isExplicit: boolean }) {
+    constructor(init: { type: Type; name?: string | undefined; isExplicit: boolean }) {
         this.type = init.type;
         this.name = init.name;
         this.isExplicit = init.isExplicit;

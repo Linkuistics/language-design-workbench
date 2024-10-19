@@ -15,9 +15,8 @@ import {
     SumType
 } from '../model';
 import { Visitor } from '../visitor';
-import { hostname } from 'os';
 
-export class ParsedModelToVisitorTypescriptSource {
+export class DiscriminatedModelToTypescriptVisitorSource {
     transform(model: Model): string {
         const generator = new TopLevelGenerator();
         generator.visitModel(model);

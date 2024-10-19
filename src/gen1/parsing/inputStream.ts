@@ -55,34 +55,13 @@ export interface InputStream {
      */
     peek(lookAhead?: number): string | undefined;
 
-    /**
-     * Attempts to consume the specified number of characters from the input.
-     * @param count - The number of characters to consume (default is 1).
-     * @returns The consumed characters as a string, or undefined if no characters could be consumed.
-     */
-    consume(count?: number): string | undefined;
+    skip(count?: number): boolean;
 
-    /**
-     * Attempts to consume input matching a regular expression at the current position.
-     * This method is useful for parsing complex patterns in the input.
-     * @param regex - The regular expression to match.
-     * @returns The consumed string if successful, or undefined if no match.
-     */
-    consumeRegex(regex: RegExp): string | undefined;
+    skipString(str: string): boolean;
 
-    /**
-     * Attempts to consume a specific string at the current position.
-     * This method is particularly useful for parsing keywords or specific sequences.
-     * @param str - The string to consume.
-     * @returns The consumed string if successful, or undefined if no match.
-     */
-    consumeString(str: string): string | undefined;
+    skipRegex(regex: RegExp): boolean;
 
-    /**
-     * Attempts to consume characters while the predicate function returns true.
-     * This method allows for flexible, condition-based consumption of input.
-     * @param predicate - A function that takes a character and returns a boolean.
-     * @returns The consumed string, or undefined if no characters were consumed.
-     */
-    consumeWhile(predicate: (char: string) => boolean): string | undefined;
+    skipWhile(predicate: (char: string) => boolean): boolean;
+
+    makeString(from: number, to: number): string;
 }

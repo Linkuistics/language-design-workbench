@@ -18,11 +18,11 @@ import { Visitor } from '../visitor';
 
 export class TypedGrammarFromExtendedGrammar extends Transformer {
     transform(input: In.Grammar): Out.Grammar {
-        return new TransformToGrammarWithTypes().transformGrammar(input);
+        return new TransformToTypedGrammar().transformGrammar(input);
     }
 }
 
-class TransformToGrammarWithTypes extends Transformer {
+class TransformToTypedGrammar extends Transformer {
     transformGrammar(input: In.Grammar): Out.Grammar {
         const grammar = super.transformGrammar(input);
 

@@ -7,11 +7,12 @@ import { typeAsTypescript } from '../../../model/parsed/typescript';
 import * as Model from '../model';
 import { Visitor } from '../visitor';
 
-export class GrammarWithTypesToParserTypescriptSource {
+export class TypedGrammarToTypescriptParserSource {
     constructor(public roots: string[]) {}
 
     transform(grammar: Model.Grammar): string {
-        // Move this to a validation pass, and store it in the extended model.
+        // Move this to a validation pass
+        // Store it in the extended model or move it to utils?
 
         const rootRules: Model.Rule[] = [];
         for (const root of this.roots) {
@@ -73,8 +74,20 @@ export class GrammarWithTypesToParserTypescriptSource {
         output.writeLine();
 
         reachableRules.forEach((rule) => {
-            generateBuildFunction(rule, output);
+            if (rule.annotation !== Model.RuleAnnotation.Atomic) {
+                generateFieldEnum(rule, output);
+            }
         });
+        output.writeLine();
+
+        output.writeLine('class Build {');
+        reachableRules.forEach((rule) => {
+            if (rule.annotation !== Model.RuleAnnotation.Atomic) {
+                generateBuildFunction(rule, output);
+            }
+        });
+        output.writeLine('}');
+        output.writeLine();
 
         return output.toString().trim();
     }
@@ -113,6 +126,179 @@ function generateTriviaHandlingMethods(
         });
         output.writeLine('}');
         output.writeLine();
+    }
+}
+
+function generatePublicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
+    const ruleName = pascalCase(rule.name);
+
+    output.writeLine(`parse${ruleName}(label: string | undefined): boolean {`);
+    output.write(`return `);
+    output.writeLine(`this.skipTrivia(() => `);
+    output.writeLine(`this.#_parse${ruleName}(label)`);
+    output.writeLine(')');
+    output.writeLine('}');
+    output.writeLine();
+}
+
+function generateAtomicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
+    assert(rule.annotation == Model.RuleAnnotation.Atomic);
+
+    const name = pascalCase(rule.name);
+
+    output.writeLine(`#_parse${name}(label: string | undefined): boolean {`);
+    output.write('return ');
+    output.indentDuring(() => {
+        if (LdwModelParsed.isPrimitiveType(rule.type)) {
+            output.writeLine(`this.buildString(label, () => this.#_lex${name}())`);
+        } else {
+            output.writeLine(`this.buildStringObject(label, Model.${name}, () => this.#_lex${name}())`);
+        }
+    });
+    output.writeLine('}');
+    output.writeLine();
+
+    output.writeLine(`#_lex${name}(): boolean {`);
+    output.indentDuring(() => {
+        output.write('return ');
+        new AtomicBodyGenerator(output).visitRule(rule);
+    });
+    output.writeLine('}');
+    output.writeLine();
+}
+
+function generateNonAtomicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
+    assert(rule.annotation !== Model.RuleAnnotation.Atomic);
+
+    const ruleName = pascalCase(rule.name);
+    const buildFnName = camelCase(rule.name);
+
+    const isNoSkip = rule.annotation === Model.RuleAnnotation.NoSkip;
+    output.writeLine(`#_parse${ruleName}(label: string | undefined): boolean {`);
+    output.write(`return `);
+
+    function noSkipTrivia(content: () => void): void {
+        if (isNoSkip) {
+            output.writeLine(`this.ignoreSkipTriviaDuring(() => `);
+            content();
+            output.writeLine(')');
+        } else {
+            content();
+        }
+    }
+
+    noSkipTrivia(() => {
+        switch (rule.type.discriminator) {
+            case LdwModelParsed.Discriminator.NamedTypeReference:
+            case LdwModelParsed.Discriminator.SumType:
+                new NonAtomicBodyGenerator(output, true, rule, ruleName, isNoSkip).visitRule(rule);
+                break;
+            case LdwModelParsed.Discriminator.SequenceType:
+            case LdwModelParsed.Discriminator.ProductType:
+                output.write(`this.buildObject(label, Build.${buildFnName}, () => `);
+                new NonAtomicBodyGenerator(output, false, rule, ruleName, isNoSkip).visitRule(rule);
+                output.writeLine(`)`);
+                break;
+            case LdwModelParsed.Discriminator.EnumType:
+                output.writeLine(`this.buildEnum(label,`);
+                output.join(rule.type.members, ',', (member) => {
+                    output.writeLine(`[ '${member}', Model.${ruleName}.${pascalCase(member)} ]`);
+                });
+                output.writeLine(`)`);
+                break;
+            default:
+                throw new Error(`Not yet implemented: rule type discriminator ${rule.type.discriminator}`);
+        }
+    });
+
+    output.writeLine('}');
+    output.writeLine();
+}
+
+function generateFieldEnum(rule: Model.Rule, output: IndentingOutputStream): void {
+    assert(rule.annotation !== Model.RuleAnnotation.Atomic);
+
+    if (LdwModelParsed.isProductType(rule.type)) {
+        const ruleName = pascalCase(rule.name);
+        output.writeLine(`enum ${ruleName}Field {`);
+        rule.type.members.forEach((member) => {
+            if (LdwModelParsed.isSequenceType(member.type)) {
+                output.writeLine(
+                    `${pascalCase(singular(member.name))} = "${ruleName}.${singular(camelCase(member.name))}",`
+                );
+            }
+            output.writeLine(`${pascalCase(member.name)} = "${ruleName}.${camelCase(member.name)}",`);
+        });
+        output.writeLine(`}`);
+        output.writeLine();
+    }
+}
+
+function generateBuildFunction(rule: Model.Rule, output: IndentingOutputStream): void {
+    assert(rule.annotation !== Model.RuleAnnotation.Atomic);
+
+    const ruleName = pascalCase(rule.name);
+    const fnName = camelCase(rule.name);
+
+    switch (rule.type.discriminator) {
+        case LdwModelParsed.Discriminator.SequenceType:
+            output.writeLine(
+                `static ${fnName}(stack: Builder.Stack): Model.${ruleName} { return stack.map(x => x.value) }`
+            );
+            output.writeLine();
+            break;
+        case LdwModelParsed.Discriminator.ProductType:
+            output.writeLine(`static ${fnName}(stack: Builder.Stack): Model.${ruleName} {`);
+            if (rule.type.members.length === 0) {
+                output.writeLine(`return new Model.${ruleName}()`);
+            } else {
+                rule.type.members.forEach((member) => {
+                    if (LdwModelParsed.isSequenceType(member.type)) {
+                        output.writeLine(
+                            `let ${camelCase(member.name)}: ${typeAsTypescript(member.type, 'Model.')} = [];`
+                        );
+                    } else {
+                        let newType: LdwModelParsed.Type = member.type;
+                        if (!LdwModelParsed.isOptionType(newType))
+                            newType = new LdwModelParsed.OptionType({ type: newType });
+                        output.writeLine(
+                            `let ${camelCase(member.name)}: ${typeAsTypescript(newType, 'Model.')} = undefined;`
+                        );
+                    }
+                });
+                output.writeLine(`for (const x of stack) { switch (x.label) {`);
+                rule.type.members.forEach((member) => {
+                    output.writeLine(`case ${ruleName}Field.${pascalCase(member.name)}:`);
+                    output.writeLine(
+                        `${camelCase(member.name)} = x.value as ${typeAsTypescript(member.type, 'Model.')};`
+                    );
+                    output.writeLine('break');
+                    if (LdwModelParsed.isSequenceType(member.type)) {
+                        output.writeLine(`case ${ruleName}Field.${singular(pascalCase(member.name))}:`);
+                        const elementType = member.type.elementType;
+                        output.writeLine(
+                            `${camelCase(member.name)}.push(x.value as ${typeAsTypescript(elementType, 'Model.')});`
+                        );
+                        output.writeLine('break');
+                    }
+                });
+                output.writeLine(`default: break`);
+                output.writeLine(`}}`);
+                rule.type.members.forEach((member) => {
+                    if (!LdwModelParsed.isSequenceType(member.type) && !LdwModelParsed.isOptionType(member.type))
+                        output.writeLine(`assert(${camelCase(member.name)} !== undefined)`);
+                });
+                output.writeLine(`return new Model.${ruleName}({`);
+                rule.type.members.forEach((member) => {
+                    output.writeLine(`${camelCase(member.name)}: ${camelCase(member.name)},`);
+                });
+                output.writeLine(`})`);
+            }
+            output.writeLine(`}`);
+            output.writeLine();
+            break;
+        default:
+            break;
     }
 }
 
@@ -174,158 +360,6 @@ function collectSimpleNamedChoices(rule: Model.Rule, grammar: Model.Grammar): Se
     return namedChoices;
 }
 
-function generatePublicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
-    const ruleName = pascalCase(rule.name);
-
-    output.writeLine(`parse${ruleName}(label: string | undefined): boolean {`);
-    output.write(`return `);
-    output.writeLine(`this.skipTrivia(() => `);
-    output.writeLine(`this.#_parse${ruleName}(label)`);
-    output.writeLine(')');
-    output.writeLine('}');
-    output.writeLine();
-}
-
-function generateAtomicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
-    assert(rule.annotation == Model.RuleAnnotation.Atomic);
-
-    const name = pascalCase(rule.name);
-
-    output.writeLine(`#_parse${name}(label: string | undefined): boolean {`);
-    output.write('return ');
-    output.indentDuring(() => {
-        if (LdwModelParsed.isPrimitiveType(rule.type)) {
-            output.writeLine(`this.buildString(label, () => this.#_lex${name}())`);
-        } else {
-            output.writeLine(`this.buildStringObject(label, Model.${name}, () => this.#_lex${name}())`);
-        }
-    });
-    output.writeLine('}');
-    output.writeLine();
-
-    output.writeLine(`#_lex${name}(): boolean {`);
-    output.indentDuring(() => {
-        output.write('return ');
-        new AtomicBodyGenerator(output).visitRule(rule);
-    });
-    output.writeLine('}');
-    output.writeLine();
-}
-
-function generateNonAtomicParseMethod(rule: Model.Rule, output: IndentingOutputStream): void {
-    assert(rule.annotation !== Model.RuleAnnotation.Atomic);
-
-    const ruleName = pascalCase(rule.name);
-
-    const isNoSkip = rule.annotation === Model.RuleAnnotation.NoSkip;
-    output.writeLine(`#_parse${ruleName}(label: string | undefined): boolean {`);
-    output.write(`return `);
-
-    function noSkipTrivia(content: () => void): void {
-        if (isNoSkip) {
-            output.writeLine(`this.ignoreSkipTriviaDuring(() => `);
-            content();
-            output.writeLine(')');
-        } else {
-            content();
-        }
-    }
-
-    noSkipTrivia(() => {
-        switch (rule.type.discriminator) {
-            case LdwModelParsed.Discriminator.NamedTypeReference:
-            case LdwModelParsed.Discriminator.SumType:
-                new NonAtomicBodyGenerator(output, true, ruleName, isNoSkip).visitRule(rule);
-                break;
-            case LdwModelParsed.Discriminator.SequenceType:
-            case LdwModelParsed.Discriminator.ProductType:
-                output.write(`this.buildObject(label, build${ruleName}, () => `);
-                new NonAtomicBodyGenerator(output, false, ruleName, isNoSkip).visitRule(rule);
-                output.writeLine(`)`);
-                break;
-            case LdwModelParsed.Discriminator.EnumType:
-                output.writeLine(`this.buildEnum(label,`);
-                output.join(rule.type.members, ',', (member) => {
-                    output.writeLine(`[ '${member}', Model.${ruleName}.${pascalCase(member)} ]`);
-                });
-                output.writeLine(`)`);
-                break;
-            default:
-                throw new Error(`Not yet implemented: rule type discriminator ${rule.type.discriminator}`);
-        }
-    });
-
-    output.writeLine('}');
-    output.writeLine();
-}
-
-function generateBuildFunction(rule: Model.Rule, output: IndentingOutputStream): void {
-    if (rule.annotation === Model.RuleAnnotation.Atomic) return;
-
-    const ruleName = pascalCase(rule.name);
-
-    switch (rule.type.discriminator) {
-        case LdwModelParsed.Discriminator.SequenceType:
-            output.writeLine(
-                `function build${ruleName}(stack: Builder.Stack): Model.${ruleName} { return stack.map(x => x.value) }`
-            );
-            output.writeLine();
-            break;
-        case LdwModelParsed.Discriminator.ProductType:
-            output.writeLine(`function build${ruleName}(stack: Builder.Stack): Model.${ruleName} {`);
-            if (rule.type.members.length === 0) {
-                output.writeLine(`return new Model.${ruleName}()`);
-            } else {
-                rule.type.members.forEach((member) => {
-                    if (LdwModelParsed.isSequenceType(member.type)) {
-                        output.writeLine(
-                            `let ${camelCase(member.name)}: ${typeAsTypescript(member.type, 'Model.')} = [];`
-                        );
-                    } else {
-                        let newType: LdwModelParsed.Type = member.type;
-                        if (!LdwModelParsed.isOptionType(newType))
-                            newType = new LdwModelParsed.OptionType({ type: newType });
-                        output.writeLine(
-                            `let ${camelCase(member.name)}: ${typeAsTypescript(newType, 'Model.')} = undefined;`
-                        );
-                    }
-                });
-                output.writeLine(`for (const x of stack) { switch (x.label) {`);
-                rule.type.members.forEach((member) => {
-                    output.writeLine(`case '${camelCase(member.name)}':`);
-                    output.writeLine(
-                        `${camelCase(member.name)} = x.value as ${typeAsTypescript(member.type, 'Model.')};`
-                    );
-                    output.writeLine('break');
-                    if (LdwModelParsed.isSequenceType(member.type)) {
-                        output.writeLine(`case '${singular(camelCase(member.name))}':`);
-                        const elementType = member.type.elementType;
-                        output.writeLine(
-                            `${camelCase(member.name)}.push(x.value as ${typeAsTypescript(elementType, 'Model.')});`
-                        );
-                        output.writeLine('break');
-                    }
-                });
-                output.writeLine(`default: break`);
-                output.writeLine(`}}`);
-                rule.type.members.forEach((member) => {
-                    if (!LdwModelParsed.isSequenceType(member.type) && !LdwModelParsed.isOptionType(member.type))
-                        output.writeLine(`assert(${camelCase(member.name)} !== undefined)`);
-                });
-                output.writeLine(`return new Model.${ruleName}({`);
-                rule.type.members.forEach((member) => {
-                    output.writeLine(`${camelCase(member.name)}: ${camelCase(member.name)},`);
-                });
-                output.writeLine(`})`);
-            }
-            output.writeLine(`}`);
-            output.writeLine();
-            break;
-        default:
-            break;
-    }
-}
-
 function transitiveClosureOfRules(rules: Model.Rule[], grammar: Model.Grammar): Set<Model.Rule> {
     const closure = new Set<Model.Rule>();
     const queue: Model.Rule[] = [...rules];
@@ -338,8 +372,11 @@ function transitiveClosureOfRules(rules: Model.Rule[], grammar: Model.Grammar): 
         closure.add(currentRule);
 
         const referencedRules = new Set<string>();
-        const collector = new RuleReferenceCollector(referencedRules);
-        collector.visitRule(currentRule);
+        new (class extends Visitor {
+            visitRuleReference(node: Model.RuleReference): void {
+                if (node.names.length === 1) referencedRules.add(node.names[node.names.length - 1]);
+            }
+        })().visitRule(currentRule);
 
         for (const referencedRuleName of referencedRules) {
             const referencedRule = grammar.rules.find((r) => r.name === referencedRuleName);
@@ -355,19 +392,11 @@ function transitiveClosureOfRules(rules: Model.Rule[], grammar: Model.Grammar): 
     return closure;
 }
 
-class RuleReferenceCollector extends Visitor {
-    constructor(public referencedRules: Set<string>) {
-        super();
-    }
-    visitRuleReference(node: Model.RuleReference): void {
-        if (node.names.length === 1) this.referencedRules.add(node.names[node.names.length - 1]);
-    }
-}
-
 class NonAtomicBodyGenerator extends Visitor {
     constructor(
         public output: IndentingOutputStream,
         public useLabelParameter: boolean,
+        public rule: Model.Rule,
         public ruleName: string,
         public isNoSkip: boolean
     ) {
@@ -438,9 +467,13 @@ class NonAtomicBodyGenerator extends Visitor {
             if (this.useLabelParameter) {
                 this.output.writeLine(`this.#_parse${pascalCase(node.names[node.names.length - 1])}(label)`);
             } else {
-                this.output.writeLine(
-                    `this.#_parse${pascalCase(node.names[node.names.length - 1])}('${camelCase(node.field.name!)}')`
-                );
+                if (LdwModelParsed.isSequenceType(this.rule.type)) {
+                    this.output.writeLine(`this.#_parse${pascalCase(node.names[node.names.length - 1])}(undefined)`);
+                } else {
+                    this.output.writeLine(
+                        `this.#_parse${pascalCase(node.names[node.names.length - 1])}(${this.ruleName}Field.${pascalCase(node.field.name!)})`
+                    );
+                }
             }
         } else {
             this.skipTrivia(() =>

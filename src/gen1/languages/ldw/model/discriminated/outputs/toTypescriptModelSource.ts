@@ -1,26 +1,11 @@
 import { camelCase, pascalCase } from 'literal-case';
 import { Registry } from '../../../../../nanopass/registry';
 import { IndentingOutputStream } from '../../../../../output/indentingOutputStream';
-import {
-    Definition,
-    Discriminator,
-    EnumType,
-    MapType,
-    Model,
-    NamedTypeReference,
-    OptionType,
-    PrimitiveType,
-    ProductType,
-    SequenceType,
-    SetType,
-    SumType,
-    TupleType,
-    Type,
-    VoidType
-} from '../model';
+import { Definition, Discriminator, EnumType, Model, NamedTypeReference, ProductType, SumType } from '../model';
+import { typeAsTypescript } from '../typescript';
 import { Visitor } from '../visitor';
 
-export class ParsedModelToTypesTypescriptSource {
+export class DiscriminatedModelToTypescriptModelSource {
     private output: IndentingOutputStream;
 
     constructor(public registry: Registry) {
@@ -29,7 +14,6 @@ export class ParsedModelToTypesTypescriptSource {
 
     transform(model: Model): string {
         this.importForeignReferences(model);
-
         this.generateDiscriminatorEnum(model);
 
         model.definitions.forEach((definition) => {
@@ -45,7 +29,7 @@ export class ParsedModelToTypesTypescriptSource {
                     break;
                 default:
                     this.output.write(`export type ${pascalCase(definition.name)} = `);
-                    this.generateType(definition.type);
+                    this.output.write(typeAsTypescript(definition.type));
                     this.output.writeLine(';');
                     break;
             }
@@ -100,7 +84,7 @@ export class ParsedModelToTypesTypescriptSource {
 
     generateSumDefinition(definition: Definition, sumType: SumType) {
         this.output.write(`export type ${pascalCase(definition.name)} = `);
-        this.generateType(sumType);
+        this.output.write(typeAsTypescript(sumType));
         this.output.writeLine(';');
 
         this.generateDiscriminatorFunction(definition);
@@ -113,7 +97,7 @@ export class ParsedModelToTypesTypescriptSource {
 
             productType.members.forEach((member) => {
                 this.output.write(`public ${camelCase(member.name)}: `);
-                this.generateType(member.type);
+                this.output.write(typeAsTypescript(member.type));
                 this.output.writeLine(';');
             });
             this.output.writeLine();
@@ -123,7 +107,7 @@ export class ParsedModelToTypesTypescriptSource {
                     this.output.join(productType.members, ',\n', (member) => {
                         const opt = member.type.discriminator === Discriminator.OptionType ? '?' : '';
                         this.output.write(`${camelCase(member.name)}${opt}: `);
-                        this.generateType(member.type);
+                        this.output.write(typeAsTypescript(member.type));
                     });
                     this.output.writeLine();
                 });
@@ -211,102 +195,5 @@ export class ParsedModelToTypesTypescriptSource {
             }
             this.output.writeLine('}');
         }
-    }
-
-    generateType(type: Type) {
-        new TypeGenerator(this.output).visitType(type);
-    }
-}
-
-class TypeGenerator extends Visitor {
-    constructor(public output: IndentingOutputStream) {
-        super();
-    }
-
-    visitVoidType(voidType: VoidType) {
-        this.output.write('void');
-    }
-
-    visitPrimitiveType(primitiveType: PrimitiveType) {
-        switch (primitiveType) {
-            case PrimitiveType.Boolean:
-                this.output.write('boolean');
-                break;
-            case PrimitiveType.Char:
-            case PrimitiveType.String:
-                this.output.write('string');
-                break;
-            default:
-                this.output.write('number');
-                break;
-        }
-    }
-
-    visitEnumType(enumType: EnumType) {
-        this.output.join(enumType.members, ' | ', (member) => {
-            this.output.write(`"${pascalCase(member)}"`);
-        });
-    }
-
-    visitSumType(sumType: SumType) {
-        this.output.join(sumType.members, ' | ', (member) => {
-            this.visitType(member);
-        });
-    }
-
-    visitProductType(productType: ProductType) {
-        this.output.write('{ ');
-        this.output.join(productType.members, ', ', (member) => {
-            this.output.write(`${camelCase(member.name)}: `);
-            this.visitType(member.type);
-        });
-        this.output.write(' }');
-    }
-
-    visitTupleType(tupleType: TupleType) {
-        this.output.write('[');
-        this.output.join(tupleType.members, ', ', (member) => {
-            this.visitType(member);
-        });
-        this.output.write(']');
-    }
-
-    visitMapType(mapType: MapType) {
-        this.output.write('Map<');
-        this.visitType(mapType.keyType);
-        this.output.write(', ');
-        this.visitType(mapType.valueType);
-        this.output.write('>');
-    }
-
-    visitSetType(setType: SetType) {
-        this.output.write('Set<');
-        this.visitType(setType.keyType);
-        this.output.write('>');
-    }
-
-    visitSequenceType(sequenceType: SequenceType) {
-        if (sequenceType.elementType instanceof OptionType || sequenceType.elementType instanceof SumType) {
-            this.output.write('(');
-            this.visitType(sequenceType.elementType);
-            this.output.write(')');
-        } else {
-            this.visitType(sequenceType.elementType);
-        }
-        this.output.write('[]');
-    }
-
-    visitOptionType(optionType: OptionType) {
-        this.visitType(optionType.type);
-        this.output.write(' | undefined');
-    }
-
-    visitNamedTypeReference(namedTypeReference: NamedTypeReference) {
-        if (namedTypeReference.fqn.length > 1) {
-            const namespace = pascalCase(namedTypeReference.fqn.slice(0, -1).join('_'));
-            this.output.write(`${namespace}.`);
-        }
-        const typeName = pascalCase(namedTypeReference.fqn[namedTypeReference.fqn.length - 1]);
-        this.output.write(typeName);
     }
 }
