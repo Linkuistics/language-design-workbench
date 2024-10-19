@@ -2,8 +2,13 @@ import { Command, program } from 'commander';
 import { ExtendedGrammarFromParsedGrammar } from '../languages/ldw/grammar/extended/creation/fromParsedGrammar';
 import { ParsedGrammarFromSource } from '../languages/ldw/grammar/parsed/creation/fromSource';
 import { TypedGrammarFromExtendedGrammar } from '../languages/ldw/grammar/typed/creation/fromExtendedGrammar';
+import { TypedGrammarToRustParserSource } from '../languages/ldw/grammar/typed/outputs/toRustParserSource';
 import { TypedGrammarToTypescriptParserSource } from '../languages/ldw/grammar/typed/outputs/toTypescriptParserSource';
 import { DiscriminatedModelFromResolvedModel } from '../languages/ldw/model/discriminated/creation/fromResolvedModel';
+import { DiscriminatedModelToRustBuilderSource } from '../languages/ldw/model/discriminated/outputs/toRustBuilderSource';
+import { DiscriminatedModelToRustModelSource } from '../languages/ldw/model/discriminated/outputs/toRustModelSource';
+import { DiscriminatedModelToRustTransformerSource } from '../languages/ldw/model/discriminated/outputs/toRustTransformerSource';
+import { DiscriminatedModelToRustVisitorSource } from '../languages/ldw/model/discriminated/outputs/toRustVisitorSource';
 import { DiscriminatedModelToTypescriptBuilderSource } from '../languages/ldw/model/discriminated/outputs/toTypescriptBuilderSource';
 import { DiscriminatedModelToTypescriptModelSource } from '../languages/ldw/model/discriminated/outputs/toTypescriptModelSource';
 import { DiscriminatedModelToTypescriptVisitorSource } from '../languages/ldw/model/discriminated/outputs/toTypescriptVisitorSource';
@@ -73,15 +78,17 @@ program
                 new TypedGrammarFromExtendedGrammar()
             ).transform(dslSource);
 
-            if (isTypescript) {
-                const modelSource = composePasses(
-                    new ParsedModelFromTypedGrammar(),
-                    new ParsedModelToSource()
-                ).transform(typedGrammar);
-                await registry.writeOutput(options.name, modelSource, 'ldw.model');
+            const modelSource = composePasses(new ParsedModelFromTypedGrammar(), new ParsedModelToSource()).transform(
+                typedGrammar
+            );
+            await registry.writeOutput(options.name, modelSource, 'ldw.model');
 
+            if (isTypescript) {
                 const parserSource = new TypedGrammarToTypescriptParserSource(options.roots).transform(typedGrammar);
                 await registry.writeOutput(options.name, parserSource, 'parser.ts');
+            } else {
+                const parserSource = new TypedGrammarToRustParserSource(options.roots).transform(typedGrammar);
+                await registry.writeOutput(options.name, parserSource, 'parser.rs');
             }
         } catch (error) {
             handleError(error, command);
@@ -124,7 +131,7 @@ program
                 );
                 await registry.writeOutput(options.name, modelSource, 'model.ts');
 
-                // const transformerSource = new ParsedModelToTypescriptTransformerSource().transform(discriminatedModel);
+                // const transformerSource = new DiscriminatedModelToTypescriptTransformerSource().transform(discriminatedModel);
                 // await registry.writeOutput(options.name, transformerSource, 'transformer.ts');
 
                 const builderSource = new DiscriminatedModelToTypescriptBuilderSource().transform(discriminatedModel);
@@ -132,6 +139,18 @@ program
 
                 const visitorSource = new DiscriminatedModelToTypescriptVisitorSource().transform(discriminatedModel);
                 await registry.writeOutput(options.name, visitorSource, 'visitor.ts');
+            } else {
+                const modelSource = new DiscriminatedModelToRustModelSource(registry).transform(discriminatedModel);
+                await registry.writeOutput(options.name, modelSource, 'model.rs');
+
+                const transformerSource = new DiscriminatedModelToRustTransformerSource().transform(discriminatedModel);
+                await registry.writeOutput(options.name, transformerSource, 'transformer.rs');
+
+                const builderSource = new DiscriminatedModelToRustBuilderSource().transform(discriminatedModel);
+                await registry.writeOutput(options.name, builderSource, 'buider.rs');
+
+                const visitorSource = new DiscriminatedModelToRustVisitorSource().transform(discriminatedModel);
+                await registry.writeOutput(options.name, visitorSource, 'visitor.rs');
             }
         } catch (error) {
             handleError(error, command);
